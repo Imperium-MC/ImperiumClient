@@ -27,15 +27,14 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 
 import io.github.axolotlclient.AxolotlClientCommon;
 import io.github.axolotlclient.AxolotlClientConfig.api.util.Colors;
 import io.github.axolotlclient.AxolotlClientConfig.impl.ui.ClickableWidget;
 import io.github.axolotlclient.AxolotlClientConfig.impl.ui.TextFieldWidget;
-import io.github.axolotlclient.AxolotlClientConfig.impl.util.CommonTexts;
 import io.github.axolotlclient.AxolotlClientConfig.impl.ui.rounded.util.StyleColors;
 import io.github.axolotlclient.AxolotlClientConfig.impl.ui.vanilla.widgets.VanillaButtonWidget;
+import io.github.axolotlclient.AxolotlClientConfig.impl.util.CommonTexts;
 import io.github.axolotlclient.bridge.impl.AxoRenderContextImpl;
 import io.github.axolotlclient.mixin.AxoConfigTextFieldWidgetAccessor;
 import io.github.axolotlclient.rendering.DrawUtil;
@@ -43,14 +42,13 @@ import io.github.axolotlclient.util.CursorType;
 import io.github.axolotlclient.util.CursorTypes;
 import io.github.axolotlclient.util.MathUtil;
 import io.github.axolotlclient.util.Util;
+import io.github.axolotlclient.util.dialogs.DialogProvider;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.render.TextRenderer;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.client.sound.system.SoundManager;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.util.tinyfd.TinyFileDialogs;
 
 public class CropImageScreen extends io.github.axolotlclient.AxolotlClientConfig.impl.ui.Screen {
 	private final Screen parent;
@@ -112,28 +110,22 @@ public class CropImageScreen extends io.github.axolotlclient.AxolotlClientConfig
 		var footerLine2Y = inputsY + 24;
 		var footerLine3Y = footerLine2Y + 24;
 		addDrawableChild(new VanillaButtonWidget(width / 2 - (100 * 3 + 4 * 2) / 2, footerLine2Y, 100, 20, I18n.translate("gallery.image.crop.save_as"), btn -> {
-			String result = null;
-			try (MemoryStack stack = MemoryStack.stackPush()) {
-				var crop = imageWidget.getCopyOfSelection();
-				var pointers = stack.mallocPointer(1);
-				pointers.put(stack.UTF8("*.png"));
-				pointers.flip();
-				var defaultPath = image instanceof ImageInstance.Local loc ? loc.location().getParent() : FabricLoader.getInstance().getGameDir();
-				result = TinyFileDialogs.tinyfd_saveFileDialog("Choose destination",
-					defaultPath.resolve(image.filename().replace(".png", "_cropped-" + Util.getFilenameFormattedDateTime() + ".png"))
-						.toAbsolutePath().toString(),
-					pointers, "PNG Images");
-				if (result != null) {
-					var dest = Path.of(result);
+			var crop = imageWidget.getCopyOfSelection();
+			var defaultPath = image instanceof ImageInstance.Local loc ? loc.location().getParent() : FabricLoader.getInstance().getGameDir();
+			DialogProvider.IMPL.save("Choose destination", defaultPath.resolve(image.filename().replace(".png", "_cropped-" + Util.getFilenameFormattedDateTime() + ".png"))
+				.toAbsolutePath(), ".png").thenAccept(opt -> {
+				if (opt.isPresent()) {
+					var dest = opt.get();
 					try (var out = Files.newOutputStream(dest)) {
 						ImageIO.write(crop, "png", out);
 						AxolotlClientCommon.getInstance().getNotificationProvider().addStatus("gallery.image.crop.save_as.success", "gallery.image.crop.save_as.success.description", dest.getFileName());
+
+					} catch (IOException e) {
+						AxolotlClientCommon.getInstance().getLogger().error("Failed to save cropped image!", e);
+						AxolotlClientCommon.getInstance().getNotificationProvider().addStatus("gallery.image.crop.save_as.failure", "gallery.image.crop.save_as.failure.description", dest);
 					}
 				}
-			} catch (IOException e) {
-				AxolotlClientCommon.getInstance().getLogger().error("Failed to save cropped image!", e);
-				AxolotlClientCommon.getInstance().getNotificationProvider().addStatus("gallery.image.crop.save_as.failure", "gallery.image.crop.save_as.failure.description", result);
-			}
+			});
 		}));
 		addDrawableChild(new VanillaButtonWidget(width / 2 - (100 * 3 + 4 * 2) / 2 + 100 + 4, footerLine2Y, 100, 20, I18n.translate("gallery.image.crop.save"), btn -> {
 			var p = image instanceof ImageInstance.Local loc ? loc.location().getParent() : FabricLoader.getInstance().getGameDir().resolve("screenshots");

@@ -40,5 +40,6 @@ optional '1.20'
 optional '1.21'
 optional '1.21.11'
 optional '26.1'
+optional '26.2'
 optional 'latest'
 

@@ -56,13 +56,6 @@ dependencies {
 
 	modImplementation("io.github.moehreag:legacy-lwjgl3:$legacyLwjgl3")
 
-	include(implementation("org.lwjgl:lwjgl-tinyfd:$lwjglVersion")!!)
-	include(runtimeOnly("org.lwjgl:lwjgl-tinyfd:$lwjglVersion:natives-linux")!!)
-	include(runtimeOnly("org.lwjgl:lwjgl-tinyfd:$lwjglVersion:natives-windows")!!)
-	include(runtimeOnly("org.lwjgl:lwjgl-tinyfd:$lwjglVersion:natives-macos")!!)
-	include(runtimeOnly("org.lwjgl:lwjgl-tinyfd:$lwjglVersion:natives-windows-arm64")!!)
-	include(runtimeOnly("org.lwjgl:lwjgl-tinyfd:$lwjglVersion:natives-macos-arm64")!!)
-
 	api("net.hypixel:mod-api:1.0.2")
 	include(modImplementation("io.github.moehreag.hypixel:mod-api-fabric:1.0.2+build.1+mc1.8.9")!!)
 	include(implementation("com.mojang:brigadier:1.0.18")!!)

@@ -23,7 +23,6 @@
 package io.github.axolotlclient.modules.screenshotUtils;
 
 import java.io.IOException;
-import java.nio.file.Path;
 
 import com.mojang.blaze3d.texture.NativeImage;
 import io.github.axolotlclient.AxolotlClientCommon;
@@ -33,6 +32,7 @@ import io.github.axolotlclient.mixin.TextFieldWidgetAccessor;
 import io.github.axolotlclient.util.CursorType;
 import io.github.axolotlclient.util.CursorTypes;
 import io.github.axolotlclient.util.MathUtil;
+import io.github.axolotlclient.util.dialogs.DialogProvider;
 import lombok.AllArgsConstructor;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.ElementPath;
@@ -50,8 +50,6 @@ import net.minecraft.text.CommonTexts;
 import net.minecraft.text.Text;
 import net.minecraft.util.Util;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.util.tinyfd.TinyFileDialogs;
 
 public class CropImageScreen extends Screen {
 	private final Screen parent;
@@ -104,24 +102,21 @@ public class CropImageScreen extends Screen {
 		var footerLine2Y = inputsY + 24;
 		var footerLine3Y = footerLine2Y + 24;
 		addDrawableChild(ButtonWidget.builder(Text.translatable("gallery.image.crop.save_as"), btn -> {
-			String result = null;
-			try (MemoryStack stack = MemoryStack.stackPush(); var crop = imageWidget.getCopyOfSelection()) {
-				var pointers = stack.mallocPointer(1);
-				pointers.put(stack.UTF8("*.png"));
-				pointers.flip();
+			try (var crop = imageWidget.getCopyOfSelection()) {
 				var defaultPath = image instanceof ImageInstance.Local loc ? loc.location().getParent() : FabricLoader.getInstance().getGameDir();
-				result = TinyFileDialogs.tinyfd_saveFileDialog("Choose destination",
-					defaultPath.resolve(image.filename().replace(".png", "_cropped-" + Util.getFileNameFormattedDateTime() + ".png"))
-						.toAbsolutePath().toString(),
-					pointers, "PNG Images");
-				if (result != null) {
-					var dest = Path.of(result);
-					crop.writeFile(dest);
-					AxolotlClientCommon.getInstance().getNotificationProvider().addStatus("gallery.image.crop.save_as.success", "gallery.image.crop.save_as.success.description", dest.getFileName());
-				}
-			} catch (IOException e) {
-				AxolotlClientCommon.getInstance().getLogger().error("Failed to save cropped image!", e);
-				AxolotlClientCommon.getInstance().getNotificationProvider().addStatus("gallery.image.crop.save_as.failure", "gallery.image.crop.save_as.failure.description", result);
+				DialogProvider.IMPL.save("Choose destination", defaultPath.resolve(image.filename().replace(".png", "_cropped-" + Util.getFileNameFormattedDateTime() + ".png"))
+					.toAbsolutePath(), ".png").thenAccept(opt -> {
+					if (opt.isPresent()) {
+						var dest = opt.get();
+						try {
+							crop.writeFile(dest);
+							AxolotlClientCommon.getInstance().getNotificationProvider().addStatus("gallery.image.crop.save_as.success", "gallery.image.crop.save_as.success.description", dest.getFileName());
+						} catch (IOException e) {
+							AxolotlClientCommon.getInstance().getLogger().error("Failed to save cropped image!", e);
+							AxolotlClientCommon.getInstance().getNotificationProvider().addStatus("gallery.image.crop.save_as.failure", "gallery.image.crop.save_as.failure.description", dest);
+						}
+					}
+				});
 			}
 		}).width(100).position(width / 2 - (100 * 3 + 4 * 2) / 2, footerLine2Y).build());
 		addDrawableChild(ButtonWidget.builder(Text.translatable("gallery.image.crop.save"), btn -> {
@@ -612,8 +607,8 @@ public class CropImageScreen extends Screen {
 			var wScale = imgWidth / (dragX1 - dragX);
 			var hScale = imgHeight / (dragY1 - dragY);
 			scale = Math.abs(wScale - 1) < Math.abs(hScale - 1) ? wScale : hScale;
-			translateX = -CropImageScreen.this.width / 2f - scale * (-CropImageScreen.this.width / 2f + dragX) + getX() + getWidth()/2f - (dragX1 - dragX)*scale/2f;
-			translateY = -CropImageScreen.this.height / 2f - scale * (-CropImageScreen.this.height / 2f + dragY) + getY() + getHeight()/2f - (dragY1-dragY)*scale/2f;
+			translateX = -CropImageScreen.this.width / 2f - scale * (-CropImageScreen.this.width / 2f + dragX) + getX() + getWidth() / 2f - (dragX1 - dragX) * scale / 2f;
+			translateY = -CropImageScreen.this.height / 2f - scale * (-CropImageScreen.this.height / 2f + dragY) + getY() + getHeight() / 2f - (dragY1 - dragY) * scale / 2f;
 			updateTextFieldWidgetContents();
 		}
 

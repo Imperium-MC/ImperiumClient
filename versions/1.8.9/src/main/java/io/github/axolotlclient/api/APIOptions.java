@@ -22,7 +22,6 @@
 
 package io.github.axolotlclient.api;
 
-import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -33,6 +32,7 @@ import io.github.axolotlclient.api.chat.ChatListScreen;
 import io.github.axolotlclient.api.requests.AccountDataRequest;
 import io.github.axolotlclient.api.requests.AccountSettingsRequest;
 import io.github.axolotlclient.util.ThreadExecuter;
+import io.github.axolotlclient.util.dialogs.DialogProvider;
 import io.github.axolotlclient.util.options.GenericOption;
 import lombok.Getter;
 import net.fabricmc.loader.api.FabricLoader;
@@ -45,8 +45,6 @@ import net.ornithemc.osl.keybinds.api.KeybindEvents;
 import net.ornithemc.osl.keybinds.api.KeybindRegistry;
 import net.ornithemc.osl.lifecycle.api.client.MinecraftClientEvents;
 import org.lwjgl.input.Keyboard;
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.util.tinyfd.TinyFileDialogs;
 
 public class APIOptions extends Options {
 
@@ -97,13 +95,8 @@ public class APIOptions extends Options {
 				API.getInstance().getNotificationProvider().addStatus("api.account.export.failure.title", "api.error.unauthenticated");
 				return;
 			}
-			try (MemoryStack stack = MemoryStack.stackPush()) {
-				var pointers = stack.pointers(stack.UTF8("*.json"));
-				var result = TinyFileDialogs.tinyfd_saveFileDialog("Choose export destination", FabricLoader.getInstance().getGameDir().toString(), pointers, null);
-				if (result != null) {
-					AccountDataRequest.get(Path.of(result));
-				}
-			}
+			DialogProvider.IMPL.save("Choose export destination", FabricLoader.getInstance().getGameDir(), ".json")
+				.thenAccept(opt -> opt.ifPresent(AccountDataRequest::get));
 		})));
 		account.add(new GenericOption("api.account.delete", "api.account.delete_account", () -> {
 			Screen previous = client.screen;

@@ -4,10 +4,10 @@ plugins {
 	id("net.fabricmc.fabric-loom")
 }
 
-val minecraftVersion = "26.2"
-val minecraftFriendly = "26.2"
+val minecraftVersion = "26.3"
+val minecraftFriendly = "26.3"
 val modmenu = "18.0.0-alpha.8"
-val fapi = "0.154.1+26.2"
+val fapi = "0.161.0+26.3"
 group = project.property("maven_group") as String
 version = "${project.property("version")}+$minecraftFriendly"
 base.archivesName = "AxolotlClient"
@@ -48,7 +48,7 @@ dependencies {
 	implementation("com.noxcrew.noxesium:api:$noxesiumVersion")
 	//localRuntime("org.khelekore:prtree:1.5")
 
-	compileOnly("maven.modrinth:e4mc:6.1.2-fabric")
+	compileOnly("maven.modrinth:e4mc:6.2.2-fabric-modern")
 
 	implementation("net.hypixel:mod-api:1.0.2")
 	include(implementation("maven.modrinth:hypixel-mod-api:1.0.2+build.1+mc26.1")!!)

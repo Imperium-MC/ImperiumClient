@@ -23,27 +23,14 @@
 package io.github.axolotlclient.modules.auth.skin;
 
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import io.github.axolotlclient.util.dialogs.DialogProvider;
 import net.fabricmc.loader.api.FabricLoader;
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.util.tinyfd.TinyFileDialogs;
 
 public class SkinImportUtil {
 	public static CompletableFuture<List<Path>> openImportSkinDialog() {
-		return CompletableFuture.supplyAsync(() -> {
-			try (MemoryStack stack = MemoryStack.stackPush()) {
-				var pointers = stack.pointers(stack.UTF8("*.png"));
-				@SuppressWarnings("DataFlowIssue") var result = TinyFileDialogs.tinyfd_openFileDialog("Import Skins",
-					FabricLoader.getInstance().getGameDir().toString(), pointers, null, true);
-				if (result != null) {
-					return Arrays.stream(result.split("\\|"))
-						.map(Path::of).toList();
-				}
-				return List.of();
-			}
-		});
+		return DialogProvider.IMPL.openMultiple("Import Skins", FabricLoader.getInstance().getGameDir(), ".png").thenApply(opt -> opt.orElseGet(List::of));
 	}
 }
