@@ -409,7 +409,7 @@
 	"freelook.toggle.tooltip": "Use the set key to toggle whether Freelook is enabled.",
 	"toggleSneak": "Allow Sneaking toggle",
 	"toggleSprint": "Allow Sprinting toggle",
-	"togglesprint": "ToggleModifiers",
+	"togglesprint": "ToggleSprint",
 	"topbackgroundcolor": "Backgroundcolor (Top)",
 	"toppadding": "Top Padding",
 	"tpshud": "TPS HUD",

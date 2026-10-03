@@ -26,11 +26,11 @@ import java.util.List;
 import java.util.Map;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import com.mojang.blaze3d.buffers.GpuBuffer;
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.buffers.Std140Builder;
 import com.mojang.blaze3d.resource.ResourceHandle;
-import com.mojang.blaze3d.systems.CommandEncoder;
+import com.mojang.renderpearl.api.buffers.GpuBuffer;
+import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
+import com.mojang.renderpearl.api.commands.CommandEncoder;
 import io.github.axolotlclient.modules.blur.MotionBlur;
 import net.minecraft.client.renderer.PostPass;
 import net.minecraft.client.renderer.UniformValue;
@@ -49,7 +49,7 @@ public class PostPassMixin {
 	@Final
 	private Map<String, GpuBuffer> customUniforms;
 
-	@ModifyArg(method = "<init>", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/GpuDevice;createBuffer(Ljava/util/function/Supplier;ILjava/nio/ByteBuffer;)Lcom/mojang/blaze3d/buffers/GpuBuffer;"), index = 1)
+	@ModifyArg(method = "<init>", at = @At(value = "INVOKE", target = "Lcom/mojang/renderpearl/api/device/GpuDevice;createBuffer(Ljava/util/function/Supplier;ILjava/nio/ByteBuffer;)Lcom/mojang/renderpearl/api/buffers/GpuBuffer;"), index = 1)
 	private @GpuBuffer.Usage int addWritable(@GpuBuffer.Usage int i, @Local(name = "uniformGroup") Map.Entry<String, List<UniformValue>> entry) {
 		if ("BlurConfig".equals(entry.getKey())) {
 			return i | GpuBuffer.USAGE_MAP_WRITE;
@@ -57,7 +57,7 @@ public class PostPassMixin {
 		return i;
 	}
 
-	@Inject(method = "lambda$addToFrame$1", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/buffers/GpuBuffer;map(ZZ)Lcom/mojang/blaze3d/buffers/GpuBufferSlice$MappedView;"))
+	@Inject(method = "lambda$addToFrame$1", at = @At(value = "INVOKE", target = "Lcom/mojang/renderpearl/api/buffers/GpuBuffer;map(ZZ)Lcom/mojang/renderpearl/api/buffers/GpuBufferSlice$MappedView;"))
 	private void addUniforms(ResourceHandle<?> outputHandle, GpuBufferSlice shaderOrthoMatrix, Map<?, ?> targets, CallbackInfo ci, @Local(name = "commandEncoder") CommandEncoder commandEncoder) {
 		if (customUniforms.containsKey("BlurConfig")) {
 			var buf = customUniforms.get("BlurConfig");

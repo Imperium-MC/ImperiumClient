@@ -22,6 +22,8 @@
 
 package io.github.axolotlclient.mixin;
 
+import java.net.URI;
+
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -103,7 +105,7 @@ public abstract class TitleScreenMixin extends Screen {
 				data.success() &&
 				data.latestVersion().isNewerThan(AxolotlClient.VERSION)) {
 				addRenderableWidget(Button.builder(Component.translatable("api.new_version_available"),
-						ConfirmLinkScreen.confirmLink(this, "https://modrinth.com/mod/axolotlclient/versions"))
+						ConfirmLinkScreen.confirmLink(this, URI.create("https://modrinth.com/mod/axolotlclient/versions")))
 					.bounds(width - 90, buttonY, 80, 20).build());
 				buttonY += 24;
 			}

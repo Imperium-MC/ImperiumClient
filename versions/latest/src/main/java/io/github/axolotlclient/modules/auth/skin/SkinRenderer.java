@@ -83,16 +83,16 @@ public class SkinRenderer extends PictureInPictureRenderer<SkinRenderState> {
 		matrix4fStack.pushMatrix();
 		float f = renderState.scale() * i;
 		matrix4fStack.rotateAround(Axis.XP.rotationDegrees(renderState.rotationX()), 0.0F, f * -renderState.pivotY(), 0.0F);
-		poseStack.mulPose(Axis.YP.rotationDegrees(-renderState.rotationY()));
+		poseStack.rotate(Axis.YP.rotationDegrees(-renderState.rotationY()));
 		poseStack.translate(0.0F, -1.6010001F, 0.0F);
 		var model = renderState.classicVariant() ? classicModel : slimModel;
-		collector.submitModel(model, Unit.INSTANCE, poseStack, renderState.skinTexture(), 15728880, OverlayTexture.NO_OVERLAY, 0, null);
+		collector.submitModel(model, Unit.INSTANCE, poseStack, renderState.skinTexture(), 15728880, OverlayTexture.NO_OVERLAY, 0);
 		if (renderState.cape() != null) {
 			if (capeModel == null) {
 				capeModel = new Model.Simple(minecraft.getEntityModels().bakeLayer(ModelLayers.PLAYER_CAPE), RenderTypes::entityTranslucent);
 			}
-			poseStack.mulPose(Axis.XP.rotationDegrees(6.0F));
-			collector.submitModel(capeModel, Unit.INSTANCE, poseStack, renderState.cape(), 15728880, OverlayTexture.NO_OVERLAY, 0, null);
+			poseStack.rotate(Axis.XP.rotationDegrees(6.0F));
+			collector.submitModel(capeModel, Unit.INSTANCE, poseStack, renderState.cape(), 15728880, OverlayTexture.NO_OVERLAY, 0);
 		}
 		matrix4fStack.popMatrix();
 	}

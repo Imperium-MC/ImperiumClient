@@ -41,7 +41,7 @@ import org.spongepowered.asm.mixin.Shadow;
 public interface ResourceManagerMixin extends ResourceProvider, AxoResourceManager {
 
 	@Shadow
-	Map<Identifier, Resource> listResources(String path, Predicate<Identifier> filter);
+	Map<Identifier, Resource> listResources(String path, ResourceManager.Selector filter);
 
 	@SuppressWarnings("unchecked")
 	@Override

@@ -25,7 +25,6 @@ package io.github.axolotlclient.modules.auth;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-import com.mojang.authlib.minecraft.UserApiService;
 import com.mojang.authlib.yggdrasil.ProfileResult;
 import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import io.github.axolotlclient.AxolotlClient;
@@ -53,6 +52,7 @@ import net.minecraft.client.multiplayer.chat.report.ReportingContext;
 import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.Services;
 import net.minecraft.util.Util;
 
 public class Auth extends Accounts implements Module {
@@ -105,12 +105,14 @@ public class Auth extends Accounts implements Module {
 				API.getInstance().shutdown();
 				var mcAccessor = (MinecraftClientAccessor) mc;
 				mcAccessor.axolotlclient$setSession(new User(account.getName(), UUIDHelper.fromUndashed(account.getUuid()), account.getAuthToken(), Optional.empty(), Optional.empty()));
-				UserApiService service;
+				YggdrasilAuthenticationService authService;
 				if (account.isOffline()) {
-					service = UserApiService.OFFLINE;
+					authService = YggdrasilAuthenticationService.createOffline(mc.getProxy());
 				} else {
-					service = new YggdrasilAuthenticationService(mc.getProxy()).createUserApiService(mc.getUser().getAccessToken());
+					authService = new YggdrasilAuthenticationService(mc.getProxy());
 				}
+				var service = authService.createUserApiService(mc.getUser().getAccessToken());
+				mcAccessor.axolotlclient$setServices(Services.create(authService, mc.gameDirectory));
 				mcAccessor.axolotlclient$setUserApiService(service);
 				var sourceAccessor = (DownloadedPackSourceAccessor) mc.getDownloadedPackSource();
 				((ServerPackManagerAccessor) sourceAccessor.axolotlclient$getManager())

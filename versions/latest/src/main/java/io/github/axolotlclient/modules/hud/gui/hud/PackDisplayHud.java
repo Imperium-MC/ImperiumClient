@@ -95,14 +95,16 @@ public class PackDisplayHud extends TextHudEntry {
 			.toList();
 		var listSize = valid.size();
 		valid.forEach(profile -> {
-			try (PackResources pack = profile.open()) {
-				if (listSize == 1) {
-					widgets.add(createWidget(profile.getTitle(), pack));
-				} else if (!pack.packId().equalsIgnoreCase("vanilla")) {
-					widgets.add(createWidget(profile.getTitle(), pack));
+			profile.open().forEach(p -> {
+				try (PackResources pack = p) {
+					if (listSize == 1) {
+						widgets.add(createWidget(profile.getTitle(), pack));
+					} else if (!pack.packId().equalsIgnoreCase("vanilla")) {
+						widgets.add(createWidget(profile.getTitle(), pack));
+					}
+				} catch (Exception ignored) {
 				}
-			} catch (Exception ignored) {
-			}
+			});
 		});
 
 		AtomicInteger w = new AtomicInteger(20);
@@ -141,7 +143,7 @@ public class PackDisplayHud extends TextHudEntry {
 			onBoundsUpdate();
 		}
 		if (placeholder == null) {
-			try (PackResources defaultPack = client.getVanillaPackResources()) {
+			try (PackResources defaultPack = client.getVanillaPackResources().fullResources()) {
 				placeholder = createWidget(Component.literal(defaultPack.packId()), defaultPack);
 			} catch (Exception ignored) {
 			}

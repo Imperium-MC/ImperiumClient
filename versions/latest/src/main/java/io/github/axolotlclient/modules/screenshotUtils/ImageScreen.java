@@ -23,6 +23,7 @@
 package io.github.axolotlclient.modules.screenshotUtils;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -30,6 +31,7 @@ import java.time.ZoneId;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import com.mojang.blaze3d.Blaze3D;
 import io.github.axolotlclient.AxolotlClientCommon;
 import io.github.axolotlclient.AxolotlClientConfig.impl.util.DrawUtil;
 import io.github.axolotlclient.api.API;
@@ -128,7 +130,7 @@ public class ImageScreen extends Screen {
 				}).width(buttonWidth).build());
 			}
 			actions.addChild(Button.builder(Component.translatable("gallery.image.copy"), b -> ScreenshotCopying.copy(loc)).width(buttonWidth).build());
-			actions.addChild(Button.builder(Component.translatable("gallery.image.open.external"), b -> Util.getPlatform().openPath(loc)).width(buttonWidth).build());
+			actions.addChild(Button.builder(Component.translatable("gallery.image.open.external"), b -> Blaze3D.openPath(loc)).width(buttonWidth).build());
 			actions.addChild(Button.builder(Component.translatable("gallery.image.delete"), b -> {
 				try {
 					Files.delete(loc);
@@ -160,7 +162,7 @@ public class ImageScreen extends Screen {
 					}
 				}).width(buttonWidth).build());
 			}
-			actions.addChild(Button.builder(Component.translatable("gallery.image.open.external.browser"), b -> Util.getPlatform().openUri(remote.url())).width(buttonWidth).build());
+			actions.addChild(Button.builder(Component.translatable("gallery.image.open.external.browser"), b -> Blaze3D.openUri(URI.create(remote.url()))).width(buttonWidth).build());
 			actions.addChild(Button.builder(Component.translatable("gallery.image.copy_url"), b -> minecraft.keyboardHandler.setClipboard(remote.url())).width(buttonWidth).build());
 		}
 		actions.addChild(Button.builder(Component.translatable("gallery.image.crop"), btn -> minecraft.gui.setScreen(new CropImageScreen(this, image))).width(buttonWidth).build());

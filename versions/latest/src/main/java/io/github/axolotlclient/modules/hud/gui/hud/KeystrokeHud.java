@@ -61,7 +61,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.util.Util;
 import org.jspecify.annotations.Nullable;
-import org.lwjgl.glfw.GLFW;
 
 import static io.github.axolotlclient.util.DrawUtil.*;
 
@@ -103,13 +102,13 @@ public class KeystrokeHud extends TextHudEntry implements ProfileAware {
 
 	public static Optional<String> getMouseKeyBindName(KeyMapping keyBinding) {
 		if (keyBinding.saveString().equalsIgnoreCase(
-			InputConstants.Type.MOUSE.getOrCreate(GLFW.GLFW_MOUSE_BUTTON_1).getName())) {
+			InputConstants.Type.MOUSE.getOrCreate(InputConstants.MOUSE_BUTTON_LEFT).getName())) {
 			return Optional.of("LMB");
 		} else if (keyBinding.saveString().equalsIgnoreCase(
-			InputConstants.Type.MOUSE.getOrCreate(GLFW.GLFW_MOUSE_BUTTON_2).getName())) {
+			InputConstants.Type.MOUSE.getOrCreate(InputConstants.MOUSE_BUTTON_RIGHT).getName())) {
 			return Optional.of("RMB");
 		} else if (keyBinding.saveString().equalsIgnoreCase(
-			InputConstants.Type.MOUSE.getOrCreate(GLFW.GLFW_MOUSE_BUTTON_3).getName())) {
+			InputConstants.Type.MOUSE.getOrCreate(InputConstants.MOUSE_BUTTON_MIDDLE).getName())) {
 			return Optional.of("MMB");
 		}
 		return Optional.empty();

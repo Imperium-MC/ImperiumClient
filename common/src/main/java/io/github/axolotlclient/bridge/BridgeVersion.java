@@ -33,7 +33,8 @@ public enum BridgeVersion {
 	V1_21("1.21"),
 	V1_21_11("1.21.11"),
 	V26_1("26.1"),
-	V26_2("26.2");
+	V26_2("26.2"),
+	V26_3("26.3");
 
 	private final String name;
 
@@ -62,6 +63,6 @@ public enum BridgeVersion {
 	}
 
 	public static boolean is26OrLater() {
-		return version() == V26_1 || version() == V26_2;
+		return !version().name.startsWith("1.");
 	}
 }

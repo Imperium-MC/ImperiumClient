@@ -100,7 +100,7 @@ public abstract class GameMenuScreenMixin extends Screen {
 		};
 	}
 
-	@WrapMethod(method = "lambda$createPauseMenu$11")
+	@WrapMethod(method = "lambda$createPauseMenu$10")
 	private void confirmDisconnect(Button button, Operation<Void> original) {
 		if (minecraft.getCurrentServer() != null && AxolotlClient.config().confirmDisconnect.get()) {
 			minecraft.gui.setScreen(new ConfirmScreen(confirmed -> {

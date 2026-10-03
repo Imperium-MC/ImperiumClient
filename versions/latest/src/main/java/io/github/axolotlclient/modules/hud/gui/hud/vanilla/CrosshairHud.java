@@ -45,6 +45,7 @@ import io.github.axolotlclient.util.Util;
 import net.minecraft.client.AttackIndicatorStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
@@ -284,8 +285,11 @@ public class CrosshairHud extends AbstractHudEntry implements DynamicallyPositio
 		Matrix4fStack matrixStack = RenderSystem.getModelViewStack();
 		matrixStack.pushMatrix();
 		var scaleModifier = getScale() < 1 ? 0 : (int) ((getScale() - 1f) * 15f);
-		((GameRendererAccessor) client.gameRenderer).getDebugCrosshairRenderer().render(client.gameRenderer.gameRenderState().levelRenderState.cameraRenderState,
-			client.gameRenderer.gameRenderState().windowRenderState.guiScale + scaleModifier);
+		GameRenderer gameRenderer = client.gameRenderer;
+		GameRendererAccessor accessor = (GameRendererAccessor) gameRenderer;
+		accessor.getDebugCrosshairRenderer().render(gameRenderer.gameRenderState().levelRenderState.cameraRenderState,
+			gameRenderer.gameRenderState().windowRenderState.guiScale + scaleModifier, gameRenderer.mainRenderTarget().getColorTextureView(),
+			!accessor.getAppliedPostEffects().isEmpty() ? accessor.getHud3dTarget().getDepthTextureView() : gameRenderer.mainRenderTarget().getDepthTextureView());
 		matrixStack.popMatrix();
 	}
 

@@ -34,6 +34,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
 
+import com.mojang.blaze3d.Blaze3D;
 import io.github.axolotlclient.AxolotlClient;
 import io.github.axolotlclient.AxolotlClientCommon;
 import io.github.axolotlclient.AxolotlClientConfig.api.options.OptionCategory;
@@ -84,7 +85,7 @@ public class ScreenshotUtils extends AbstractModule {
 
 		actions.put(() -> true, new Action("openAction", ChatFormatting.WHITE,
 			"open_image",
-			(file) -> Util.getPlatform().openUri(file.toUri())));
+			Blaze3D::openPath));
 
 		actions.put(() -> true, new Action("viewInGalleryAction", ChatFormatting.LIGHT_PURPLE, "view_in_gallery",
 			file -> {

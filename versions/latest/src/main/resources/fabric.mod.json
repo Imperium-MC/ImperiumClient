@@ -36,11 +36,11 @@
 		"axolotlclient.e4mc.mixins.json"
 	],
 	"custom": {
-		"axolotlclient:bridge_impl_version": "V26_2"
+		"axolotlclient:bridge_impl_version": "V26_3"
 	},
 	"depends": {
 		"fabricloader": ">=0.18.0",
-		"minecraft": "~26.2-",
+		"minecraft": "~26.3-",
 		"fabric-api": "*",
 		"axolotlclientconfig": "*",
 		"axolotlclient-common": "*"

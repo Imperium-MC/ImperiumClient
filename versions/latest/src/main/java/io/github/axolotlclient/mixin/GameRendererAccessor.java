@@ -22,8 +22,12 @@
 
 package io.github.axolotlclient.mixin;
 
+import java.util.List;
+
+import com.mojang.blaze3d.pipeline.RenderTarget;
 import net.minecraft.client.renderer.DebugCrosshairRenderer;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.PostChain;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
@@ -31,4 +35,10 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface GameRendererAccessor {
 	@Accessor("debugCrosshairRenderer")
 	DebugCrosshairRenderer getDebugCrosshairRenderer();
+
+	@Accessor("appliedPostEffects")
+	List<PostChain> getAppliedPostEffects();
+
+	@Accessor("hud3DTarget")
+	RenderTarget getHud3dTarget();
 }

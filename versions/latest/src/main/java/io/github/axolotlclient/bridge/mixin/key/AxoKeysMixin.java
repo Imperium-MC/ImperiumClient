@@ -73,13 +73,13 @@ public abstract class AxoKeysMixin {
 
 	@Inject(method = "<clinit>", at = @At("HEAD"), cancellable = true)
 	private static void setStaticValues(CallbackInfo ci) {
-		KEY_I = InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_I);
-		KEY_K = InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_K);
+		KEY_I = InputConstants.Type.KEYBOARD.getOrCreate(InputConstants.KEY_I);
+		KEY_K = InputConstants.Type.KEYBOARD.getOrCreate(InputConstants.KEY_K);
 		MOUSE_LEFT = InputConstants.Type.MOUSE.getOrCreate(InputConstants.MOUSE_BUTTON_LEFT);
 		MOUSE_RIGHT = InputConstants.Type.MOUSE.getOrCreate(InputConstants.MOUSE_BUTTON_RIGHT);
-		KEY_RSHIFT = InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_RSHIFT);
+		KEY_RSHIFT = InputConstants.Type.KEYBOARD.getOrCreate(InputConstants.KEY_RSHIFT);
 		KEY_UNKNOWN = InputConstants.UNKNOWN;
-		KEY_C = InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_C);
+		KEY_C = InputConstants.Type.KEYBOARD.getOrCreate(InputConstants.KEY_C);
 		ci.cancel();
 	}
 }

@@ -22,6 +22,11 @@ loom {
 			sourceSet("test")
 		}
 	}
+	decompilers {
+		decompilerOptions.named("vineflower") {
+			options.put("mark-corresponding-synthetics", "1")
+		}
+	}
 }
 
 repositories {

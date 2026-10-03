@@ -26,9 +26,9 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import com.mojang.authlib.minecraft.UserApiService;
-import com.mojang.authlib.yggdrasil.FriendsService;
-import com.mojang.authlib.yggdrasil.ProfileResult;
-import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
+import com.mojang.authlib.services.FriendsService;
+import com.mojang.authlib.services.MinecraftServicesDiscoveryService;
+import com.mojang.authlib.services.ProfileResult;
 import io.github.axolotlclient.AxolotlClient;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.BooleanOption;
 import io.github.axolotlclient.api.API;
@@ -55,6 +55,7 @@ import net.minecraft.client.multiplayer.chat.report.ReportingContext;
 import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.Services;
 import net.minecraft.util.Util;
 
 public class Auth extends Accounts implements Module {
@@ -107,13 +108,15 @@ public class Auth extends Accounts implements Module {
 				API.getInstance().shutdown();
 				var mcAccessor = (MinecraftClientAccessor) mc;
 				mcAccessor.axolotlclient$setSession(new User(account.getName(), UUIDHelper.fromUndashed(account.getUuid()), account.getAuthToken(), Optional.empty(), Optional.empty()));
-				YggdrasilAuthenticationService authService;
+				MinecraftServicesDiscoveryService authService;
 				UserApiService service;
 				if (account.isOffline()) {
-					authService = YggdrasilAuthenticationService.createOffline(mc.getProxy());
+					authService = MinecraftServicesDiscoveryService.createOffline(mc.getProxy());
 				} else {
-					authService = new YggdrasilAuthenticationService(mc.getProxy());
+					authService = MinecraftServicesDiscoveryService.create(mc.getProxy(), !mcAccessor.axolotlclient$isOfflineDevMode());
 				}
+				var services = Services.create(authService, mc.gameDirectory);
+				mcAccessor.axolotlclient$setServices(services);
 				service = authService.createUserApiService(mc.getUser().getAccessToken());
 				FriendsService friendsService = authService.createFriendsService(mc.getUser().getAccessToken());
 				RemoteFriendListUpdateHandler updateHandler = new RemoteFriendListUpdateHandler(friendsService, mc);

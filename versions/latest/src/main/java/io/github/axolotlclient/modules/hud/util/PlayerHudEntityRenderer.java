@@ -54,7 +54,7 @@ public class PlayerHudEntityRenderer extends PictureInPictureRenderer<PlayerHudE
 		Minecraft.getInstance().gameRenderer.lighting().setupFor(Lighting.Entry.ENTITY_IN_UI);
 		Vector3f vector3f = guiEntityRenderState.translation();
 		poseStack.translate(vector3f.x, vector3f.y, vector3f.z);
-		poseStack.mulPose(guiEntityRenderState.rotation());
+		poseStack.rotate(guiEntityRenderState.rotation());
 		Quaternionf quaternionf = guiEntityRenderState.overrideCameraAngle();
 		CameraRenderState cameraRenderState = new CameraRenderState();
 		if (quaternionf != null) {
