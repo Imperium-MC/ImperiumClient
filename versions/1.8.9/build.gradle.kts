@@ -57,7 +57,7 @@ dependencies {
 	modImplementation("io.github.moehreag:legacy-lwjgl3:$legacyLwjgl3")
 
 	api("net.hypixel:mod-api:1.0.2")
-	include(modImplementation("io.github.moehreag.hypixel:mod-api-fabric:1.0.2+build.1+mc1.8.9")!!)
+	include(modImplementation("io.github.moehreag.hypixel:mod-api-fabric:1.0.2+build.2+mc1.8.9")!!)
 	include(implementation("com.mojang:brigadier:1.0.18")!!)
 
 	modCompileOnly("maven.modrinth:e4mc-retro:R6GoyDZn")
