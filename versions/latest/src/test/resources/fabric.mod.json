@@ -19,6 +19,7 @@
 			"io.github.axolotlclient.AxolotlClientTest"
 		],
 		"fabric-client-gametest": [
+			"io.github.axolotlclient.imperium.ImperiumProtocolGameTest",
 			"io.github.axolotlclient.ImperiumMenuGameTest"
 		]
 	},

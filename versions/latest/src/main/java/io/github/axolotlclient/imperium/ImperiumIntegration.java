@@ -22,13 +22,13 @@
 
 package io.github.axolotlclient.imperium;
 
-import com.mojang.serialization.Codec;
+import java.nio.charset.StandardCharsets;
+
 import io.github.axolotlclient.AxolotlClientCommon;
 import io.netty.buffer.ByteBuf;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
@@ -52,6 +52,15 @@ import org.jspecify.annotations.NullMarked;
 public final class ImperiumIntegration {
 
 	private static final String NAMESPACE = "imperiumclient";
+	// The plugin exchanges bare UTF-8 JSON through Bukkit plugin messaging (no length prefix or NBT framing),
+	// so the payload is the entire buffer.
+	static final StreamCodec<ByteBuf, String> RAW_UTF8 = StreamCodec.of(
+		(buf, json) -> buf.writeBytes(json.getBytes(StandardCharsets.UTF_8)),
+		buf -> {
+			String json = buf.toString(buf.readerIndex(), buf.readableBytes(), StandardCharsets.UTF_8);
+			buf.skipBytes(buf.readableBytes());
+			return json;
+		});
 	private static final CustomPacketPayload.Type<HelloPayload> HELLO =
 		new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(NAMESPACE, "hello"));
 	private static final CustomPacketPayload.Type<FeaturesPayload> FEATURES =
@@ -103,8 +112,7 @@ public final class ImperiumIntegration {
 
 	@NullMarked
 	record HelloPayload(String json) implements CustomPacketPayload {
-		static final StreamCodec<ByteBuf, HelloPayload> CODEC =
-			ByteBufCodecs.fromCodec(Codec.STRING.xmap(HelloPayload::new, HelloPayload::json));
+		static final StreamCodec<ByteBuf, HelloPayload> CODEC = RAW_UTF8.map(HelloPayload::new, HelloPayload::json);
 
 		@Override
 		public Type<? extends CustomPacketPayload> type() {
@@ -114,8 +122,7 @@ public final class ImperiumIntegration {
 
 	@NullMarked
 	record FeaturesPayload(String json) implements CustomPacketPayload {
-		static final StreamCodec<ByteBuf, FeaturesPayload> CODEC =
-			ByteBufCodecs.fromCodec(Codec.STRING.xmap(FeaturesPayload::new, FeaturesPayload::json));
+		static final StreamCodec<ByteBuf, FeaturesPayload> CODEC = RAW_UTF8.map(FeaturesPayload::new, FeaturesPayload::json);
 
 		@Override
 		public Type<? extends CustomPacketPayload> type() {
