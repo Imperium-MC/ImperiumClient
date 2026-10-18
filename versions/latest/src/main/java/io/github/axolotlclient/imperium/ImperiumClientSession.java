@@ -84,7 +84,7 @@ public final class ImperiumClientSession {
 	 * are ignored by protocol; unknown keys are ignored for forward compatibility. Replaces
 	 * any prior grant set (the packet is authoritative per send).
 	 */
-	void applyFeatures(String json) {
+	public void applyFeatures(String json) {
 		try {
 			JsonElement parsed = JsonParser.parseString(json);
 			if (!parsed.isJsonObject()) {
@@ -107,7 +107,7 @@ public final class ImperiumClientSession {
 	}
 
 	/** Grants reset on disconnect — rule 2 of the protocol. */
-	void reset() {
+	public void reset() {
 		serverProtocolVersion = 0;
 		allowed.clear();
 		denied.clear();
