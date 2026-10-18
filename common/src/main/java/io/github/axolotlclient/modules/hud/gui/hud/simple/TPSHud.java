@@ -22,9 +22,13 @@
 
 package io.github.axolotlclient.modules.hud.gui.hud.simple;
 
+import java.util.List;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
+import io.github.axolotlclient.AxolotlClientConfig.api.options.Option;
+import io.github.axolotlclient.AxolotlClientConfig.api.util.Color;
+import io.github.axolotlclient.AxolotlClientConfig.impl.options.BooleanOption;
 import io.github.axolotlclient.bridge.events.Events;
 import io.github.axolotlclient.bridge.util.AxoIdentifier;
 import io.github.axolotlclient.modules.hud.gui.entry.SimpleTextHudEntry;
@@ -94,5 +98,34 @@ public class TPSHud extends SimpleTextHudEntry {
 	@Override
 	public String getLabel() {
 		return "TPS";
+	}
+
+	// ADAPTIVE COLOUR TIERS (Alpine parity M2): green when healthy, degrading through
+	// yellow and orange to red as the server struggles. When disabled (or while the
+	// first sample is still pending) the module's regular text colour option applies.
+	private final BooleanOption adaptiveColor = new BooleanOption("adaptivecolor", true);
+
+	@Override
+	public Color getTextColor() {
+		if (!adaptiveColor.get() || tps < 0) {
+			return super.getTextColor();
+		}
+		if (tps >= 18.0) {
+			return new Color(53, 219, 103).immutable();   // green
+		}
+		if (tps >= 15.0) {
+			return new Color(232, 197, 99).immutable();    // yellow
+		}
+		if (tps >= 12.0) {
+			return new Color(234, 164, 100).immutable();   // orange
+		}
+		return new Color(191, 34, 34).immutable();         // red
+	}
+
+	@Override
+	public List<Option<?>> getConfigurationOptions() {
+		List<Option<?>> options = super.getConfigurationOptions();
+		options.add(adaptiveColor);
+		return options;
 	}
 }

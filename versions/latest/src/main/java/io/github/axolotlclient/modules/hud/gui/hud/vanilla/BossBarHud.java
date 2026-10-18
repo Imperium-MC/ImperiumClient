@@ -93,6 +93,10 @@ public class BossBarHud extends TextHudEntry {
 		return boss;
 	});
 	private final BooleanOption text = new BooleanOption("text", true);
+
+	// HEALTH PERCENT (Alpine parity M2): append the live progress as a percentage after
+	// the boss name — the bar alone gives no precision and Alpine shows the number.
+	private final BooleanOption healthPercent = new BooleanOption("healthpercent", false);
 	private final BooleanOption bar = new BooleanOption("bar", true);
 	// TODO custom color
 	private Map<UUID, LerpingBossEvent> bossBars = new HashMap<>();
@@ -145,6 +149,9 @@ public class BossBarHud extends TextHudEntry {
 		}
 		if (text.get()) {
 			Component text = bossBar.getName();
+			if (healthPercent.get()) {
+				text = Component.literal(text.getString() + " (" + Math.round(bossBar.getProgress() * 100) + "%)");
+			}
 			float textX = x + ((float) getContentWidth() / 2) - ((float) client.font.width(text) / 2);
 			float textY = y - 9;
 			graphics.text(client.font, text, (int) textX, (int) textY, textColor.get().toInt(), shadow.get());
@@ -182,6 +189,7 @@ public class BossBarHud extends TextHudEntry {
 		List<Option<?>> options = super.getConfigurationOptions();
 		options.add(hide);
 		options.add(text);
+		options.add(healthPercent);
 		options.add(bar);
 		return options;
 	}
