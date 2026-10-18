@@ -27,6 +27,9 @@ import io.github.axolotlclient.imperium.menu.MenuEntry;
 import io.github.axolotlclient.modules.hud.HudEditScreen;
 import io.github.axolotlclient.modules.hud.HudManager;
 import io.github.axolotlclient.modules.hud.gui.component.HudEntry;
+import io.github.axolotlclient.modules.hud.gui.hud.vanilla.TitleHud;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
@@ -74,6 +77,18 @@ public class ImperiumMenuGameTest implements FabricClientGameTest {
 			context.setScreen(() -> null);
 			context.waitTicks(5);
 			context.takeScreenshot("imperium-ingame-after-toggle");
+
+			context.runOnClient(mc -> {
+				var titles = HudManager.getInstance().get(TitleHud.ID);
+				titles.setEnabled(true);
+				titles.onBoundsUpdate();
+				mc.gui.hud.setTimes(0, 200, 0);
+				mc.gui.hud.setTitle(Component.literal("Ave, Imperator").withStyle(ChatFormatting.GOLD));
+				mc.gui.hud.setSubtitle(Component.literal("Welcome to Rome").withStyle(ChatFormatting.RED));
+			});
+			context.waitTicks(5);
+			context.takeScreenshot("imperium-title-hud");
+			context.runOnClient(mc -> mc.gui.hud.clearTitles());
 
 			// 26.3 numbers mouse buttons SDL-style (left = 1); a left drag must move the element, not open its settings.
 			context.runOnClient(mc -> {

@@ -29,6 +29,8 @@ import io.github.axolotlclient.AxolotlClientConfig.api.util.Color;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.BooleanOption;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.IntegerOption;
 import io.github.axolotlclient.bridge.render.AxoRenderContext;
+import io.github.axolotlclient.bridge.util.AxoText;
+import io.github.axolotlclient.modules.hud.gui.layout.AnchorPoint;
 import io.github.axolotlclient.modules.hud.gui.entry.TextHudEntry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -50,6 +52,8 @@ import net.minecraft.util.ARGB;
 public class TitleHud extends TextHudEntry {
 
 	public static final Identifier ID = Identifier.fromNamespaceAndPath("imperiumclient", "titlehud");
+	private static final int MIN_WIDTH = 120;
+	private static final int MIN_HEIGHT = 31;
 	private static final String PLACEHOLDER_TITLE = "Title";
 	private static final String PLACEHOLDER_SUBTITLE = "Subtitle";
 
@@ -71,7 +75,7 @@ public class TitleHud extends TextHudEntry {
 
 	public TitleHud() {
 		// Wide + a little taller than two text lines: the editor box wraps both lines.
-		super(120, 31, false);
+		super(MIN_WIDTH, MIN_HEIGHT, false);
 	}
 
 	// ── state (called from InGameHudMixin on the netty/render thread vanilla uses) ─────
@@ -108,13 +112,14 @@ public class TitleHud extends TextHudEntry {
 			return;
 		}
 
-		int baseX = (int) ((float) getContentPos().x() + Math.round((float) getContentWidth() / 2));
-		int y = (int) (float) getContentPos().y();
-
 		Component titleText = this.title;
 		Component subtitleText = this.subtitle;
 		boolean hasTitle = !titleText.getString().isEmpty();
 		boolean hasSubtitle = !subtitleText.getString().isEmpty();
+		fitToText(hasTitle ? client.font.width(titleText) : 0, hasSubtitle ? client.font.width(subtitleText) : 0);
+
+		int baseX = (int) ((float) getContentPos().x() + Math.round((float) getContentWidth() / 2));
+		int y = (int) (float) getContentPos().y();
 		int color = colorWithAlpha(alpha);
 
 		// Scaled draws go through the context matrix stack: scale, draw centered at
@@ -124,7 +129,7 @@ public class TitleHud extends TextHudEntry {
 			graphics.br$pushMatrix();
 			graphics.br$translateMatrix(baseX, y);
 			graphics.br$scaleMatrix(scale, scale);
-			graphics.br$drawString(titleText.getString(),
+			graphics.br$drawString((AxoText) titleText,
 				-client.font.width(titleText) / 2, 0, color, shadow.get());
 			graphics.br$popMatrix();
 			y += client.font.lineHeight * scale + 2;
@@ -134,10 +139,38 @@ public class TitleHud extends TextHudEntry {
 			graphics.br$pushMatrix();
 			graphics.br$translateMatrix(baseX, y);
 			graphics.br$scaleMatrix(scale, scale);
-			graphics.br$drawString(subtitleText.getString(),
+			graphics.br$drawString((AxoText) subtitleText,
 				-client.font.width(subtitleText) / 2, 0, color, shadow.get());
 			graphics.br$popMatrix();
 		}
+	}
+
+	// Grow the box to the text so a long title stays centred on the anchor instead of spilling off-screen.
+	private void fitToText(int titleWidth, int subtitleWidth) {
+		int scale = titleScale.get();
+		int subScale = Math.max(1, scale / 2);
+		int width = Math.max(MIN_WIDTH, Math.max(titleWidth * scale, subtitleWidth * subScale) + 4);
+		int height = Math.max(MIN_HEIGHT, client.font.lineHeight * (scale + subScale) + 4);
+		if (width != getContentWidth() || height != getContentHeight()) {
+			setContentWidth(width);
+			setContentHeight(height);
+			onBoundsUpdate();
+		}
+	}
+
+	@Override
+	protected AnchorPoint getDefaultAnchor() {
+		return AnchorPoint.MIDDLE_MIDDLE;
+	}
+
+	@Override
+	public double getDefaultX() {
+		return 0.5;
+	}
+
+	@Override
+	public double getDefaultY() {
+		return 0.35;
 	}
 
 	private float currentAlpha() {
