@@ -8,7 +8,7 @@ It will live in its own repository.
 ## Scope
 
 - ImperiumMC branding and a Roman theme.
-- Distribution index hosted by ImperiumMC: Minecraft 26.3, Fabric loader, ImperiumMC Client, a
+- Distribution index hosted by ImperiumMC: Minecraft 26.3, Fabric loader, Imperium Client, a
   Fabulously-Optimized-based performance pack and the server resource pack.
 - Java 25 runtime download and management.
 - Microsoft account login.
@@ -35,4 +35,4 @@ the start, so the vanilla account setup runs once with the correct account.
 1. Fork and rebrand; build installers for Windows (macOS/Linux after).
 2. Distribution index and file sync working with a test pack.
 3. Microsoft login (after Azure approval).
-4. Release alongside ImperiumMC Client M2.
+4. Release alongside Imperium Client M2.

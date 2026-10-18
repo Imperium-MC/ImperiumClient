@@ -1,4 +1,4 @@
-# Contributing to ImperiumMC Client
+# Contributing to Imperium Client
 
 ## Setup
 

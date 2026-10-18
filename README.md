@@ -1,4 +1,4 @@
-# ImperiumMC Client
+# Imperium Client
 
 An open-source Minecraft client mod for **Minecraft 26.3 (Fabric)**, built for
 [ImperiumMC](https://imperium-mc.net) and usable on any server.
@@ -45,8 +45,8 @@ LGPL-3.0, inherited from AxolotlClient. See [LICENSE](LICENSE).
 
 ```
 Copyright (C) 2021-present moehreag + Contributors (AxolotlClient)
-Copyright (C) 2026-present ImperiumMC + Contributors (ImperiumMC Client changes)
+Copyright (C) 2026-present ImperiumMC + Contributors (Imperium Client changes)
 ```
 
-ImperiumMC Client is not affiliated with Alpine Client. Alpine's code and assets are not used;
+Imperium Client is not affiliated with Alpine Client. Alpine's code and assets are not used;
 parity features are reimplemented from observed behaviour.

@@ -1,6 +1,6 @@
 # Alpine parity spec
 
-ImperiumMC Client targets feature and UX parity with Alpine Client 1.8.0 (26.3), rebuilt on the
+Imperium Client targets feature and UX parity with Alpine Client 1.8.0 (26.3), rebuilt on the
 AxolotlClient codebase. Alpine's code and art are proprietary; this document records *behaviour and
 settings* as observed in its config, and every feature here is implemented independently.
 
