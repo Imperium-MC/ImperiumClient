@@ -22,7 +22,6 @@
 
 package io.github.axolotlclient.imperium;
 
-import com.mojang.serialization.Codec;
 import io.github.axolotlclient.AxolotlClientCommon;
 import io.netty.buffer.ByteBuf;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -101,10 +100,32 @@ public final class ImperiumIntegration {
 		return s == null ? "" : s.replace("\\", "\\\\").replace("\"", "\\\"");
 	}
 
+	/**
+	 * RAW UTF-8 stream codec for both payloads. The ImperiumMC plugin speaks Bukkit plugin
+	 * messaging, which carries BARE UTF-8 JSON — no length prefix, no NBT framing. A
+	 * {@code ByteBufCodecs.fromCodec(Codec.STRING)} reads NBT on decode and fails on bare
+	 * bytes, DISCONNECTING the player (found in live testing against the plugin's exact
+	 * output; see docs/dev-notes.md "Server protocol"). Encode writes the raw bytes; decode
+	 * consumes the whole remaining buffer as UTF-8.
+	 */
+	static final StreamCodec<ByteBuf, String> RAW_UTF8 = new StreamCodec<>() {
+		@Override
+		public String decode(ByteBuf buf) {
+			var bytes = new byte[buf.readableBytes()];
+			buf.readBytes(bytes);
+			return new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
+		}
+
+		@Override
+		public void encode(ByteBuf buf, String value) {
+			buf.writeBytes(value.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+		}
+	};
+
 	@NullMarked
-	record HelloPayload(String json) implements CustomPacketPayload {
-		static final StreamCodec<ByteBuf, HelloPayload> CODEC =
-			ByteBufCodecs.fromCodec(Codec.STRING.xmap(HelloPayload::new, HelloPayload::json));
+	public record HelloPayload(String json) implements CustomPacketPayload {
+		public static final StreamCodec<ByteBuf, HelloPayload> CODEC =
+			RAW_UTF8.map(HelloPayload::new, HelloPayload::json);
 
 		@Override
 		public Type<? extends CustomPacketPayload> type() {
@@ -113,9 +134,9 @@ public final class ImperiumIntegration {
 	}
 
 	@NullMarked
-	record FeaturesPayload(String json) implements CustomPacketPayload {
-		static final StreamCodec<ByteBuf, FeaturesPayload> CODEC =
-			ByteBufCodecs.fromCodec(Codec.STRING.xmap(FeaturesPayload::new, FeaturesPayload::json));
+	public record FeaturesPayload(String json) implements CustomPacketPayload {
+		public static final StreamCodec<ByteBuf, FeaturesPayload> CODEC =
+			RAW_UTF8.map(FeaturesPayload::new, FeaturesPayload::json);
 
 		@Override
 		public Type<? extends CustomPacketPayload> type() {
