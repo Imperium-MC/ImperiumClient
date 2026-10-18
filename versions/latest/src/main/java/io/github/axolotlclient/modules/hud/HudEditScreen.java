@@ -22,6 +22,7 @@
 
 package io.github.axolotlclient.modules.hud;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
@@ -183,7 +184,7 @@ public class HudEditScreen extends Screen {
 		var mouseY = event.y();
 		Optional<HudEntry> entry = HudManager.getInstance().getEntryXY((int) Math.round(mouseX),
 			(int) Math.round(mouseY));
-		if (event.button() == 0) {
+		if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
 			mouseDown = true;
 			if (entry.isPresent()) {
 				current = entry.get();
@@ -198,7 +199,7 @@ public class HudEditScreen extends Screen {
 				mode = ModificationMode.NONE;
 				current = null;
 			}
-		} else if (event.button() == 1) {
+		} else if (event.button() == InputConstants.MOUSE_BUTTON_RIGHT) {
 			entry.ifPresent(abstractHudEntry -> {
 				Screen screen = ConfigStyles.createScreen(this, abstractHudEntry.getCategory());
 				minecraft.gui.setScreen(screen);

@@ -22,6 +22,7 @@
 
 package io.github.axolotlclient.api.chat;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -174,11 +175,11 @@ public class ChatWidget extends ObjectSelectionList<ChatWidget.ChatLine> {
 
 		@Override
 		public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-			if (event.button() == 0) {
+			if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
 				ChatWidget.this.setSelected(this);
 				return true;
 			}
-			if (event.button() == 1) {
+			if (event.button() == InputConstants.MOUSE_BUTTON_RIGHT) {
 				ContextMenu.Builder builder =
 					ContextMenu.builder().title(Component.literal(origin.sender().getName())).spacer();
 				if (!origin.sender().equals(API.getInstance().getSelf())) {

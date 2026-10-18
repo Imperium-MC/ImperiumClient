@@ -22,6 +22,7 @@
 
 package io.github.axolotlclient.api.chat;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -112,9 +113,9 @@ public class ChatListWidget extends ContainerObjectSelectionList<ChatListWidget.
 		@Override
 		public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
 			if (widget.isMouseOver(event.x(), event.y())) {
-				if (event.button() == 0) {
+				if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
 					return widget.mouseClicked(event, doubleClick);
-				} else if (event.button() == 1) {
+				} else if (event.button() == InputConstants.MOUSE_BUTTON_RIGHT) {
 					ContextMenu.Builder builder = ContextMenu.builder()
 						.title(Component.literal(channel.getName()))
 						.spacer()

@@ -22,6 +22,7 @@
 
 package io.github.axolotlclient.modules.hud.gui.keystrokes;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -120,7 +121,7 @@ public class KeystrokePositioningScreen extends Screen {
 	@Override
 	public boolean mouseClicked(@NotNull MouseButtonEvent event, boolean doubleClick) {
 		var value = super.mouseClicked(event, doubleClick);
-		if (event.button() == 0) {
+		if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
 			var mouseX = event.x();
 			var mouseY = event.y();
 			Optional<KeystrokeHud.Keystroke> entry = Optional.empty();
@@ -150,7 +151,7 @@ public class KeystrokePositioningScreen extends Screen {
 			} else {
 				focused = null;
 			}
-		} else if (event.button() == 1 && editing == null) {
+		} else if (event.button() == InputConstants.MOUSE_BUTTON_RIGHT && editing == null) {
 			var mouseX = event.x();
 			var mouseY = event.y();
 			Optional<KeystrokeHud.Keystroke> entry = Optional.empty();

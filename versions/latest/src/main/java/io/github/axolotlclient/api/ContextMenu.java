@@ -22,6 +22,7 @@
 
 package io.github.axolotlclient.api;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -157,7 +158,7 @@ public class ContextMenu implements ContainerEventHandler, Renderable, Narratabl
 			GuiEventListener guiEventListener = optional.get();
 			if (guiEventListener.mouseClicked(event, doubleClick)) {
 				this.setFocused(guiEventListener);
-				if (event.button() == 0) {
+				if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
 					this.setDragging(true);
 				}
 				return true;
