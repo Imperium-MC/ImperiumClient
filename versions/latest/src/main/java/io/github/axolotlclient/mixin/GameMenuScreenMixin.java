@@ -28,6 +28,7 @@ import java.util.function.Supplier;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.sugar.Local;
+import io.github.axolotlclient.imperium.menu.ImperiumMenuScreen;
 import io.github.axolotlclient.AxolotlClient;
 import io.github.axolotlclient.AxolotlClientCommon;
 import io.github.axolotlclient.AxolotlClientConfigCommon;
@@ -35,7 +36,6 @@ import io.github.axolotlclient.api.API;
 import io.github.axolotlclient.api.APIOptions;
 import io.github.axolotlclient.api.ChatsSidebar;
 import io.github.axolotlclient.api.FriendsScreen;
-import io.github.axolotlclient.modules.hud.HudEditScreen;
 import io.github.axolotlclient.modules.hypixel.HypixelAbstractionLayer;
 import io.github.axolotlclient.modules.hypixel.HypixelMods;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -79,7 +79,7 @@ public abstract class GameMenuScreenMixin extends Screen {
 			addRenderableWidget(new Button(widget.getX() + widget.getWidth(),
 				widget.getY() + 50, 20, 20,
 				Component.translatable("config"),
-				_ -> minecraft.gui.setScreen(new HudEditScreen(this)), Supplier::get) {
+				_ -> minecraft.gui.setScreen(new ImperiumMenuScreen(this)), Supplier::get) {
 				@Override
 				public void extractContents(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
 					extractDefaultSprite(graphics);

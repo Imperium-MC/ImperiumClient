@@ -17,9 +17,12 @@
 	"entrypoints": {
 		"client": [
 			"io.github.axolotlclient.AxolotlClientTest"
+		],
+		"fabric-client-gametest": [
+			"io.github.axolotlclient.ImperiumMenuGameTest"
 		]
 	},
 	"depends": {
-		"axolotlclient": "*"
+		"imperiumclient": "*"
 	}
 }

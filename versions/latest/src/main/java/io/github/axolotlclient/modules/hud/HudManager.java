@@ -22,6 +22,7 @@
 
 package io.github.axolotlclient.modules.hud;
 
+import io.github.axolotlclient.imperium.menu.ImperiumMenuScreen;
 import io.github.axolotlclient.bridge.render.AxoRenderContext;
 import io.github.axolotlclient.modules.hud.gui.hud.KeystrokeHud;
 import io.github.axolotlclient.modules.hud.gui.hud.PackDisplayHud;
@@ -43,11 +44,12 @@ public class HudManager extends HudManagerCommon {
 
 	@Override
 	protected void openScreen() {
-		Minecraft.getInstance().gui.setScreen(new HudEditScreen());
+		Minecraft.getInstance().gui.setScreen(new ImperiumMenuScreen(null));
 	}
 
 	@Override
 	protected void addExtraHud() {
+		setDebugScreenShown(() -> Minecraft.getInstance().gui.hud.getDebugOverlay().showDebugScreen());
 		add(new ActionBarHud());
 		add(new BossBarHud());
 		add(new CrosshairHud());

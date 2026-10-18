@@ -29,6 +29,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
 import com.mojang.realmsclient.gui.screens.RealmsNotificationsScreen;
+import io.github.axolotlclient.imperium.menu.ImperiumMenuScreen;
 import io.github.axolotlclient.AxolotlClient;
 import io.github.axolotlclient.AxolotlClientConfigCommon;
 import io.github.axolotlclient.api.API;
@@ -39,7 +40,6 @@ import io.github.axolotlclient.api.chat.ChatListScreen;
 import io.github.axolotlclient.api.requests.GlobalDataRequest;
 import io.github.axolotlclient.modules.auth.Auth;
 import io.github.axolotlclient.modules.auth.AuthWidget;
-import io.github.axolotlclient.modules.hud.HudEditScreen;
 import io.github.axolotlclient.util.ThreadExecuter;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.gui.components.Button;
@@ -132,7 +132,7 @@ public abstract class TitleScreenMixin extends Screen {
 	private Button.Builder axolotlclient$noRealmsbutOptionsButton(Component message, Button.OnPress onPress, Operation<Button.Builder> original) {
 		if (AxolotlClientConfigCommon.instance().titleScreenOptionButtonMode.get().showButton()) {
 			message = Component.translatable("config");
-			onPress = _ -> minecraft.gui.setScreen(new HudEditScreen(this));
+			onPress = _ -> minecraft.gui.setScreen(new ImperiumMenuScreen(this));
 		}
 		return original.call(message, onPress);
 	}

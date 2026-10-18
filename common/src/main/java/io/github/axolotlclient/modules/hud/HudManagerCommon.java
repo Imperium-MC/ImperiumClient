@@ -25,6 +25,7 @@ package io.github.axolotlclient.modules.hud;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
@@ -63,6 +64,7 @@ import io.github.axolotlclient.modules.hypixel.bedwars.BedwarsMod;
 import io.github.axolotlclient.util.GsonHelper;
 import io.github.axolotlclient.util.options.GenericOption;
 import lombok.Getter;
+import lombok.Setter;
 
 /**
  * This implementation of Hud modules is based on KronHUD.
@@ -88,6 +90,9 @@ public abstract class HudManagerCommon extends AbstractCommonModule implements P
 	public final ColorOption grabCornerColor = new ColorOption("rescale_grab_corner_color", Colors.PINK);
 	private final Map<AxoIdentifier, HudEntry> entries;
 	private final Deque<HudEntry> visitedEntries = new ArrayDeque<>();
+	// Set by the version-specific HudManager; common code can't see the F3 overlay.
+	@Setter
+	private static BooleanSupplier debugScreenShown = () -> false;
 
 	protected HudManagerCommon() {
 		Preconditions.checkState(instance == null, "singleton already initialized");
@@ -360,13 +365,19 @@ public abstract class HudManagerCommon extends AbstractCommonModule implements P
 		}
 	}
 
+	public static boolean isDebugScreenShown() {
+		return debugScreenShown.getAsBoolean();
+	}
+
 	public boolean hudsEnabled() {
 		return enabled.get();
 	}
 
 	public void render(AxoRenderContext context, float delta) {
 		if (!hudsEnabled()) return;
-		for (HudEntry hud : getEntries()) {
+		var ordered = getEntries();
+		ordered.sort(Comparator.comparingInt(HudEntry::getZLevel));
+		for (HudEntry hud : ordered) {
 			if (hud.isEnabled() && !hud.isHidden()) {
 				hud.render(context, delta);
 			}

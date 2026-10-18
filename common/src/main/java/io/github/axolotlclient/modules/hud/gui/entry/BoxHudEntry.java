@@ -51,6 +51,7 @@ public abstract class BoxHudEntry extends AbstractHudEntry {
 
 	protected BooleanOption outline = new BooleanOption("outline", false);
 	protected ColorOption outlineColor = new ColorOption("outlinecolor", ClientColors.WHITE);
+	protected IntegerOption outlineWidth = new IntegerOption("hud.outline_width", 1, 1, 5);
 
 	protected IntegerOption backgroundPadding = new IntegerOption("hud.background_padding", 0, val -> {
 		setWidth(getContentWidth() + val * 2);
@@ -77,6 +78,7 @@ public abstract class BoxHudEntry extends AbstractHudEntry {
 			backgroundColor = null;
 			outline = null;
 			outlineColor = null;
+			outlineWidth = null;
 			roundBackground = null;
 			backgroundRounding = null;
 		}
@@ -96,6 +98,7 @@ public abstract class BoxHudEntry extends AbstractHudEntry {
 			options.add(backgroundColor);
 			options.add(outline);
 			options.add(outlineColor);
+			options.add(outlineWidth);
 			options.add(backgroundPadding);
 			options.add(roundBackground);
 			options.add(backgroundRounding);
@@ -117,7 +120,10 @@ public abstract class BoxHudEntry extends AbstractHudEntry {
 				}
 			}
 			if (outline.get() && outlineColor.get().getAlpha() > 0) {
-				if (roundBackground.get()) {
+				if (outlineWidth.get() > 1) {
+					float r = roundBackground.get() ? Math.min(Math.min(getHeight(), getWidth()) / 2f, backgroundRounding.get()) : 0;
+					ctx.br$outlineRectRoundVarying(bounds.x(), bounds.y(), bounds.width(), bounds.height(), outlineColor.get().toInt(), r, r, r, r, outlineWidth.get());
+				} else if (roundBackground.get()) {
 					ctx.br$outlineRectRound(bounds, outlineColor.get(), Math.min(Math.min(getHeight(), getWidth()) / 2f, backgroundRounding.get()));
 				} else {
 					ctx.br$outlineRect(bounds, outlineColor.get());

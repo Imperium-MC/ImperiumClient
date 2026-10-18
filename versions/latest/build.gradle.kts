@@ -22,6 +22,16 @@ loom {
 			sourceSet("test")
 		}
 	}
+	runs {
+		create("clientGameTest") {
+			client()
+			configName = "Client Game Test"
+			vmArg("-Dfabric.client.gametest")
+			vmArg("-Dfabric.client.gametest.disableNetworkSynchronizer=true")
+			runDir("build/run/clientGameTest")
+			source(sourceSets.getByName("test"))
+		}
+	}
 	decompilers {
 		decompilerOptions.named("vineflower") {
 			options.put("mark-corresponding-synthetics", "1")

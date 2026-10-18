@@ -29,6 +29,7 @@ import io.github.axolotlclient.AxolotlClientConfig.api.options.OptionCategory;
 import io.github.axolotlclient.AxolotlClientConfig.api.util.Colors;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.BooleanOption;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.DoubleOption;
+import io.github.axolotlclient.AxolotlClientConfig.impl.options.IntegerOption;
 import io.github.axolotlclient.bridge.AxoMinecraftClient;
 import io.github.axolotlclient.bridge.render.AxoRenderContext;
 import io.github.axolotlclient.bridge.render.AxoWindow;
@@ -56,6 +57,8 @@ public abstract class AbstractHudEntry implements HudEntry {
 	protected final DoubleOption scale = DefaultOptions.getScale(this);
 	protected final AxoMinecraftClient client = AxoMinecraftClient.getInstance();
 	protected final BooleanOption hide = new BooleanOption("hud.hide", false);
+	protected final BooleanOption hideInDebug = new BooleanOption("hud.hide_in_debug", false);
+	protected final IntegerOption zLevel = new IntegerOption("hud.z_level", 0, -10, 10);
 	private final DoubleOption x = DefaultOptions.getX(getDefaultX());
 	private final DoubleOption y = DefaultOptions.getY(getDefaultY());
 	private final Map<HudEntry, SnapAnchorType> xDependencies = new HashMap<>();
@@ -275,6 +278,8 @@ public abstract class AbstractHudEntry implements HudEntry {
 		List<Option<?>> options = new ArrayList<>();
 		options.add(enabled);
 		options.add(scale);
+		options.add(hideInDebug);
+		options.add(zLevel);
 		return options;
 	}
 
@@ -294,8 +299,13 @@ public abstract class AbstractHudEntry implements HudEntry {
 	}
 
 	@Override
+	public int getZLevel() {
+		return zLevel.get();
+	}
+
+	@Override
 	public boolean isHidden() {
-		return hide.get();
+		return hide.get() || (hideInDebug.get() && HudManagerCommon.isDebugScreenShown());
 	}
 
 	@Override
