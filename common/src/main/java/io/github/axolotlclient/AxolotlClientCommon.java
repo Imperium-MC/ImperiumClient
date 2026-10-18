@@ -61,11 +61,13 @@ import net.fabricmc.loader.api.FabricLoader;
 
 public abstract class AxolotlClientCommon {
 	public static final String MODID = "axolotlclient";
+	// Separate from MODID (which is also the asset namespace) so Imperium Client never reads or moves upstream AxolotlClient's config.
+	public static final String CONFIG_DIR = "imperiumclient";
 	public static final AxoIdentifier BADGE_PATH = AxoIdentifier.of(MODID, "textures/badge.png");
 
 	// static utility methods
 	public static Path resolveConfigFile(String file) {
-		return FabricLoader.getInstance().getConfigDir().resolve(MODID).resolve(file);
+		return FabricLoader.getInstance().getConfigDir().resolve(CONFIG_DIR).resolve(file);
 	}
 
 	public static Path resolveProfileConfigFile(String file) {
@@ -153,7 +155,7 @@ public abstract class AxolotlClientCommon {
 	private void initConfig() {
 		var configFile = getMainConfigFile();
 		if (Files.notExists(configFile)) {
-			var legacy = new Path[]{resolveConfigFile("axolotlclient.json"), FabricLoader.getInstance().getConfigDir().resolve("AxolotlClient.json")};
+			var legacy = new Path[]{resolveConfigFile("axolotlclient.json")};
 			for (Path p : legacy) {
 				try {
 					if (Files.exists(p)) {
@@ -202,7 +204,7 @@ public abstract class AxolotlClientCommon {
 		});
 
 		Events.TICK.register(() -> {
-			AxoProfiler.get().br$push("AxolotlClient");
+			AxoProfiler.get().br$push("ImperiumClient");
 			modules.forEach(Module::tick);
 			AxoProfiler.get().br$pop();
 		});

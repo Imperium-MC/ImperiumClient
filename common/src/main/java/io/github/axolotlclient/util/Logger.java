@@ -37,7 +37,7 @@ public sealed interface Logger permits Logger.Slf4jLogger {
 
 	final class Slf4jLogger implements Logger {
 
-		private final org.slf4j.Logger delegate = LoggerFactory.getLogger("AxolotlClient");
+		private final org.slf4j.Logger delegate = LoggerFactory.getLogger("ImperiumClient");
 		private static final String prefix = FabricLoader.getInstance().isDevelopmentEnvironment() ? "" : "(AxolotlClient) ";
 
 		public void info(String msg, Object... args) {

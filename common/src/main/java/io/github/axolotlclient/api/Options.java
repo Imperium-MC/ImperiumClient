@@ -54,7 +54,7 @@ public abstract class Options implements Module {
 	public final BooleanOption friendRequestsEnabled = new BooleanOption("friendRequestsEnabled", true);
 	public final BooleanOption channelInvitesEnabled = new BooleanOption("api.channels.invites.enabled", false);
 	public final BooleanOption detailedLogging = new BooleanOption("detailedLogging", false);
-	public final BooleanOption enabled = new BooleanOption("enabled", true, value -> {
+	public final BooleanOption enabled = new BooleanOption("enabled", false, value -> {
 		if (value) {
 			if (!privacyAccepted.get().isAccepted()) {
 				openPrivacyNoteScreen.get().thenAccept(v -> {

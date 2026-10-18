@@ -40,7 +40,7 @@ public abstract class ClientBrandRetrieverMixin {
 	@WrapMethod(method = "getClientModName", remap = false)
 	private static String axolotlclient$returnClientBrand(Operation<String> original) {
 		if (AxolotlClientCommon.getInstance().getConfig().modifyClientBrand.get()) {
-			return original.call().replace(VANILLA_NAME, "AxolotlClient");
+			return original.call().replace(VANILLA_NAME, "ImperiumClient");
 		}
 		return original.call();
 	}
