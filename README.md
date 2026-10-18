@@ -1,110 +1,52 @@
-# AxolotlClient-mod
+# ImperiumMC Client
 
-A complete mod to have various features on various Minecraft versions
+An open-source Minecraft client mod for **Minecraft 26.3 (Fabric)**, built for
+[ImperiumMC](https://imperium-mc.net) and usable on any server.
 
-*Also available in other Languages: [Türkçe](doc/README-tr.md), [Deutsch](doc/README-de.md)*
+The goal is feature and UX parity with Alpine Client (modules, settings, menu and HUD editor),
+plus a performance layer and ImperiumMC integration. It is a fork of
+[AxolotlClient](https://codeberg.org/AxolotlClient/AxolotlClient-mod), which provides the
+module system, HUD framework and many of the HUD modules.
 
-### Features
+> **Status:** early fork. The codebase is still AxolotlClient, narrowed to 26.3. See the
+> [roadmap](docs/roadmap.md) for what's being built and in what order.
 
-- Custom Skies Implementation
-- Freelook (Disabled on some servers)
-- Nametag
-- Beacon Beams
-- Dynamic FOV
-- Low Fire / Low Shield
-- Hit Color
-- Screenshot Utils
-- Zoom
-- Various Hud Modules (port of [KronHUD](https://github.com/DarkKronicle/KronHUD), but with additions)
-	- including, but not limited to:
-		- Ping
-		- FPS
-		- CPS
-		- Armor
-		- Potions
-		- Keystrokes
-		- ToggleModifiers
-		- Server IP
-		- Icon
-		- Speed
-		- Scoreboard
-		- Crosshair
-		- Coordinates
-		- ActionBar
-		- BossBar
-		- Arrow
-		- Item Update
-		- Pack Display
-		- Real Time
-		- Reach
-		- Hotbar
-		- Memory
-		- PlayerCount
-		- Compass
-		- TPS (Ticks per second)
-		- Combo
-		- Player
-		- Chat
-- Hypixel Features
-	- AutoGG / GF / GLHF
-	- LevelHead
-	- Nick Hider
-	- Skyblock
-	- AutoTip
-	- AutoBoop
-- Custom Block Outlines
-- Time Changer
-- Fullbright
-- Motion Blur
-- TNT Time
-- Scrollable Tooltips
-- Particles
-- Discord RPC
-- Custom Badges
+## Plan docs
 
-### Links
+| Doc | What it covers |
+|---|---|
+| [Roadmap](docs/roadmap.md) | Milestones from fork to 1.0 |
+| [Alpine parity spec](docs/alpine-parity.md) | All 70 Alpine modules, their settings, and how each maps onto this codebase |
+| [Server-gated features](docs/server-gated-features.md) | How servers enable or block automation features |
+| [Launcher plan](docs/launcher-plan.md) | The HeliosLauncher-based ImperiumMC launcher |
+| [Upstream README](docs/UPSTREAM-README.md) | AxolotlClient's original feature list and credits |
 
-[![modrinth](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@2/assets/cozy/available/modrinth_64h.png)](https://modrinth.com/mod/axolotlclient)
-[![codeberg](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@2/assets/cozy/available/codeberg_64h.png)](https://codeberg.org/AxolotlClient/AxolotlClient-mod/releases)
-[![discord-plural](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/social/discord-plural_64h.png)](https://discord.gg/WyMjeX3vka)
+## Building
 
-### Contributing
+Requires JDK 25.
 
-- feel free to join the discord to discuss new features
-- if you have a feature or a new/updated translation, feel free to open a pull request.
-- note your changes in CHANGELOG.md to be added to the next version's changelog.
-
-To build:
-
-```
-./gradlew build
+```bash
+./gradlew :latest:build
 ```
 
-Use `-Paxolotlclient.modules.<version_name>=true` to add a version to the build. Add `-Paxolotlclient.modules.all=true`
-to build everything. In case you use an IDE, you can also add the respective properties to `gradle.properties` files
-(or remove them).
+The mod jar lands in `versions/latest/build/libs/`. Run a dev client with:
 
-### Licensing
-
-- This mod is licensed under the LGPL-3.0 License.
-
-```
-AxolotlClient-mod
-Copyright (C) 2021-present moehreag + Contributors
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 3 of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License
-along with this program; if not, write to the Free Software Foundation,
-Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+```bash
+./gradlew :latest:runClient
 ```
 
-- For more information see the [LICENSE](LICENSE) file.
+## Contributing
+
+Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first.
+
+## License
+
+LGPL-3.0, inherited from AxolotlClient. See [LICENSE](LICENSE).
+
+```
+Copyright (C) 2021-present moehreag + Contributors (AxolotlClient)
+Copyright (C) 2026-present ImperiumMC + Contributors (ImperiumMC Client changes)
+```
+
+ImperiumMC Client is not affiliated with Alpine Client. Alpine's code and assets are not used;
+parity features are reimplemented from observed behaviour.
