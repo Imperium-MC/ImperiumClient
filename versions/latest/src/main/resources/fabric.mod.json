@@ -3,7 +3,7 @@
 	"id": "imperiumclient",
 	"version": "${version}",
 	"name": "Imperium Client",
-	"description": "Open-source client mod built for ImperiumMC: Alpine-style modules, menu and HUD editor. Fork of AxolotlClient.",
+	"description": "Client mod made for ImperiumMC: module menu, HUD and quality-of-life features. Based on AxolotlClient.",
 	"authors": [
 		"MylesThePro1",
 		"ImperiumMC Contributors"
@@ -16,7 +16,7 @@
 		"CornetPanique86"
 	],
 	"contact": {
-		"homepage": "https://imperium-mc.net",
+		"homepage": "https://imperiummc.net",
 		"sources": "https://github.com/MylesThePro1/ImperiumClient",
 		"issues": "https://github.com/MylesThePro1/ImperiumClient/issues"
 	},

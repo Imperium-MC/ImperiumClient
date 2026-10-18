@@ -14,12 +14,12 @@ Only the `common` and `latest` (26.3) projects are built. `gradle.properties` co
 
 - `common/`: version-independent code (module logic, config, HUD framework).
 - `versions/latest/`: 26.3-specific code, mixins and resources.
-- `docs/`: plans and specs. Update [alpine-parity.md](docs/alpine-parity.md) when a module's status changes.
+- `docs/`: plans and design notes. Update [docs/alpine-parity.md](docs/alpine-parity.md) when a module changes status.
 
 ## Rules
 
-- **No Alpine code or assets.** Parity features are reimplemented from behaviour and settings.
-  Do not decompile, copy or trace Alpine's jar to write code.
+- **No code or assets from closed-source clients.** Write features from scratch; don't decompile or
+  copy other clients to build them.
 - **License headers.** Every source file carries the LGPL header from `HEADER`. The licenser
   plugin checks it; run `./gradlew applyLicenses` to add it to new files.
 - **Automation features are server-gated.** Anything that clicks, fishes, mines or moves for the

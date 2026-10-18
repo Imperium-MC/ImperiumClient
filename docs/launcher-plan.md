@@ -12,7 +12,7 @@ It will live in its own repository.
   Fabulously-Optimized-based performance pack and the server resource pack.
 - Java 25 runtime download and management.
 - Microsoft account login.
-- One-click "Play ImperiumMC" that joins `play.imperium-mc.net`.
+- One-click "Play ImperiumMC" that joins `imperiummc.net`.
 - Auto-update of the launcher itself.
 
 ## Microsoft login

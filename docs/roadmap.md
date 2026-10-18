@@ -11,6 +11,13 @@ Milestones run in order; each ends with a build that works in game.
 
 ## M1: Alpine-style menu and HUD editor
 
+**Status:** menu shell done. Right Shift (and the title/pause menu button) opens `ImperiumMenuScreen`:
+category sidebar, search, module cards with toggle and gear, Edit HUD / Profiles / All Settings. Cards are
+built by `MenuEntries` from every HUD entry plus every config category. Settings still open Axolotl's
+config screen; an inline Alpine-style settings panel and background blur are the remaining M1 items.
+Covered by the `ImperiumMenuGameTest` client gametest (`./gradlew :latest:runClientGameTest`).
+
+
 - Full-screen menu on Right Shift: category sidebar, search, module cards with toggle and gear,
   per-module settings page, ImperiumMC (Roman) theme.
 - Shared `HudStyle` block on every HUD module: background, brackets, corner radius, background blur,
