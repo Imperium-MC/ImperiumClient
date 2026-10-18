@@ -14,7 +14,9 @@ Only the `common` and `latest` (26.3) projects are built. `gradle.properties` co
 
 - `common/`: version-independent code (module logic, config, HUD framework).
 - `versions/latest/`: 26.3-specific code, mixins and resources.
-- `docs/`: plans and design notes. Update [docs/alpine-parity.md](docs/alpine-parity.md) when a module changes status.
+- `docs/`: plans and design notes. Start with [roadmap.md](docs/roadmap.md) (status and next tasks) and
+  [dev-notes.md](docs/dev-notes.md) (26.3 gotchas). Module specs are in [module-settings.md](docs/module-settings.md);
+  update [alpine-parity.md](docs/alpine-parity.md) when a module changes status.
 
 ## Rules
 
@@ -25,7 +27,8 @@ Only the `common` and `latest` (26.3) projects are built. `gradle.properties` co
 - **Automation features are server-gated.** Anything that clicks, fishes, mines or moves for the
   player must follow [server-gated-features.md](docs/server-gated-features.md).
 - **One logical change per PR**, with a conventional commit title (`feat:`, `fix:`, `perf:`, `docs:`).
-- **Test in game.** Say in the PR what you checked in a dev client or on a server.
+- **Test in game.** Run `./gradlew :latest:runClientGameTest`, add a gametest for new UI or protocol code,
+  and say in the PR what you checked in a dev client or on a server.
 - Note user-facing changes in `CHANGELOG.md`.
 
 ## Reporting bugs

@@ -4,7 +4,7 @@ Imperium Client targets feature and UX parity with Alpine Client 1.8.0 (26.3), r
 AxolotlClient codebase. Alpine's code and art are proprietary; this document records *behaviour and
 settings* as observed in its config, and every feature here is implemented independently.
 
-Source: the user's Alpine `profiles.json` (70 modules). **Bold** = enabled in the user's profile, built first.
+Source: the user's Alpine `profiles.json` (70 modules). Full per-module settings: [module-settings.md](module-settings.md). **Bold** = enabled in the user's profile, built first.
 
 ## Shared HUD settings
 
@@ -42,7 +42,7 @@ Status: ✅ exists in Axolotl (needs Alpine-style settings), 🟡 partial, ❌ b
 | **compass** | CompassHud | 🟡 add waypoint markers, yaw, arrow |
 | **scoreboard** | ScoreboardHud | ✅ add server-HUD-safety, score toggle |
 | **boss_bar** | BossBarHud | ✅ add health/text toggles |
-| **titles** | — | ❌ movable title/subtitle (ActionBarHud is the pattern) |
+| **titles** | TitleHud (PR #1, fixed on `review/pr-1`) | 🟡 needs merge |
 | **info_hud** | CoordsHud (partial) | 🟡 configurable multi-line info registry |
 | **cooldowns** | — | ❌ item cooldown bars/circles |
 | **toggle_sneak_sprint** (+ status HUD) | ToggleSprintHud | 🟡 add double-tap, sneak-fly, fly boost |

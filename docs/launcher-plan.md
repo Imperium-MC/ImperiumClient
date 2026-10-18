@@ -5,7 +5,18 @@ Imperium Launcher will be a fork of [HeliosLauncher](https://github.com/dscalzi/
 lists the game version, loader, mods and files to sync, so players always run the server's exact pack.
 It will live in its own repository.
 
-## Scope
+## Status (2026-10-18)
+
+- Repo: [MylesThePro1/ImperiumLauncher](https://github.com/MylesThePro1/ImperiumLauncher), app ID
+  `net.imperiummc.launcher`, Windows installer builds; logos are the website's `Logo.png`.
+- Azure app `8b0c9e33-b6ce-40ec-ac30-c85a35dd8163` (personal accounts, native redirect) is configured.
+  Microsoft and Xbox sign-in work; the Minecraft token step returns 403 until Mojang approves the app ID
+  (submitted via aka.ms/mce-reviewappid). The launcher shows "Awaiting Minecraft API Approval" meanwhile.
+- One-click join targets `play.imperiummc.net`. Bare `imperiummc.net` needs a DNS-only
+  `_minecraft._tcp` SRV record to work as a server address.
+- Website Microsoft login (account linking) will reuse the same app registration with a Web redirect
+  URI and a server-side client secret.
+
 
 - Imperium branding and a Roman theme.
 - Distribution index hosted by ImperiumMC: Minecraft 26.3, Fabric loader, Imperium Client, a

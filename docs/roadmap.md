@@ -2,6 +2,37 @@
 
 Milestones run in order; each ends with a build that works in game.
 
+## Current status (2026-10-18)
+
+| Milestone | State |
+|---|---|
+| M0 fork baseline | Done |
+| M1 menu + HUD style | Menu shell, search, toggles, HUD style options done. Inline settings panel and background blur left |
+| M2 user's modules | Titles HUD in [PR #1](https://github.com/MylesThePro1/ImperiumClient/pull/1); rest not started |
+| M3 performance | Not started |
+| M4 remaining modules | Not started |
+| M5 ImperiumMC integration | Handshake client half in PR #1. Server half shipped in the plugin (`ImperiumClientIntegrationService`) |
+| M6 launcher | Repo [ImperiumLauncher](https://github.com/MylesThePro1/ImperiumLauncher) builds; Microsoft login waits on Mojang API approval |
+
+PR #1 had two bugs, fixed on branch `review/pr-1`: the handshake used an NBT codec while the plugin sends
+raw UTF-8 (would disconnect players), and the titles HUD dropped colours and was clipped off-screen. Merge
+that branch (or squash it) rather than PR #1 as submitted.
+
+## Next tasks
+
+Pick from the top; each is one PR. Check [dev-notes.md](dev-notes.md) first.
+
+1. Inline settings panel in the menu: the gear opens the module's settings inside the menu instead of
+   Axolotl's config screen. Spec per module: [module-settings.md](module-settings.md).
+2. Background blur option for HUD elements (`blur_radius`). `MenuBlur` has a blur pass to reuse.
+3. M2 modules, in this order: tab editor, waypoints, inventory search, cooldowns, info HUD, environment
+   (weather), chat settings (timestamps, smooth chat, compact chat), toggle sneak/sprint extras, compass
+   waypoints, nametag editor, TPS colour tiers.
+4. Hide config categories that aren't modules (Account Management, Authentication) from the module grid,
+   or move them to a separate "Client" section.
+5. Gated modules (auto fish/click) checking `ImperiumClientSession.isAllowed(...)` once PR #1 lands.
+
+
 ## M0: Fork baseline
 
 - Fork AxolotlClient `dev` (3.2.3-alpha.1), build only `common` + `latest` (26.3).
