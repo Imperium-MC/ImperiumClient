@@ -57,6 +57,7 @@ public class HudManager extends HudManagerCommon {
 		add(new HotbarHud());
 		add(new ScoreboardHud());
 		add(new TitleHud());
+		add(new io.github.axolotlclient.modules.hud.gui.hud.simple.CooldownsHud());
 		add(new KeystrokeHud());
 		add(new PackDisplayHud());
 		add(new PlayerHud());
