@@ -24,10 +24,10 @@ package io.github.axolotlclient.util;
 
 import java.util.function.Function;
 
-import com.mojang.blaze3d.pipeline.DepthStencilState;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.renderpearl.api.pipeline.DepthStencilState;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import io.github.axolotlclient.AxolotlClient;
 import io.github.axolotlclient.AxolotlClientCommon;
 import io.github.axolotlclient.AxolotlClientConfig.api.util.Color;
@@ -37,7 +37,6 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.rendertype.LayeringTransform;
-import net.minecraft.client.renderer.rendertype.OutputTarget;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
@@ -94,7 +93,7 @@ public class DrawUtil {
 			.withLocation(Identifier.fromNamespaceAndPath(AxolotlClientCommon.MODID, "blockoutline_quads"))
 			.withDepthStencilState(DepthStencilState.DEFAULT).build())
 		.setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
-		.setOutputTarget(OutputTarget.ITEM_ENTITY_TARGET).createRenderSetup());
+		.createRenderSetup());
 
 	public static void drawOutlines(Function<RenderType, VertexConsumer> bufferSource, PoseStack.Pose pose, VoxelShape shape) {
 		if (AxolotlClient.config().enableCustomOutlines.get() && AxolotlClient.config().outlineFill.get()) {

@@ -24,10 +24,13 @@ package io.github.axolotlclient.bridge.mixin;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 import com.google.common.hash.Hashing;
+import com.mojang.authlib.GameProfile;
 import com.mojang.blaze3d.texture.NativeImage;
 import io.github.axolotlclient.AxolotlClientCommon;
+import io.github.axolotlclient.api.util.MojangAuth;
 import io.github.axolotlclient.bridge.PlatformDispatch;
 import io.github.axolotlclient.bridge.impl.AxoSpriteImpl;
 import io.github.axolotlclient.bridge.render.AxoSprite;
@@ -186,5 +189,14 @@ public abstract class PlatformDispatchMixin {
 	@Overwrite
 	public static void bedwars$sessionstats$openEntryConfigScreen() {
 		MinecraftClient.getInstance().setScreen(new SessionStatsHudEntryConfigScreen(MinecraftClient.getInstance().currentScreen));
+	}
+
+	/**
+	 * @author moehreag
+	 * @reason Implement bridge in preparation for sandboxing
+	 */
+	@Overwrite
+	public static void api$login(UUID profileId, String token, String serverId) throws Exception {
+		MinecraftClient.getInstance().getSessionService().joinServer(new GameProfile(profileId, null), token, serverId);
 	}
 }

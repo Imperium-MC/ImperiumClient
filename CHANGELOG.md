@@ -1,5 +1,11 @@
 ## Changelog:
 
+### 3.2.2
+
+- (1.8.9) update OSL
+- abstract over tiny-fd to allow for compatibility with 26.3
+- (1.8.9) remove included tiny-fd
+
 ### 3.2.1
 
 - fix some bugs

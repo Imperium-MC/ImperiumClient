@@ -45,18 +45,18 @@ public abstract class GuiGraphicsMixin {
 	private int recursionDepth;
 
 	@WrapMethod(method = "tooltip")
-	private void axolotlclient$scrollableTooltipsX(Font font, List<ClientTooltipComponent> list, int x, int y, ClientTooltipPositioner clientTooltipPositioner, @Nullable Identifier resourceLocation, Operation<Void> original) {
+	private void axolotlclient$scrollableTooltipsX(Font font, List<ClientTooltipComponent> lines, int xo, int yo, ClientTooltipPositioner positioner, Identifier style, boolean extraSpaceAfterFirstLine, Operation<Void> original) {
 		if (ScrollableTooltips.getInstance().enabled.get()) {
 			Minecraft mc = Minecraft.getInstance();
 			if ((!(mc.gui.screen() instanceof CreativeModeInventoryScreen c)) || c.isInventoryOpen()) {
 				if (recursionDepth == 0) {
-					x += ScrollableTooltips.getInstance().tooltipOffsetX;
-					y += ScrollableTooltips.getInstance().tooltipOffsetY;
+					xo += ScrollableTooltips.getInstance().tooltipOffsetX;
+					yo += ScrollableTooltips.getInstance().tooltipOffsetY;
 				}
 			}
 		}
 		recursionDepth++;
-		original.call(font, list, x, y, clientTooltipPositioner, resourceLocation);
+		original.call(font, lines, xo, yo, positioner, style, extraSpaceAfterFirstLine);
 		recursionDepth--;
 	}
 }

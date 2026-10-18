@@ -131,18 +131,18 @@ public class API {
 		nextRestartSecs = 2;
 		logDetailed("Authenticating with Mojang...");
 
-		MojangAuth.Result result = MojangAuth.authenticate(account);
+		var serverId = MojangAuth.authenticate(account);
 
-		if (result.getStatus() != MojangAuth.Status.SUCCESS) {
-			logger.error("Failed to authenticate with Mojang! Status: ", result.getStatus());
-			return CompletableFuture.failedFuture(new UnsupportedOperationException("Failed to authenticate with mojang, status: " + result.getStatus()));
+		if (serverId == null) {
+			logger.error("Failed to authenticate with Mojang!");
+			return CompletableFuture.failedFuture(new UnsupportedOperationException("Failed to authenticate with mojang"));
 		}
 
 		logDetailed("Requesting authentication from backend...");
 
 		return get(Request.Route.AUTHENTICATE.builder()
 			.query("username", account.getName())
-			.query("server_id", result.getServerId())
+			.query("server_id", serverId)
 			.build()).whenComplete((response, throwable) -> {
 
 			if (throwable != null) {

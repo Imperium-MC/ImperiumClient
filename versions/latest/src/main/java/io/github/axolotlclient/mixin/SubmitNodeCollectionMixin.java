@@ -32,12 +32,13 @@ import net.fabricmc.fabric.api.client.rendering.v1.SubmitRenderPhases;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.SubmitNodeCollection;
-import net.minecraft.client.renderer.feature.NameTagFeatureRenderer;
+import net.minecraft.client.renderer.feature.TextFeatureRenderer;
 import net.minecraft.client.renderer.feature.phase.SimpleFeatureRenderPhase;
 import net.minecraft.client.renderer.feature.phase.TranslucentFeatureRenderPhase;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.ARGB;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
@@ -57,9 +58,17 @@ public abstract class SubmitNodeCollectionMixin implements SubmitNodeCollectorEx
 
 	@Shadow
 	@Final
-	public TranslucentFeatureRenderPhase seeThroughNameTags;
+	public TranslucentFeatureRenderPhase seeThrough;
 
-	@ModifyArg(method = "submitNameTag", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/feature/NameTagFeatureRenderer$Submit;<init>(Lorg/joml/Matrix4fc;FFLnet/minecraft/network/chat/Component;IIILnet/minecraft/client/gui/Font$DisplayMode;)V"), index = 6)
+	@Shadow
+	private static TextFeatureRenderer.Submit nameTag(Matrix4f par1, float par2, float par3, FormattedCharSequence par4, int par5, int par6, int par7, Font.DisplayMode par8) {
+		throw new UnsupportedOperationException("Implemented via mixin");
+	}
+
+	@Shadow
+	protected abstract void submitNameTagPart(TextFeatureRenderer.Submit par1);
+
+	@ModifyArg(method = "submitNameTag", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/SubmitNodeCollection;nameTag(Lorg/joml/Matrix4f;FFLnet/minecraft/util/FormattedCharSequence;IIILnet/minecraft/client/gui/Font$DisplayMode;)Lnet/minecraft/client/renderer/feature/TextFeatureRenderer$Submit;"), index = 6)
 	private int bgColor(int color) {
 		if (AxolotlClient.config().nametagBackground.get()) {
 			return color;
@@ -68,26 +77,31 @@ public abstract class SubmitNodeCollectionMixin implements SubmitNodeCollectorEx
 		}
 	}
 
+	@ModifyArg(method = "nameTag", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/feature/TextFeatureRenderer$Content$Text;<init>(FFLnet/minecraft/util/FormattedCharSequence;ZIII)V"), index = 3)
+	private static boolean enableShadows(boolean shadow) {
+
+		return AxolotlClient.config().useShadows.get() || shadow;
+	}
+
 	@Override
 	public void axolotlclient$submitLevelHead(PoseStack poseStack, @Nullable Vec3 nameTagAttachment, int offset, Component name, boolean seeThrough, int lightCoords, CameraRenderState camera) {
 		if (nameTagAttachment != null) {
 			Minecraft minecraft = Minecraft.getInstance();
 			poseStack.pushPose();
 			poseStack.translate(nameTagAttachment.x, nameTagAttachment.y + 0.5, nameTagAttachment.z);
-			poseStack.mulPose(camera.orientation);
+			poseStack.rotate(camera.orientation);
 			poseStack.scale(0.025F, -0.025F, 0.025F);
 			Matrix4f pose = new Matrix4f(poseStack.last().pose());
 			float x = -minecraft.font.width(name) / 2.0F;
 			int backgroundColor = LevelHead.getInstance().background.get() ? ARGB.color(minecraft.gameRenderer.gameRenderState().optionsRenderState.getBackgroundOpacity(0.25F), -16777216) : 0;
+			var nameSequence = name.getVisualOrderText();
 			if (seeThrough) {
-				this.nameTags
-					.submit(new NameTagFeatureRenderer.Submit(pose, x, offset, name, LightCoordsUtil.lightCoordsWithEmission(lightCoords, 2), -1, 0, Font.DisplayMode.NORMAL));
-				this.seeThroughNameTags
-					.submit(new NameTagFeatureRenderer.Submit(pose, x, offset, name, lightCoords, -2130706433, backgroundColor, Font.DisplayMode.SEE_THROUGH));
+				submitNameTagPart(nameTag(pose, x, offset, nameSequence, LightCoordsUtil.lightCoordsWithEmission(lightCoords, 2), -1, 0, Font.DisplayMode.NORMAL));
+				this.seeThrough
+					.submit(nameTag(pose, x, offset, nameSequence, lightCoords, -2130706433, backgroundColor, Font.DisplayMode.SEE_THROUGH));
 			} else {
-				this.nameTags.submit(new NameTagFeatureRenderer.Submit(pose, x, offset, name, lightCoords, -2130706433, backgroundColor, Font.DisplayMode.NORMAL));
+				submitNameTagPart(nameTag(pose, x, offset, nameSequence, lightCoords, -2130706433, backgroundColor, Font.DisplayMode.NORMAL));
 			}
-
 			poseStack.popPose();
 		}
 	}
@@ -98,7 +112,7 @@ public abstract class SubmitNodeCollectionMixin implements SubmitNodeCollectorEx
 			Minecraft mc = Minecraft.getInstance();
 			poseStack.pushPose();
 			poseStack.translate(nameTagAttachment.x, nameTagAttachment.y + 0.5, nameTagAttachment.z);
-			poseStack.mulPose(camera.orientation);
+			poseStack.rotate(camera.orientation);
 			poseStack.scale(0.025F, -0.025F, 0.025F);
 			Matrix4f pose = new Matrix4f(poseStack.last().pose());
 			float nameStartX = -mc.font.width(name) / 2.0F;
@@ -106,7 +120,7 @@ public abstract class SubmitNodeCollectionMixin implements SubmitNodeCollectorEx
 
 				var badgeText = Component.literal(AxolotlClient.config().badgeText.get());
 				var x = nameStartX - (mc.font.width(badgeText) + 4);
-				nameTags.submit(new NameTagFeatureRenderer.Submit(pose, x, offset, badgeText, LightCoordsUtil.lightCoordsWithEmission(lightCoords, 2), -1, 0, Font.DisplayMode.NORMAL));
+				submitNameTagPart(nameTag(pose, x, offset, badgeText.getVisualOrderText(), LightCoordsUtil.lightCoordsWithEmission(lightCoords, 2), -1, 0, Font.DisplayMode.NORMAL));
 			} else {
 				var x = nameStartX - 10;
 				((FabricOrderedSubmitNodeCollector) this).submitCustom(SubmitRenderPhases.NAME_TAGS, new BadgeFeatureRenderer.Submit(pose, x, offset));

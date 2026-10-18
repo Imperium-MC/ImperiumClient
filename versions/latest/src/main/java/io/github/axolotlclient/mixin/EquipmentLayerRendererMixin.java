@@ -36,6 +36,7 @@ import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.texture.UvMapping;
 import net.minecraft.resources.Identifier;
 import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -44,8 +45,8 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(EquipmentLayerRenderer.class)
 public abstract class EquipmentLayerRendererMixin {
 
-	@WrapOperation(method = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/Identifier;II)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/OrderedSubmitNodeCollector;submitModel(Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/rendertype/RenderType;IIILnet/minecraft/client/renderer/texture/TextureAtlasSprite;ILnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;)V", ordinal = 0))
-	private <S> void armorOverlayUV(OrderedSubmitNodeCollector instance, Model<? super S> model, S s, PoseStack poseStack, RenderType renderType, int light, int overlay, int tint, @Nullable TextureAtlasSprite textureAtlasSprite, int outline, ModelFeatureRenderer.@Nullable CrumblingOverlay crumblingOverlay, Operation<Void> original, @Local(name = "layerTexture") Identifier layerTexture) {
+	@WrapOperation(method = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/Identifier;II)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/OrderedSubmitNodeCollector;submitModel(Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/rendertype/RenderType;IIILnet/minecraft/client/renderer/texture/UvMapping;I)V", ordinal = 0))
+	private <S> void armorOverlayUV(OrderedSubmitNodeCollector instance, Model<? super S> model, S s, PoseStack poseStack, RenderType renderType, int light, int overlay, int tint, @Nullable UvMapping mapping, int outline, Operation<Void> original, @Local(name = "layerTexture") Identifier layerTexture) {
 		if (s instanceof LivingEntityRenderState state && AxolotlClient.config().hitColorOnArmor.get()) {
 			// Note: the `whiteOverlayProgress` parameter gets retrieved from a protected method in `LivingEntityRenderer`. It is
 			// only overridden by the `CreeperRenderer` in order to provide the white flashing effect. Creepers cannot render
@@ -53,7 +54,7 @@ public abstract class EquipmentLayerRendererMixin {
 			overlay = LivingEntityRenderer.getOverlayCoords(state, 0.0f);
 			renderType = RenderTypes.entityCutoutZOffset(layerTexture);
 		}
-		original.call(instance, model, s, poseStack, renderType, light, overlay, tint, textureAtlasSprite, outline, crumblingOverlay);
+		original.call(instance, model, s, poseStack, renderType, light, overlay, tint, mapping, outline);
 	}
 
 }

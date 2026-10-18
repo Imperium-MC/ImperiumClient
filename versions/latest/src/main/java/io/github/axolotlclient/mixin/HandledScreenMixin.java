@@ -41,8 +41,8 @@ public abstract class HandledScreenMixin {
 	@Unique
 	private ItemStack cachedStack;
 
-	@Inject(method = "extractTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;setTooltipForNextFrame(Lnet/minecraft/client/gui/Font;Ljava/util/List;Ljava/util/Optional;IILnet/minecraft/resources/Identifier;)V"))
-	public void axolotlclient$resetScrollOnChange(GuiGraphicsExtractor graphics, int x, int y, CallbackInfo ci, @Local ItemStack stack) {
+	@Inject(method = "extractTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;setTooltipForNextFrame(Lnet/minecraft/client/gui/Font;Ljava/util/List;Ljava/util/Optional;IILnet/minecraft/resources/Identifier;Z)V"))
+	public void axolotlclient$resetScrollOnChange(GuiGraphicsExtractor graphics, int x, int y, CallbackInfo ci, @Local(name = "item") ItemStack stack) {
 		if (ScrollableTooltips.getInstance().enabled.get() && cachedStack != stack) {
 			cachedStack = stack;
 			ScrollableTooltips.getInstance().resetScroll();

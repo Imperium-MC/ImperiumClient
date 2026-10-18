@@ -74,7 +74,7 @@ public class Bridge {
 		MinecraftClientEvents.STOP.register(minecraft -> Events.CLIENT_STOP.invoker().run());
 		MinecraftClientEvents.TICK_END.register(minecraft -> Events.TICK.invoker().run());
 		ClientResourceLoaderEvents.END_RESOURCE_RELOAD.register((manager, ctx) -> Events.END_RESOURCE_RELOAD.invoker().run());
-		ClientConnectionEvents.DISCONNECT.register(mc -> Events.DISCONNECT.invoker().run());
+		ClientConnectionEvents.DISCONNECT.register(ctx -> Events.DISCONNECT.invoker().run());
 	}
 
 	public static void postInit() {

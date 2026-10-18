@@ -24,8 +24,8 @@ package io.github.axolotlclient.util;
 
 import java.util.List;
 
-import com.mojang.blaze3d.pipeline.DepthStencilState;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.pipeline.DepthStencilState;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import io.github.axolotlclient.AxolotlClientCommon;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.feature.FeatureFrameContext;

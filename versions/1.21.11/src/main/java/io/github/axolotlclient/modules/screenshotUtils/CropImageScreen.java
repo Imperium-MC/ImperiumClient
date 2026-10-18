@@ -23,7 +23,6 @@
 package io.github.axolotlclient.modules.screenshotUtils;
 
 import java.io.IOException;
-import java.nio.file.Path;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.platform.cursor.CursorType;
@@ -35,6 +34,7 @@ import io.github.axolotlclient.AxolotlClientConfig.impl.util.DrawUtil;
 import io.github.axolotlclient.mixin.EditBoxAccessor;
 import io.github.axolotlclient.util.ExtraCursorTypes;
 import io.github.axolotlclient.util.MathUtil;
+import io.github.axolotlclient.util.dialogs.DialogProvider;
 import lombok.AllArgsConstructor;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.ComponentPath;
@@ -57,8 +57,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.Util;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.util.tinyfd.TinyFileDialogs;
 
 @NullMarked
 public class CropImageScreen extends Screen {
@@ -71,6 +69,7 @@ public class CropImageScreen extends Screen {
 	private ImageWidget imageWidget;
 	@Nullable
 	private EditBox posX, posY, posW, posH;
+
 	public CropImageScreen(@Nullable Screen parent, ImageInstance image) {
 		this(parent, image, false);
 	}
@@ -97,7 +96,7 @@ public class CropImageScreen extends Screen {
 				super.insertText(input);
 			}
 		});
-		posY = inputs.addChild(new EditBox(font, 50, 20, Component.translatable("gallery.image.crop.inputs.y")){
+		posY = inputs.addChild(new EditBox(font, 50, 20, Component.translatable("gallery.image.crop.inputs.y")) {
 			@Override
 			public void insertText(String input) {
 				if (!input.matches("\\d*")) return;
@@ -105,14 +104,14 @@ public class CropImageScreen extends Screen {
 			}
 		});
 		inputs.addChild(new StringWidget(Component.translatable("gallery.image.crop.size"), font)).setHeight(20);
-		posW = inputs.addChild(new EditBox(font, 50, 20, Component.translatable("gallery.image.crop.inputs.width")){
+		posW = inputs.addChild(new EditBox(font, 50, 20, Component.translatable("gallery.image.crop.inputs.width")) {
 			@Override
 			public void insertText(String input) {
 				if (!input.matches("\\d*")) return;
 				super.insertText(input);
 			}
 		});
-		posH = inputs.addChild(new EditBox(font, 50, 20, Component.translatable("gallery.image.crop.inputs.height")){
+		posH = inputs.addChild(new EditBox(font, 50, 20, Component.translatable("gallery.image.crop.inputs.height")) {
 			@Override
 			public void insertText(String input) {
 				if (!input.matches("\\d*")) return;
@@ -127,24 +126,21 @@ public class CropImageScreen extends Screen {
 		var footerLine2 = footer.addChild(LinearLayout.horizontal(), LayoutSettings::alignHorizontallyCenter).spacing(4);
 		var footerLine3 = footer.addChild(LinearLayout.horizontal(), LayoutSettings::alignHorizontallyCenter).spacing(4);
 		footerLine2.addChild(Button.builder(Component.translatable("gallery.image.crop.save_as"), btn -> {
-			String result = null;
-			try (MemoryStack stack = MemoryStack.stackPush(); var crop = imageWidget.getCopyOfSelection()) {
-				var pointers = stack.mallocPointer(1);
-				pointers.put(stack.UTF8("*.png"));
-				pointers.flip();
+			try (var crop = imageWidget.getCopyOfSelection()) {
 				var defaultPath = image instanceof ImageInstance.Local loc ? loc.location().getParent() : FabricLoader.getInstance().getGameDir();
-				result = TinyFileDialogs.tinyfd_saveFileDialog("Choose destination",
-					defaultPath.resolve(image.filename().replace(".png", "_cropped-" + Util.getFilenameFormattedDateTime() + ".png"))
-						.toAbsolutePath().toString(),
-					pointers, "PNG Images");
-				if (result != null) {
-					var dest = Path.of(result);
-					crop.writeToFile(dest);
-					AxolotlClientCommon.getInstance().getNotificationProvider().addStatus("gallery.image.crop.save_as.success", "gallery.image.crop.save_as.success.description", dest.getFileName());
-				}
-			} catch (IOException e) {
-				AxolotlClientCommon.getInstance().getLogger().error("Failed to save cropped image!", e);
-				AxolotlClientCommon.getInstance().getNotificationProvider().addStatus("gallery.image.crop.save_as.failure", "gallery.image.crop.save_as.failure.description", result);
+				DialogProvider.IMPL.save("Choose destination", defaultPath.resolve(image.filename().replace(".png", "_cropped-" + Util.getFilenameFormattedDateTime() + ".png"))
+					.toAbsolutePath(), ".png").thenAccept(opt -> {
+					if (opt.isPresent()) {
+						var dest = opt.get();
+						try {
+							crop.writeToFile(dest);
+							AxolotlClientCommon.getInstance().getNotificationProvider().addStatus("gallery.image.crop.save_as.success", "gallery.image.crop.save_as.success.description", dest.getFileName());
+						} catch (IOException e) {
+							AxolotlClientCommon.getInstance().getLogger().error("Failed to save cropped image!", e);
+							AxolotlClientCommon.getInstance().getNotificationProvider().addStatus("gallery.image.crop.save_as.failure", "gallery.image.crop.save_as.failure.description", dest);
+						}
+					}
+				});
 			}
 		}).width(100).build());
 		footerLine2.addChild(Button.builder(Component.translatable("gallery.image.crop.save"), btn -> {
@@ -649,8 +645,8 @@ public class CropImageScreen extends Screen {
 			var wScale = imgWidth / (dragX1 - dragX);
 			var hScale = imgHeight / (dragY1 - dragY);
 			scale = Math.abs(wScale - 1) < Math.abs(hScale - 1) ? wScale : hScale;
-			translateX = -CropImageScreen.this.width / 2f - scale * (-CropImageScreen.this.width / 2f + dragX) + getX() + getWidth()/2f - (dragX1 - dragX)*scale/2f;
-			translateY = -CropImageScreen.this.height / 2f - scale * (-CropImageScreen.this.height / 2f + dragY) + getY() + getHeight()/2f - (dragY1-dragY)*scale/2f;
+			translateX = -CropImageScreen.this.width / 2f - scale * (-CropImageScreen.this.width / 2f + dragX) + getX() + getWidth() / 2f - (dragX1 - dragX) * scale / 2f;
+			translateY = -CropImageScreen.this.height / 2f - scale * (-CropImageScreen.this.height / 2f + dragY) + getY() + getHeight() / 2f - (dragY1 - dragY) * scale / 2f;
 			updateEditBoxContents();
 		}
 

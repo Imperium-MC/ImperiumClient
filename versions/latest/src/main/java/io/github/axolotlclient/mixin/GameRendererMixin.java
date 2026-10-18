@@ -28,11 +28,11 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalFloatRef;
 import com.mojang.blaze3d.resource.CrossFrameResourcePool;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.renderpearl.api.textures.GpuTextureView;
 import io.github.axolotlclient.AxolotlClient;
 import io.github.axolotlclient.modules.blur.MotionBlur;
 import io.github.axolotlclient.modules.hud.HudManager;
 import io.github.axolotlclient.modules.hud.gui.hud.vanilla.CrosshairHud;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.DebugCrosshairRenderer;
 import net.minecraft.client.renderer.GameRenderer;
@@ -58,13 +58,13 @@ public abstract class GameRendererMixin {
 	@Final
 	private Minecraft minecraft;
 
-	@Inject(method = "render", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/GameRenderer;postEffectId:Lnet/minecraft/resources/Identifier;", ordinal = 0, opcode = Opcodes.GETFIELD))
-	public void axolotlclient$worldMotionBlur(DeltaTracker tracker, boolean renderLevel, CallbackInfo ci) {
-		axolotlclient$motionBlur(tracker, renderLevel, null);
+	@Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;applyPostEffects()V"))
+	public void axolotlclient$worldMotionBlur(CallbackInfo ci) {
+		axolotlclient$motionBlur(null);
 	}
 
 	@Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/render/GuiRenderer;endFrame()V"))
-	public void axolotlclient$motionBlur(DeltaTracker tracker, boolean renderLevel, CallbackInfo ci) {
+	public void axolotlclient$motionBlur(CallbackInfo ci) {
 		if (ci != null && !MotionBlur.getInstance().inGuis.get()) {
 			return;
 		}
@@ -82,7 +82,7 @@ public abstract class GameRendererMixin {
 	@Inject(method = "bobView",
 		at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V"))
 	private void axolotlclient$minimalViewBob(CameraRenderState cameraState, PoseStack matrices, CallbackInfo ci, @Local(name = "bob") LocalFloatRef bob,
-	                                          @Local(name = "backwardsInterpolatedWalkDistance") LocalFloatRef backwardsInterpolatedWalkDistance) {
+											  @Local(name = "backwardsInterpolatedWalkDistance") LocalFloatRef backwardsInterpolatedWalkDistance) {
 		if (AxolotlClient.config().minimalViewBob.get()) {
 			backwardsInterpolatedWalkDistance.set(backwardsInterpolatedWalkDistance.get() / 2f);
 			bob.set(bob.get() / 2);
@@ -99,7 +99,7 @@ public abstract class GameRendererMixin {
 	}
 
 	@Inject(method = "renderLevel", at = @At("TAIL"))
-	private void renderDirectionCrosshair(DeltaTracker deltaTracker, CallbackInfo ci) {
+	private void renderDirectionCrosshair(CallbackInfo ci) {
 		if (!this.minecraft.gui.hud.isHidden()) {
 			var hud = (CrosshairHud) HudManager.getInstance().get(CrosshairHud.ID);
 			if (hud.isEnabled()) {
@@ -108,11 +108,11 @@ public abstract class GameRendererMixin {
 		}
 	}
 
-	@WrapOperation(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/DebugCrosshairRenderer;render(Lnet/minecraft/client/renderer/state/level/CameraRenderState;I)V"))
-	private void checkCustomCrosshair(DebugCrosshairRenderer instance, CameraRenderState cameraState, int guiScale, Operation<Void> original) {
+	@WrapOperation(method = "render3dHud", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/DebugCrosshairRenderer;render(Lnet/minecraft/client/renderer/state/level/CameraRenderState;ILcom/mojang/renderpearl/api/textures/GpuTextureView;Lcom/mojang/renderpearl/api/textures/GpuTextureView;)V"))
+	private void checkCustomCrosshair(DebugCrosshairRenderer instance, CameraRenderState cameraRenderState, int guiScale, GpuTextureView targetView, GpuTextureView depthTargetView, Operation<Void> original) {
 		var hud = (CrosshairHud) HudManager.getInstance().get(CrosshairHud.ID);
 		if (!hud.isEnabled() || !hud.overridesF3()) {
-			original.call(instance, cameraState, guiScale);
+			original.call(instance, cameraRenderState, guiScale, targetView, targetView);
 		}
 	}
 }

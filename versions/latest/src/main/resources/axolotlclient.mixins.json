@@ -42,7 +42,6 @@
 		"MinecraftServerAccessor",
 		"ModStatusMixin",
 		"MouseMixin",
-		"NameTagFeatureRendererMixin",
 		"OverlayTextureAccessor",
 		"OverlayTextureMixin",
 		"ParticleManagerMixin",

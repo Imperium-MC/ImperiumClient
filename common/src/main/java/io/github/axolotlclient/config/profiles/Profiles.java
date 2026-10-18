@@ -49,13 +49,11 @@ import io.github.axolotlclient.bridge.resource.AxoResource;
 import io.github.axolotlclient.bridge.util.AxoI18n;
 import io.github.axolotlclient.bridge.util.AxoIdentifier;
 import io.github.axolotlclient.util.GsonHelper;
-import io.github.axolotlclient.util.ThreadExecuter;
+import io.github.axolotlclient.util.dialogs.DialogProvider;
 import lombok.Setter;
 import net.fabricmc.loader.api.FabricLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.util.tinyfd.TinyFileDialogs;
 
 public class Profiles {
 	private static final Path PROFILES_CONFIG = AxolotlClientCommon.resolveConfigFile("profiles").resolve("profiles.json");
@@ -152,65 +150,52 @@ public class Profiles {
 	}
 
 	public CompletableFuture<?> exportProfile(Profile profile) {
-		return CompletableFuture.runAsync(() -> {
-			try (MemoryStack stack = MemoryStack.stackPush()) {
-				var pointers = stack.mallocPointer(1);
-				pointers.put(stack.UTF8("*" + PROFILE_EXPORT_FILE_EXTENSION));
-				pointers.flip();
-				var out = TinyFileDialogs.tinyfd_saveFileDialog("Choose export destination",
-					FabricLoader.getInstance().getGameDir()
-						.resolve(LocalDateTime.now().format(EXPORT_TIME_FORMAT) + "_" + profile.name() + PROFILE_EXPORT_FILE_EXTENSION).toString(),
-					pointers, null);
-				if (out == null) {
+		return DialogProvider.IMPL.save("Choose export destination", FabricLoader.getInstance().getGameDir()
+				.resolve(LocalDateTime.now().format(EXPORT_TIME_FORMAT) + "_" + profile.name() + PROFILE_EXPORT_FILE_EXTENSION), PROFILE_EXPORT_FILE_EXTENSION)
+			.thenAccept(opt -> {
+				if (opt.isEmpty()) {
 					return;
 				}
-				if (!out.endsWith(PROFILE_EXPORT_FILE_EXTENSION)) {
+				var outPath = opt.get();
+				if (!outPath.toString().endsWith(PROFILE_EXPORT_FILE_EXTENSION)) {
 					AxolotlClientCommon.getInstance().getNotificationProvider()
 						.addStatus("profiles.profile.export.notification.failed",
 							"profiles.profile.export.notification.failed.invalid_destination");
 					return;
 				}
-				var outPath = Path.of(out);
-				Files.deleteIfExists(outPath);
-				try (var fs = FileSystems.newFileSystem(outPath, Map.of("create", "true"))) {
-					var realRoot = profile.getPath();
-					Files.walkFileTree(realRoot, new SimpleFileVisitor<>() {
-						@Override
-						public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) throws IOException {
-							var zipped = fs.getPath("profile").resolve(realRoot.relativize(file).toString());
-							Files.createDirectories(zipped.getParent());
-							Files.copy(file.toAbsolutePath(), zipped);
-							return super.visitFile(file, attrs);
-						}
-					});
-					Files.writeString(fs.getPath(PROFILE_INFO_FILE), GsonHelper.GSON.toJson(new ProfileInfo(profile)));
+
+				try {
+					Files.deleteIfExists(outPath);
+					try (var fs = FileSystems.newFileSystem(outPath, Map.of("create", "true"))) {
+						var realRoot = profile.getPath();
+						Files.walkFileTree(realRoot, new SimpleFileVisitor<>() {
+							@Override
+							public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) throws IOException {
+								var zipped = fs.getPath("profile").resolve(realRoot.relativize(file).toString());
+								Files.createDirectories(zipped.getParent());
+								Files.copy(file.toAbsolutePath(), zipped);
+								return super.visitFile(file, attrs);
+							}
+						});
+						Files.writeString(fs.getPath(PROFILE_INFO_FILE), GsonHelper.GSON.toJson(new ProfileInfo(profile)));
+					}
+					AxolotlClientCommon.getInstance().getNotificationProvider()
+						.addStatus("profiles.profile.export.notification.success",
+							"profiles.profile.export.notification.success.desc", profile.name(), FabricLoader.getInstance().getGameDir().relativize(outPath));
+				} catch (IOException e) {
+					AxolotlClientCommon.getInstance().getLogger().info("Failed to export profile", e);
+					AxolotlClientCommon.getInstance().getNotificationProvider()
+						.addStatus("profiles.profile.export.notification.failed",
+							"profiles.profile.export.notification.failed.generic");
 				}
-				AxolotlClientCommon.getInstance().getNotificationProvider()
-					.addStatus("profiles.profile.export.notification.success",
-						"profiles.profile.export.notification.success.desc", profile.name(), FabricLoader.getInstance().getGameDir().relativize(outPath));
-			} catch (IOException e) {
-				AxolotlClientCommon.getInstance().getLogger().info("Failed to export profile", e);
-				AxolotlClientCommon.getInstance().getNotificationProvider()
-					.addStatus("profiles.profile.export.notification.failed",
-						"profiles.profile.export.notification.failed.generic");
-			}
-		}, ThreadExecuter.service());
+			});
 	}
 
 	public CompletableFuture<List<Profile>> importProfiles() {
-		return CompletableFuture.supplyAsync(() -> {
-			try (MemoryStack stack = MemoryStack.stackPush()) {
-				var pointers = stack.mallocPointer(1);
-				pointers.put(stack.UTF8("*" + PROFILE_EXPORT_FILE_EXTENSION));
-				pointers.flip();
-				var files = TinyFileDialogs.tinyfd_openFileDialog("Import Profile",
-					FabricLoader.getInstance().getGameDir().toString(),
-					pointers,
-					null, true
-				);
-				if (files == null) return Collections.emptyList();
-				var imported = Arrays.stream(files.split("\\|")).map(Path::of)
-					.map(this::readProfile).filter(Objects::nonNull).toList();
+		return DialogProvider.IMPL.openMultiple("Import Profile", FabricLoader.getInstance().getGameDir(), PROFILE_EXPORT_FILE_EXTENSION)
+			.thenApply(opt -> {
+				if (opt.isEmpty()) return Collections.emptyList();
+				var imported = opt.get().stream().map(this::readProfile).filter(Objects::nonNull).toList();
 				saveProfiles();
 				if (!imported.isEmpty()) {
 					var count = imported.size();
@@ -225,8 +210,7 @@ public class Profiles {
 					}
 				}
 				return imported;
-			}
-		}, ThreadExecuter.service());
+			});
 	}
 
 	private @Nullable Profile readProfile(Path p) {
@@ -294,7 +278,7 @@ public class Profiles {
 
 	public record ProfilePreset(ProfileInfo info, AxoIdentifier id, AxoResource resource) {
 		public void importProfile() {
-			var tmp = PROFILES_CONFIG.resolveSibling("tmp").resolve(info.id()+".zip");
+			var tmp = PROFILES_CONFIG.resolveSibling("tmp").resolve(info.id() + ".zip");
 			try {
 				Files.createDirectories(tmp.getParent());
 				Files.copy(resource.br$asStream(), tmp);

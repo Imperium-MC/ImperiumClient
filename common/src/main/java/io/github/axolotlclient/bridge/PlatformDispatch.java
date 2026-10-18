@@ -23,6 +23,7 @@
 package io.github.axolotlclient.bridge;
 
 import java.util.List;
+import java.util.UUID;
 
 import io.github.axolotlclient.bridge.internal.BridgeUtil;
 import io.github.axolotlclient.bridge.internal.RequiresImpl;
@@ -53,6 +54,11 @@ public class PlatformDispatch {
 
 	@RequiresImpl
 	public static void bedwars$sessionstats$openEntryConfigScreen() {
+		throw BridgeUtil.noImpl();
+	}
+
+	@RequiresImpl
+	public static void api$login(UUID profileId, String token, String serverId) throws Exception {
 		throw BridgeUtil.noImpl();
 	}
 }
