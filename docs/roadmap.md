@@ -54,7 +54,7 @@ ones (minimap, WorldEdit CUI, Spotify, emotes).
 
 ## M6: Launcher
 
-ImperiumMC launcher forked from HeliosLauncher. See [launcher-plan.md](launcher-plan.md).
+Imperium Launcher, forked from HeliosLauncher. See [launcher-plan.md](launcher-plan.md).
 
 ## Known compatibility notes
 

@@ -1,13 +1,13 @@
 # Launcher plan
 
-The ImperiumMC launcher will be a fork of [HeliosLauncher](https://github.com/dscalzi/HeliosLauncher)
+Imperium Launcher will be a fork of [HeliosLauncher](https://github.com/dscalzi/HeliosLauncher)
 (MIT, Electron). Helios is built for server-branded launchers: it reads a *distribution index* that
 lists the game version, loader, mods and files to sync, so players always run the server's exact pack.
 It will live in its own repository.
 
 ## Scope
 
-- ImperiumMC branding and a Roman theme.
+- Imperium branding and a Roman theme.
 - Distribution index hosted by ImperiumMC: Minecraft 26.3, Fabric loader, Imperium Client, a
   Fabulously-Optimized-based performance pack and the server resource pack.
 - Java 25 runtime download and management.
