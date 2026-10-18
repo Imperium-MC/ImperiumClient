@@ -99,6 +99,50 @@ public abstract class InGameHudMixin {
 		}
 	}
 
+	// Movable titles (Alpine "titles", M2): vanilla still owns title state — these
+	// three setters forward into TitleHud — but the vanilla extractTitle draw is
+	// cancelled when the entry is enabled, and HudManager renders it at the
+	// user's anchor with the entry's scale/color options instead.
+	@Inject(method = "setTitle", at = @At("TAIL"))
+	public void axolotlclient$forwardTitle(Component title, CallbackInfo ci) {
+		TitleHud hud = (TitleHud) HudManager.getInstance().get(TitleHud.ID);
+		if (hud != null) {
+			hud.setTitle(title);
+		}
+	}
+
+	@Inject(method = "setSubtitle", at = @At("TAIL"))
+	public void axolotlclient$forwardSubtitle(Component subtitle, CallbackInfo ci) {
+		TitleHud hud = (TitleHud) HudManager.getInstance().get(TitleHud.ID);
+		if (hud != null) {
+			hud.setSubtitle(subtitle);
+		}
+	}
+
+	@Inject(method = "setTimes", at = @At("TAIL"))
+	public void axolotlclient$forwardTitleTimes(int fadeIn, int stay, int fadeOut, CallbackInfo ci) {
+		TitleHud hud = (TitleHud) HudManager.getInstance().get(TitleHud.ID);
+		if (hud != null) {
+			hud.setTimes(fadeIn, stay, fadeOut);
+		}
+	}
+
+	@Inject(method = "clearTitles", at = @At("TAIL"))
+	public void axolotlclient$forwardClearTitles(CallbackInfo ci) {
+		TitleHud hud = (TitleHud) HudManager.getInstance().get(TitleHud.ID);
+		if (hud != null) {
+			hud.clearTitles();
+		}
+	}
+
+	@Inject(method = "extractTitle", at = @At("HEAD"), cancellable = true)
+	public void axolotlclient$renderTitle(GuiGraphicsExtractor graphics, DeltaTracker tracker, CallbackInfo ci) {
+		TitleHud hud = (TitleHud) HudManager.getInstance().get(TitleHud.ID);
+		if (HudManager.getInstance().hudsEnabled() && hud != null && hud.isEnabled()) {
+			ci.cancel();
+		}
+	}
+
 	@WrapOperation(method = "extractOverlayMessage", at = @At(value = "INVOKE",
 		target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;textWithBackdrop(Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;IIII)V"))
 	public void axolotlclient$getActionBar(GuiGraphicsExtractor instance, Font font, Component text, int x, int y, int width, int color, Operation<Integer> original) {

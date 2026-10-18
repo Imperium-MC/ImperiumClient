@@ -56,6 +56,7 @@ public class HudManager extends HudManagerCommon {
 		add(new DebugCountersHud());
 		add(new HotbarHud());
 		add(new ScoreboardHud());
+		add(new TitleHud());
 		add(new KeystrokeHud());
 		add(new PackDisplayHud());
 		add(new PlayerHud());
