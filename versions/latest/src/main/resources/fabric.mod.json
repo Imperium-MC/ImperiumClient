@@ -17,8 +17,8 @@
 	],
 	"contact": {
 		"homepage": "https://imperiummc.net",
-		"sources": "https://github.com/MylesThePro1/ImperiumClient",
-		"issues": "https://github.com/MylesThePro1/ImperiumClient/issues"
+		"sources": "https://github.com/Imperium-MC/ImperiumClient",
+		"issues": "https://github.com/Imperium-MC/ImperiumClient/issues"
 	},
 	"license": "LGPL-3.0-or-later",
 	"icon": "assets/imperiumclient/icon.png",

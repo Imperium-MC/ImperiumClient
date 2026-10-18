@@ -7,7 +7,7 @@ It will live in its own repository.
 
 ## Status (2026-10-18)
 
-- Repo: [MylesThePro1/ImperiumLauncher](https://github.com/MylesThePro1/ImperiumLauncher), app ID
+- Repo: [Imperium-MC/ImperiumLauncher](https://github.com/Imperium-MC/ImperiumLauncher), app ID
   `net.imperiummc.launcher`, Windows installer builds; logos are the website's `Logo.png`.
 - Azure app `8b0c9e33-b6ce-40ec-ac30-c85a35dd8163` (personal accounts, native redirect) is configured.
   Microsoft and Xbox sign-in work; the Minecraft token step returns 403 until Mojang approves the app ID

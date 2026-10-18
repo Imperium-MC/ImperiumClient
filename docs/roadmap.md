@@ -8,11 +8,11 @@ Milestones run in order; each ends with a build that works in game.
 |---|---|
 | M0 fork baseline | Done |
 | M1 menu + HUD style | Menu shell, search, toggles, HUD style options done. Inline settings panel and background blur left |
-| M2 user's modules | Titles HUD in [PR #1](https://github.com/MylesThePro1/ImperiumClient/pull/1); rest not started |
+| M2 user's modules | Titles HUD in [PR #1](https://github.com/Imperium-MC/ImperiumClient/pull/1); rest not started |
 | M3 performance | Not started |
 | M4 remaining modules | Not started |
 | M5 ImperiumMC integration | Handshake client half in PR #1. Server half shipped in the plugin (`ImperiumClientIntegrationService`) |
-| M6 launcher | Repo [ImperiumLauncher](https://github.com/MylesThePro1/ImperiumLauncher) builds; Microsoft login waits on Mojang API approval |
+| M6 launcher | Repo [ImperiumLauncher](https://github.com/Imperium-MC/ImperiumLauncher) builds; Microsoft login waits on Mojang API approval |
 
 PR #1 had two bugs, fixed on branch `review/pr-1`: the handshake used an NBT codec while the plugin sends
 raw UTF-8 (would disconnect players), and the titles HUD dropped colours and was clipped off-screen. Merge
