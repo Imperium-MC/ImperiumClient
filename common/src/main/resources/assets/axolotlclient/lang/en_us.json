@@ -1052,5 +1052,16 @@
 	"waypoints.disabled": "off",
 	"waypoints.added": "Waypoint added: %1$s",
 	"waypoints.death.set": "Death waypoint set",
-	"key.waypoints.add": "Add Waypoint at Current Position"
+	"key.waypoints.add": "Add Waypoint at Current Position",
+	"inventorySearch": "Inventory Search",
+	"inventory_search.hint": "Search...",
+	"key.inventory_search.open": "Search in Inventory",
+	"search_bar_position": "Search Bar Position",
+	"search_bar_position.top": "Top",
+	"search_bar_position.bottom": "Bottom",
+	"search_bar_width": "Search Bar Width",
+	"search_bar_height": "Search Bar Height",
+	"highlight_slot": "Highlight Matching Slots",
+	"highlight_color": "Highlight Color",
+	"dim_color": "Dim Non-Matching Items"
 }

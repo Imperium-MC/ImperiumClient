@@ -34,6 +34,7 @@ import io.github.axolotlclient.modules.blur.MotionBlur;
 import io.github.axolotlclient.modules.hud.HudManager;
 import io.github.axolotlclient.modules.hud.gui.hud.PackDisplayHud;
 import io.github.axolotlclient.modules.hypixel.HypixelMods;
+import io.github.axolotlclient.modules.inventorySearch.InventorySearch;
 import io.github.axolotlclient.modules.particles.Particles;
 import io.github.axolotlclient.modules.screenshotUtils.ScreenshotUtils;
 import io.github.axolotlclient.modules.scrollableTooltips.ScrollableTooltips;
@@ -51,6 +52,7 @@ public class AxolotlClient extends AxolotlClientCommon implements ClientModIniti
 		registerModule(HypixelMods.getInstance());
 		registerModule(MotionBlur.getInstance());
 		registerModule(ScrollableTooltips.getInstance());
+		registerModule(InventorySearch.getInstance());
 		registerModule(Particles.getInstance());
 		registerModule(ScreenshotUtils.getInstance());
 		registerModule(Auth.getInstance());

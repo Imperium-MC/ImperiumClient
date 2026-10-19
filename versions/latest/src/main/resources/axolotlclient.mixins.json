@@ -31,6 +31,7 @@
 		"HandledScreenMixin",
 		"InGameHudMixin",
 		"InGameOverlayRendererMixin",
+		"InventorySearchMixin",
 		"KeyBindMixin",
 		"KeyboardInputMixin",
 		"LightmapManagerMixin",

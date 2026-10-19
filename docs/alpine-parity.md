@@ -53,7 +53,7 @@ Status: ✅ exists in Axolotl (needs Alpine-style settings), 🟡 partial, ❌ b
 | **tab_editor** | — | ❌ numeric ping, self/group highlight |
 | **nametag_editor** | `nametagOptions` | 🟡 own nametag, client icon, shadow, background |
 | **waypoints** | WaypointsHud + WaypointManager | 🟡 per-dimension waypoints, death points, add keybind (B), list screen; on-screen arrows not 3D tracers (no projection math in codebase) |
-| **inventory_tweaks/inventory_search** | — | ❌ search bar with slot highlight |
+| **inventory_tweaks/inventory_search** | InventorySearch | ✅ search bar with slot highlight |
 | **inventory_tweaks/scrollable_tooltips** | ScrollableTooltips | ✅ add smooth scroll, activation key |
 | inventory_tweaks | — | ❌ hide potion effects, keep centred |
 | **factions** (+ breadcrumbs, cannon_playback, cannon_view, explosion_boxes, patchcrumbs, status HUD) | — | ❌ factions tooling, low priority |
