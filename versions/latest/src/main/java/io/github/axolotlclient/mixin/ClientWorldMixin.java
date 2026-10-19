@@ -27,6 +27,8 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.github.axolotlclient.AxolotlClient;
 import io.github.axolotlclient.modules.hypixel.HypixelAbstractionLayer;
 import io.github.axolotlclient.modules.hypixel.HypixelMods;
+import io.github.axolotlclient.util.TimeChangerSpeed;
+import net.minecraft.client.ClientClockManager;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -52,9 +54,29 @@ public abstract class ClientWorldMixin {
 		}
 	}
 
+	@Inject(method = "tickTime", at = @At("HEAD"))
+	private void axolotlclient$updateTimeSpeed(CallbackInfo ci) {
+		TimeChangerSpeed.tick(AxolotlClient.config().timeChangerEnabled.get(), AxolotlClient.config().timeMultiplier.get());
+	}
+
 	@WrapOperation(method = "tickTime", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientLevel$ClientLevelData;setGameTime(J)V"))
 	private void noTimeTickWithTimeChanger(ClientLevel.ClientLevelData instance, long time, Operation<Void> original) {
 		if (!AxolotlClient.config().timeChangerEnabled.get()) {
+			original.call(instance, time);
+		} else if (AxolotlClient.config().timeMultiplier.get() != 1.0F) {
+			// Time multiplier: advance the local game time at the multiplied speed (by the extra ticks of this tick),
+			// keeping it in sync with the offset the time packets carry.
+			original.call(instance, time + TimeChangerSpeed.lastExtra());
+		}
+		// Fixed-time mode: skip, so the locally advancing game time cannot drift away from the pinned time.
+	}
+
+	@WrapOperation(method = "tickTime", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/ClientClockManager;tick(J)V"))
+	private void axolotlclient$applyTimeMultiplier(ClientClockManager instance, long time, Operation<Void> original) {
+		if (AxolotlClient.config().timeChangerEnabled.get()
+			&& AxolotlClient.config().timeMultiplier.get() != 1.0F) {
+			original.call(instance, time + TimeChangerSpeed.lastExtra());
+		} else {
 			original.call(instance, time);
 		}
 	}

@@ -75,11 +75,37 @@ public abstract class AxolotlClientConfigCommon {
 
 	}
 
+	public enum NametagBackgroundMode {
+		NONE,
+		TRANSLUCENT,
+		OPAQUE;
+
+		@Override
+		public String toString() {
+			return "nametagBackground." + super.toString().toLowerCase(Locale.ROOT);
+		}
+
+	}
+
+	public enum WeatherOverride {
+		OFF,
+		CLEAR,
+		RAIN,
+		THUNDER;
+
+		@Override
+		public String toString() {
+			return "weather." + super.toString().toLowerCase(Locale.ROOT);
+		}
+
+	}
+
 	// options
 
 	public final BooleanOption showOwnNametag = new BooleanOption("showOwnNametag", false);
 	public final BooleanOption useShadows = new BooleanOption("useShadows", false);
-	public final BooleanOption nametagBackground = new BooleanOption("nametagBackground", true);
+	public final EnumOption<NametagBackgroundMode> nametagBackground = new EnumOption<>("nametagBackground", NametagBackgroundMode.class, NametagBackgroundMode.TRANSLUCENT);
+	public final DoubleOption nametagScale = new DoubleOption("nametagScale", 1.0D, 0.5D, 2.0D);
 
 	public final BooleanOption showBadges = new BooleanOption("showBadges", true);
 	public final BooleanOption customBadge = new BooleanOption("customBadge", false);
@@ -88,6 +114,9 @@ public abstract class AxolotlClientConfigCommon {
 
 	public final ForceableBooleanOption timeChangerEnabled = new ForceableBooleanOption("enabled", false);
 	public final IntegerOption customTime = new IntegerOption("time", 0, 0, 24000);
+	public final FloatOption timeMultiplier = new FloatOption("time_multiplier", 1.0F, 0.1F, 10.0F);
+	public final EnumOption<WeatherOverride> weather = new EnumOption<>("weather", WeatherOverride.class, WeatherOverride.OFF);
+	public final FloatOption weatherIntensity = new FloatOption("weather_intensity", 1.0F, 0.0F, 1.0F);
 
 	public final BooleanOption dynamicFOV = new BooleanOption("dynamicFov", true);
 	public final ForceableBooleanOption fullBright = new ForceableBooleanOption("fullBright", false);
@@ -149,6 +178,7 @@ public abstract class AxolotlClientConfigCommon {
 		nametagOptions.add(showOwnNametag);
 		nametagOptions.add(useShadows);
 		nametagOptions.add(nametagBackground);
+		nametagOptions.add(nametagScale);
 
 		general.add(customWindowTitle);
 		general.add(debugLogOutput);
@@ -160,10 +190,13 @@ public abstract class AxolotlClientConfigCommon {
 
 		timeChanger.add(timeChangerEnabled);
 		timeChanger.add(customTime);
+		timeChanger.add(timeMultiplier);
 		timeChanger.add(new GenericOption("time_changer.preset.day", "time_changer.set_preset", () -> customTime.set(1000)));
 		timeChanger.add(new GenericOption("time_changer.preset.noon", "time_changer.set_preset", () -> customTime.set(6000)));
 		timeChanger.add(new GenericOption("time_changer.preset.night", "time_changer.set_preset", () -> customTime.set(13000)));
 		timeChanger.add(new GenericOption("time_changer.preset.midnight", "time_changer.set_preset", () -> customTime.set(18000)));
+		timeChanger.add(weather);
+		timeChanger.add(weatherIntensity);
 
 		outlines.add(enableCustomOutlines);
 		outlines.add(outlineColor);

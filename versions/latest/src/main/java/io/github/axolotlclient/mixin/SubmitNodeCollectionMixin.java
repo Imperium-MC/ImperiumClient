@@ -48,6 +48,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.ModifyArgs;
+import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
 @Mixin(SubmitNodeCollection.class)
 public abstract class SubmitNodeCollectionMixin implements SubmitNodeCollectorExtension {
@@ -70,11 +72,11 @@ public abstract class SubmitNodeCollectionMixin implements SubmitNodeCollectorEx
 
 	@ModifyArg(method = "submitNameTag", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/SubmitNodeCollection;nameTag(Lorg/joml/Matrix4f;FFLnet/minecraft/util/FormattedCharSequence;IIILnet/minecraft/client/gui/Font$DisplayMode;)Lnet/minecraft/client/renderer/feature/TextFeatureRenderer$Submit;"), index = 6)
 	private int bgColor(int color) {
-		if (AxolotlClient.config().nametagBackground.get()) {
-			return color;
-		} else {
-			return 0;
-		}
+		return switch (AxolotlClient.config().nametagBackground.get()) {
+			case NONE -> 0;
+			case TRANSLUCENT -> color;
+			case OPAQUE -> ARGB.opaque(color);
+		};
 	}
 
 	@ModifyArg(method = "nameTag", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/feature/TextFeatureRenderer$Content$Text;<init>(FFLnet/minecraft/util/FormattedCharSequence;ZIII)V"), index = 3)
@@ -83,14 +85,29 @@ public abstract class SubmitNodeCollectionMixin implements SubmitNodeCollectorEx
 		return AxolotlClient.config().useShadows.get() || shadow;
 	}
 
+	@ModifyArgs(method = "submitNameTag", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;scale(FFF)V"))
+	private void axolotlclient$scaleNametag(Args args) {
+		float scale = AxolotlClient.config().nametagScale.get().floatValue();
+		if (scale != 1.0F) {
+			args.set(0, (float) args.get(0) * scale);
+			args.set(1, (float) args.get(1) * scale);
+			args.set(2, (float) args.get(2) * scale);
+		}
+	}
+
+	private static float axolotlclient$nametagScale() {
+		return AxolotlClient.config().nametagScale.get().floatValue();
+	}
+
 	@Override
 	public void axolotlclient$submitLevelHead(PoseStack poseStack, @Nullable Vec3 nameTagAttachment, int offset, Component name, boolean seeThrough, int lightCoords, CameraRenderState camera) {
 		if (nameTagAttachment != null) {
 			Minecraft minecraft = Minecraft.getInstance();
+			float scale = 0.025F * axolotlclient$nametagScale();
 			poseStack.pushPose();
 			poseStack.translate(nameTagAttachment.x, nameTagAttachment.y + 0.5, nameTagAttachment.z);
 			poseStack.rotate(camera.orientation);
-			poseStack.scale(0.025F, -0.025F, 0.025F);
+			poseStack.scale(scale, -scale, scale);
 			Matrix4f pose = new Matrix4f(poseStack.last().pose());
 			float x = -minecraft.font.width(name) / 2.0F;
 			int backgroundColor = LevelHead.getInstance().background.get() ? ARGB.color(minecraft.gameRenderer.gameRenderState().optionsRenderState.getBackgroundOpacity(0.25F), -16777216) : 0;
@@ -110,10 +127,11 @@ public abstract class SubmitNodeCollectionMixin implements SubmitNodeCollectorEx
 	public void axolotlclient$submitBadge(PoseStack poseStack, @Nullable Vec3 nameTagAttachment, int offset, Component name, boolean seeThrough, int lightCoords, CameraRenderState camera) {
 		if (nameTagAttachment != null && seeThrough) {
 			Minecraft mc = Minecraft.getInstance();
+			float scale = 0.025F * axolotlclient$nametagScale();
 			poseStack.pushPose();
 			poseStack.translate(nameTagAttachment.x, nameTagAttachment.y + 0.5, nameTagAttachment.z);
 			poseStack.rotate(camera.orientation);
-			poseStack.scale(0.025F, -0.025F, 0.025F);
+			poseStack.scale(scale, -scale, scale);
 			Matrix4f pose = new Matrix4f(poseStack.last().pose());
 			float nameStartX = -mc.font.width(name) / 2.0F;
 			if (AxolotlClient.config().customBadge.get()) {

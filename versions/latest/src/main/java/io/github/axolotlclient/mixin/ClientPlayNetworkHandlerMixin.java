@@ -26,6 +26,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.github.axolotlclient.AxolotlClient;
 import io.github.axolotlclient.bridge.events.Events;
+import io.github.axolotlclient.util.TimeChangerSpeed;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.protocol.game.ClientboundSetTimePacket;
 import org.spongepowered.asm.mixin.Mixin;
@@ -45,6 +46,10 @@ public abstract class ClientPlayNetworkHandlerMixin {
 	private long getTime(ClientboundSetTimePacket instance, Operation<Long> original) {
 		if (AxolotlClient.config().timeChangerEnabled.get()) {
 			instance.clockUpdates().clear();
+			if (AxolotlClient.config().timeMultiplier.get() != 1.0F) {
+				// Time multiplier: let the real time flow, shifted by the extra ticks accumulated client-side.
+				return original.call(instance) + TimeChangerSpeed.offset();
+			}
 			return AxolotlClient.config().customTime.get();
 		}
 		return original.call(instance);

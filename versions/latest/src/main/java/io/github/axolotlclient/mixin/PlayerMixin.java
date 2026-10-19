@@ -22,13 +22,20 @@
 
 package io.github.axolotlclient.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import io.github.axolotlclient.bridge.AxoMinecraftClient;
 import io.github.axolotlclient.bridge.events.Events;
+import io.github.axolotlclient.modules.hud.HudManager;
+import io.github.axolotlclient.modules.hud.gui.hud.simple.ToggleSprintHud;
 import io.github.axolotlclient.modules.particles.Particles;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.entity.Avatar;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Abilities;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
@@ -64,5 +71,23 @@ public abstract class PlayerMixin extends Avatar {
 		if (Particles.getInstance().getAlwaysOn(ParticleTypes.ENCHANTED_HIT) && enchantedDamage == 0) {
 			magicCrit(target);
 		}
+	}
+
+	@WrapOperation(method = "getFlyingSpeed", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Abilities;getFlyingSpeed()F"))
+	private float axolotlclient$flyBoost(Abilities abilities, Operation<Float> original) {
+		float speed = original.call(abilities);
+		if ((Object) this != Minecraft.getInstance().player || !abilities.flying) {
+			return speed;
+		}
+
+		ToggleSprintHud hud = (ToggleSprintHud) HudManager.getInstance().get(ToggleSprintHud.ID);
+		if (hud == null || !hud.isEnabled() || !hud.flyBoost.get()) {
+			return speed;
+		}
+
+		if (AxoMinecraftClient.getInstance().br$getGameOptions().br$getSprintKeybind().br$isPressed()) {
+			return speed * hud.flyBoostMultiplier.get();
+		}
+		return speed;
 	}
 }
