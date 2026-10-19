@@ -62,6 +62,8 @@ public final class ServerGating {
 	public static final String AUTO_TOOL = "auto_tool";
 	public static final String AUTO_ARMOR = "auto_armor";
 	public static final String AUTO_RECONNECT = "auto_reconnect";
+	/** QoL tier id (W5): the quick-phrases keybind macros (chat-send path only). */
+	public static final String QUICK_PHRASES = "quick_phrases";
 
 	/** Generic rate-budget lock text for modules that do not carry their own key. */
 	public static final String RATE_LIMITED_KEY = "imperiumclient.gate.rate_limited";

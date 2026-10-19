@@ -65,3 +65,4 @@ a `deny` (or the `block_mods` channel) is the only thing that force-offs them.
 | `auto_tool` | Auto Tool |
 | `auto_armor` | Auto Armor |
 | `auto_reconnect` | Auto Reconnect |
+| `quick_phrases` | Quick Phrases (W5) |

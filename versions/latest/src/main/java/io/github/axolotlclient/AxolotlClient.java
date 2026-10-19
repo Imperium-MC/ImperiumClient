@@ -70,6 +70,9 @@ public class AxolotlClient extends AxolotlClientCommon implements ClientModIniti
 		registerModule(io.github.axolotlclient.modules.autoutils.AutoArmor.getInstance());
 		registerModule(io.github.axolotlclient.modules.autoutils.AutoReconnect.getInstance());
 		registerModule(io.github.axolotlclient.modules.autoutils.AutoWalk.getInstance());
+		// Wave 5 chat extras: persistent history sidecar + tiered quick phrases.
+		registerModule(io.github.axolotlclient.modules.chat.ChatPersistence.getInstance());
+		registerModule(io.github.axolotlclient.modules.chat.QuickPhrases.getInstance());
 	}
 
 	private void addExternalModules() {

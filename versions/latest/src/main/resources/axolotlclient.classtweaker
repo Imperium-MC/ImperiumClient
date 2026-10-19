@@ -7,6 +7,8 @@ accessible class net/minecraft/client/GameLoadCookie
 accessible method net/minecraft/client/renderer/rendertype/RenderType create (Ljava/lang/String;Lnet/minecraft/client/renderer/rendertype/RenderSetup;)Lnet/minecraft/client/renderer/rendertype/RenderType;
 accessible class net/minecraft/client/gui/components/toasts/ToastManager$ToastInstance
 accessible class net/minecraft/client/gui/components/SubtitleOverlay$Subtitle
+accessible class net/minecraft/client/gui/components/ChatComponent$AlphaCalculator
+accessible class net/minecraft/client/gui/components/ChatComponent$LineConsumer
 
 transitive-inject-interface net/minecraft/resources/Identifier io/github/axolotlclient/bridge/util/AxoIdentifier
 transitive-inject-interface net/minecraft/client/Minecraft io/github/axolotlclient/bridge/AxoMinecraftClient
