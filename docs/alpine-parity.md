@@ -79,7 +79,7 @@ Status: ✅ exists in Axolotl (needs Alpine-style settings), 🟡 partial, ❌ b
 | hurt_cam, low_hp_tint, clear_water, farming | — | ❌ small render tweaks |
 | chunk_borders | — | ❌ |
 | minimap | — | ❌ large: chunk-colour map, shapes, rotation |
-| worldedit_cui | — | ❌ |
+| worldedit_cui | WorldEditCui module | ✅ `worldedit:cui` protocol client (cuboid + ellipsoid), gizmo-rendered grid; server guide: docs/wecui-server.md |
 | spotify_state | — | ❌ Spotify Web API HUD |
 | discord_rpc | DiscordRPC | ✅ server IP toggle |
 | emotes | — | ❌ emote wheel (needs cosmetics backend) |

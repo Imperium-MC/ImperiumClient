@@ -41,6 +41,7 @@ import io.github.axolotlclient.modules.inventorySearch.InventorySearch;
 import io.github.axolotlclient.modules.particles.Particles;
 import io.github.axolotlclient.modules.screenshotUtils.ScreenshotUtils;
 import io.github.axolotlclient.modules.scrollableTooltips.ScrollableTooltips;
+import io.github.axolotlclient.modules.wecui.WorldEditCui;
 import io.github.axolotlclient.util.BadgeFeatureRenderer;
 import io.github.axolotlclient.util.FeatureDisabler;
 import io.github.axolotlclient.util.FeatureDisablerCommon;
@@ -61,6 +62,7 @@ public class AxolotlClient extends AxolotlClientCommon implements ClientModIniti
 		registerModule(Particles.getInstance());
 		registerModule(ScreenshotUtils.getInstance());
 		registerModule(Auth.getInstance());
+		registerModule(WorldEditCui.getInstance());
 	}
 
 	private void addExternalModules() {
