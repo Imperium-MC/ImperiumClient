@@ -87,9 +87,14 @@ change — populating the registry is the entire integration.
 
 ## Next steps
 
-- **Cannon playback/view (TNT trajectory preview):** needs client-side physics prediction
-  (integrate the primed-TNT motion — gravity, drag, the initial velocity the cannon gave
-  it — and draw the predicted arc plus impact point). Deliberately out of scope this pass;
-  the explosion-box RenderType/mixin machinery built here is the rendering half of it.
+- **Cannon playback/view (TNT trajectory preview): built** (`CannonTrajectory` +
+  `TntTrajectory`). The pure integrator runs the exact 26.3 `PrimedTnt` step order
+  (gravity 0.04 before the move, air drag 0.98 after it, stop at the first solid block via
+  a world indirection); while the player holds TNT the predicted arc of a launch along the
+  look direction (configurable power, for cannon charge) is drawn with the gizmo line
+  pipeline, and live primed TNT within range gets its remaining flight + a blast box at the
+  predicted landing site (radius taken from `ExplosionBoxes` so the two visual systems
+  merge). Still open from Alpine's cannon_playback: frame-stepped playback of recorded
+  flights and falling-block recording.
 - **Patchcrumbs:** once sieges are observable on the wire, siege markers can reuse
   `BreadcrumbManager` with a dedicated flag and color instead of a parallel list.

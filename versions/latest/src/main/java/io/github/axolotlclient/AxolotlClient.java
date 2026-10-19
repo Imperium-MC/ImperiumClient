@@ -77,6 +77,9 @@ public class AxolotlClient extends AxolotlClientCommon implements ClientModIniti
 		// Wave 5 chat extras: persistent history sidecar + tiered quick phrases.
 		registerModule(io.github.axolotlclient.modules.chat.ChatPersistence.getInstance());
 		registerModule(io.github.axolotlclient.modules.chat.QuickPhrases.getInstance());
+		// Wave 5: cannon trajectory prediction + fullscreen map (large parity items).
+		registerModule(io.github.axolotlclient.modules.legions.CannonTrajectory.getInstance());
+		registerModule(io.github.axolotlclient.modules.minimap.FullscreenMap.getInstance());
 	}
 
 	private void addExternalModules() {

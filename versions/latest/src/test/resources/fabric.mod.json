@@ -35,8 +35,11 @@
 			"io.github.axolotlclient.RenderTweaksGameTest",
 			"io.github.axolotlclient.MovementEnvelopeGameTest",
 			"io.github.axolotlclient.LocalEnforcementGameTest",
+
 			"io.github.axolotlclient.InventoryTweaksGameTest",
-			"io.github.axolotlclient.HitboxesGameTest"
+			"io.github.axolotlclient.HitboxesGameTest",
+			"io.github.axolotlclient.CannonTrajectoryGameTest",
+			"io.github.axolotlclient.FullscreenMapGameTest"
 		]
 	},
 	"depends": {

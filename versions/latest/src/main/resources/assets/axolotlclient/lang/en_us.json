@@ -86,5 +86,22 @@
 		"hitboxes.mob_color": "Mob Color",
 		"hitboxes.item_color": "Item Color",
 		"hitboxes.eye_line_color": "Eye Line Color",
-		"key.hitboxes.toggle": "Toggle Hitboxes"
+		"key.hitboxes.toggle": "Toggle Hitboxes",
+		"cannontrajectory": "Cannon Trajectory",
+		"cannontrajectory.power": "Launch Power (blocks/tick)",
+		"cannontrajectory.power.tooltip": "Initial speed of the predicted TNT along your look direction.<br>Match this to your cannon's charge to see its true arc.",
+		"cannontrajectory.max_ticks": "Prediction Horizon (ticks)",
+		"cannontrajectory.predict_live": "Predict Flying TNT",
+		"cannontrajectory.range": "Prediction Range (blocks)",
+		"cannontrajectory.landing_box": "Landing Blast Box",
+		"cannontrajectory.arc_color": "Arc Color",
+		"cannontrajectory.landing_color": "Landing Box Color",
+		"cannontrajectory.line_width": "Line Width",
+		"key.fullscreenmap.open": "Open Fullscreen Map",
+		"fullscreenmap": "Fullscreen Map",
+		"fullscreenmap.zoom": "Zoom (Blocks per Pixel)",
+		"fullscreenmap.show_waypoints": "Show Waypoints",
+		"fullscreenmap.waypoint_labels": "Waypoint Labels",
+		"imperiumclient.fullscreenmap.title": "MAP OF THE REALM",
+		"imperiumclient.fullscreenmap.hint": "Drag to pan, scroll to zoom (%sx), M to close"
 }

@@ -57,8 +57,9 @@ import org.jspecify.annotations.NullMarked;
  * alongside {@link TntEntityRendererMixin}); hooking the TNT renderer means the box lives
  * and dies with the fuse automatically — no entity tracking, no timers.</p>
  *
- * <p>TNT trajectory preview (Alpine's cannon_playback / cannon_view) is deliberately out
- * of scope for this pass — it needs physics prediction; see docs/legions-tooling.md.</p>
+ * <p>TNT trajectory preview (Alpine's cannon_playback / cannon_view) lives in
+ * {@link CannonTrajectory} + {@link TntTrajectory}; its predicted landing box reads this
+ * module's radius option so both visual systems agree on the blast size.</p>
  */
 @NullMarked
 public class ExplosionBoxes extends AbstractModule {
