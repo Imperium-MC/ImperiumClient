@@ -56,7 +56,7 @@ Status: ✅ exists in Axolotl (needs Alpine-style settings), 🟡 partial, ❌ b
 | **inventory_tweaks/inventory_search** | InventorySearch | ✅ search bar with slot highlight |
 | **inventory_tweaks/scrollable_tooltips** | ScrollableTooltips | ✅ add smooth scroll, activation key |
 | inventory_tweaks | — | ❌ hide potion effects, keep centred |
-| **factions** (+ breadcrumbs, cannon_playback, cannon_view, explosion_boxes, patchcrumbs, status HUD) | — | ❌ factions tooling, low priority |
+| **factions** (+ breadcrumbs, cannon_playback, cannon_view, explosion_boxes, patchcrumbs, status HUD) | Legions tooling: LegionHud + LegionStateRegistry, BreadcrumbsHud + BreadcrumbManager, ExplosionBoxes | 🟡 reimplemented for ImperiumMC Legions (docs/legions-tooling.md): status HUD shell (waits on `imperiumclient:legion` channel), breadcrumbs with age/auto-expire, explosion boxes; cannon_playback/cannon_view need physics prediction (next), patchcrumbs ride the breadcrumb mechanism once sieges exist |
 | **enchantedmc** / boosts | BoostsHud + BoostRegistry | 🟡 HUD shell (registry waits on the server boost channel) |
 | **enchantedmc/fishing** | AutoFish | ✅ server-gated (`auto_fish`) |
 | enchantedmc/clicking | AutoClick | ✅ server-gated (`auto_click`) |

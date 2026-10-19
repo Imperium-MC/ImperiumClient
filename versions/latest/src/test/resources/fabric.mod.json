@@ -24,7 +24,8 @@
 			"io.github.axolotlclient.InventorySearchGameTest",
 			"io.github.axolotlclient.ImperiumProtocolGameTest",
 			"io.github.axolotlclient.GatedModulesGameTest",
-			"io.github.axolotlclient.EnvironmentTogglesGameTest"
+			"io.github.axolotlclient.EnvironmentTogglesGameTest",
+			"io.github.axolotlclient.LegionsToolingGameTest"
 		]
 	},
 	"depends": {

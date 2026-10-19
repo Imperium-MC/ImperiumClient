@@ -61,6 +61,7 @@ public class AxolotlClient extends AxolotlClientCommon implements ClientModIniti
 		registerModule(Particles.getInstance());
 		registerModule(ScreenshotUtils.getInstance());
 		registerModule(Auth.getInstance());
+		registerModule(io.github.axolotlclient.modules.legions.ExplosionBoxes.getInstance());
 	}
 
 	private void addExternalModules() {
