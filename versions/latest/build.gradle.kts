@@ -28,6 +28,9 @@ loom {
 			configName = "Client Game Test"
 			vmArg("-Dfabric.client.gametest")
 			vmArg("-Dfabric.client.gametest.disableNetworkSynchronizer=true")
+			// Cap the test client's heap: gametest worlds are small, and on shared build
+			// machines an uncapped client has caused native OOM kills mid-suite.
+			vmArg("-Xmx1600m")
 			runDir("build/run/clientGameTest")
 			source(sourceSets.getByName("test"))
 		}

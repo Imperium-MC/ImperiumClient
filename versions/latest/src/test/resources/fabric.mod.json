@@ -33,7 +33,8 @@
 			"io.github.axolotlclient.LegionsToolingGameTest",
 			"io.github.axolotlclient.RenderTweaksGameTest",
 			"io.github.axolotlclient.MovementEnvelopeGameTest",
-			"io.github.axolotlclient.LocalEnforcementGameTest"
+			"io.github.axolotlclient.LocalEnforcementGameTest",
+			"io.github.axolotlclient.WorldSpaceRenderingGameTest"
 		]
 	},
 	"depends": {

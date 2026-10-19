@@ -24,6 +24,7 @@ package io.github.axolotlclient.modules.hud.gui.hud.simple;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import io.github.axolotlclient.AxolotlClientConfig.api.options.Option;
@@ -67,6 +68,12 @@ public class WaypointsHud extends TextHudEntry {
 	public final BooleanOption showDistance = new BooleanOption("waypoints.show_distance", true);
 	public final BooleanOption showArrow = new BooleanOption("waypoints.show_arrow", true);
 	public final BooleanOption deathWaypoints = new BooleanOption("waypoints.death_points", true);
+
+	/**
+	 * 3D tracers (world-space markers projected onto the screen, see {@link io.github.axolotlclient.modules.waypoints.WaypointTracers});
+	 * rendered while the entry is enabled, independent of the stacked HUD list.
+	 */
+	public final BooleanOption tracers = new BooleanOption("waypoints.tracers", true);
 
 	private final AxoKeybinding addWaypointKey = AxoKeybinding.create(
 		InputConstants.Type.KEYBOARD.getOrCreate(InputConstants.KEY_B), "key.waypoints.add");
@@ -225,12 +232,16 @@ public class WaypointsHud extends TextHudEntry {
 		}
 	}
 
-	/** Compact block-distance formatting: 42m below 1k, 1.2km above. */
-	private static String formatDistance(double distance) {
+	/** Compact block-distance formatting: 42m below 1k, 1.2km above. Shared with the tracers. */
+	public static String formatDistance(double distance) {
 		if (distance < 1000) {
 			return (int) Math.round(distance) + "m";
 		}
-		return String.format("%.1fk", distance / 1000).replace(',', '.');
+		// Locale.ROOT pins the output regardless of the OS locale (a German or Arabic system
+		// must not change HUD/tracer label text); the comma replace stays as belt-and-braces.
+		// The trailing "m" is appended here — the pattern's "k" alone used to leave the label
+		// as "1.2k" while the javadoc (and the tracers) promise "1.2km".
+		return String.format(Locale.ROOT, "%.1fk", distance / 1000).replace(',', '.') + "m";
 	}
 
 	/**
@@ -274,6 +285,7 @@ public class WaypointsHud extends TextHudEntry {
 		options.add(showDistance);
 		options.add(showArrow);
 		options.add(deathWaypoints);
+		options.add(tracers);
 		options.add(new GenericOption("waypoints.open_list", "waypoints.open_list",
 			() -> client.execute(() -> client.gui.setScreen(new WaypointsScreen(null)))));
 		return options;

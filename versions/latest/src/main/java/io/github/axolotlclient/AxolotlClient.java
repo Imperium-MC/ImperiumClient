@@ -100,6 +100,8 @@ public class AxolotlClient extends AxolotlClientCommon implements ClientModIniti
 		io.github.axolotlclient.imperium.ImperiumIntegration.init();
 		// Local rules enforcement layer (W4-C): outgoing-packet interceptor scoped to ImperiumMC.
 		io.github.axolotlclient.imperium.enforcement.EnforcementService.instance().init();
+		// Light-level overlay (Photon parity): budgeted per-tick column sampler.
+		io.github.axolotlclient.util.LightLevelOverlay.init();
 		getLogger().debug("Debug Output enabled, Logs will be quite verbose!");
 		getLogger().info("AxolotlClient Initialized");
 	}

@@ -71,6 +71,11 @@ public abstract class AxoKeysMixin {
 	@Final
 	public static AxoKey KEY_C;
 
+	@Mutable
+	@Shadow
+	@Final
+	public static AxoKey KEY_F7;
+
 	@Inject(method = "<clinit>", at = @At("HEAD"), cancellable = true)
 	private static void setStaticValues(CallbackInfo ci) {
 		KEY_I = InputConstants.Type.KEYBOARD.getOrCreate(InputConstants.KEY_I);
@@ -80,6 +85,7 @@ public abstract class AxoKeysMixin {
 		KEY_RSHIFT = InputConstants.Type.KEYBOARD.getOrCreate(InputConstants.KEY_RSHIFT);
 		KEY_UNKNOWN = InputConstants.UNKNOWN;
 		KEY_C = InputConstants.Type.KEYBOARD.getOrCreate(InputConstants.KEY_C);
+		KEY_F7 = InputConstants.Type.KEYBOARD.getOrCreate(InputConstants.KEY_F7);
 		ci.cancel();
 	}
 }
