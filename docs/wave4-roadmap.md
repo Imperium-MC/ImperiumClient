@@ -57,4 +57,8 @@ extend ImperiumClientIntegrationService to send rank + perks list after hello.
 ## Later (owner-input / dependency-gated)
 
 - Emote wheel + cosmetics channel (needs the plugin's cosmetics data shaped for the wire).
+  W5-A update: the client shell is done — carved radial wheel, 8 config slots, dispatcher seam
+  (docs/media-and-emotes.md); only the channel + animation remain.
 - Spotify state HUD. Fullscreen map view. Cannon trajectory preview.
+  W5-B update: NowPlayingHud shipped as a registry shell plus a best-effort Spotify desktop
+  local-endpoint poller (default off, no OAuth/cloud — docs/media-and-emotes.md).

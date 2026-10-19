@@ -118,6 +118,10 @@ public class AxolotlClientConfig extends AxolotlClientConfigCommon {
 		// Local rules enforcement (W4-C): outgoing-packet interceptor scoped to ImperiumMC.
 		config.add(io.github.axolotlclient.imperium.enforcement.EnforcementConfig.category);
 
+		// Wave 5 media: emote wheel slots (W5-A) and the now-playing toggle (W5-B).
+		config.add(io.github.axolotlclient.imperium.emotes.EmoteWheelConfig.category);
+		config.add(io.github.axolotlclient.imperium.media.MediaConfig.category);
+
 		general.add(new GenericOption("profiles.title", "profiles.configure", () ->
 			Minecraft.getInstance().gui.setScreen(new ProfilesScreen(Minecraft.getInstance().gui.screen()))), false);
 	}

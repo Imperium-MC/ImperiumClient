@@ -26,7 +26,8 @@
 	"environment": "client",
 	"entrypoints": {
 		"client": [
-			"io.github.axolotlclient.AxolotlClient"
+			"io.github.axolotlclient.AxolotlClient",
+			"io.github.axolotlclient.imperium.media.ImperiumMediaInit"
 		],
 		"modmenu": [
 			"io.github.axolotlclient.config.modmenu.ModMenuCompat"

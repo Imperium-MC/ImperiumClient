@@ -64,5 +64,21 @@
 		"line_width": "Line Width",
 		"enforcement": "Server Rules Enforcement",
 		"enabled": "Enforce Server Rules",
-		"server_allowlist": "Enforced Server Addresses"
+		"server_allowlist": "Enforced Server Addresses",
+		"emotes": "Emote Wheel",
+		"emote.1": "Emote Slot 1",
+		"emote.2": "Emote Slot 2",
+		"emote.3": "Emote Slot 3",
+		"emote.4": "Emote Slot 4",
+		"emote.5": "Emote Slot 5",
+		"emote.6": "Emote Slot 6",
+		"emote.7": "Emote Slot 7",
+		"emote.8": "Emote Slot 8",
+		"emote.tooltip": "A built-in id (wave, salute, cheer, sit) or id;Display Name;RRGGBB.",
+		"key.imperiumclient.emote_wheel": "Emote Wheel (Hold)",
+		"imperiumclient.emotes.title": "Emotes",
+		"imperiumclient.emotes.sent": "Emote sent: %s",
+		"media": "Now-Playing Media",
+		"nowplayinghud": "Now Playing",
+		"show_progress_bar": "Show Progress Bar"
 }

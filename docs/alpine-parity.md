@@ -88,9 +88,9 @@ Status: ✅ exists in Axolotl (needs Alpine-style settings), 🟡 partial, ❌ b
 | worldedit_cui | — | ❌ |
 | minimap | — | ❌ large: chunk-colour map, shapes, rotation |
 | worldedit_cui | WorldEditCui module | ✅ `worldedit:cui` protocol client (cuboid + ellipsoid), gizmo-rendered grid; server guide: docs/wecui-server.md |
-| spotify_state | — | ❌ Spotify Web API HUD |
+| spotify_state | NowPlayingHud (W5-B) | 🟡 registry shell + best-effort Spotify desktop local-endpoint poller (default off, loopback only, no OAuth); docs/media-and-emotes.md |
 | discord_rpc | DiscordRPC | ✅ server IP toggle |
-| emotes | — | ❌ emote wheel (needs cosmetics backend) |
+| emotes | Emote wheel (W5-A) | 🟡 full client shell: carved radial wheel, 8 config slots, 4 built-ins, dispatcher seam; animation + broadcast wait on the `imperiumclient:cosmetics` channel |
 | motion_blur | MotionBlur | ✅ |
 
 ## Menu
