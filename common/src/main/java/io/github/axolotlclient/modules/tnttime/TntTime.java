@@ -67,23 +67,19 @@ public class TntTime extends AbstractCommonModule {
 			.br$color(getCurrentColor(secs));
 	}
 
+	/**
+	 * Fuse colour stages: white while more than 5 seconds remain, yellow at 5, orange (gold)
+	 * at 3 and red from 1 second on.
+	 */
 	private AxoText.Color getCurrentColor(float seconds) {
-		if (seconds > 7d) {
-			return AxoText.Color.DARK_AQUA;
-		} else if (seconds > 6d) {
-			return AxoText.Color.AQUA;
-		} else if (seconds > 4d) {
-			return AxoText.Color.DARK_GREEN;
-		} else if (seconds > 3d) {
-			return AxoText.Color.GREEN;
-		} else if (seconds > 2d) {
-			return AxoText.Color.GOLD;
-		} else if (seconds > 1d) {
-			return AxoText.Color.RED;
-		} else if (seconds > 0d) {
-			return AxoText.Color.DARK_RED;
-		} else {
+		if (seconds > 5d) {
 			return AxoText.Color.WHITE;
+		} else if (seconds > 3d) {
+			return AxoText.Color.YELLOW;
+		} else if (seconds > 1d) {
+			return AxoText.Color.GOLD;
+		} else {
+			return AxoText.Color.RED;
 		}
 	}
 }

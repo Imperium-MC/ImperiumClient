@@ -46,7 +46,8 @@ public abstract class ParticleManagerMixin {
 		at = @At(value = "HEAD"), cancellable = true)
 	private void axolotlclient$afterCreation(ParticleOptions parameters, double x, double y, double z, double velocityX, double velocityY, double velocityZ, CallbackInfoReturnable<Particle> cir) {
 
-		if (!Particles.getInstance().getShowParticle(parameters.getType())) {
+		if (!Particles.getInstance().getShowParticle(parameters.getType())
+			|| Particles.getInstance().isDisabled(parameters.getType())) {
 			cir.setReturnValue(null);
 			cir.cancel();
 		}

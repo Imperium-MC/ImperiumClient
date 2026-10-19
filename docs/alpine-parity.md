@@ -62,18 +62,18 @@ Status: ✅ exists in Axolotl (needs Alpine-style settings), 🟡 partial, ❌ b
 | enchantedmc/clicking | — | 🔒 autoclicker, server opt-in only |
 | zoom | Zoom | ✅ scroll, cinematic, smooth, sensitivity |
 | keystrokes | KeystrokeHud | ✅ |
-| armor_status | ArmorHud | ✅ add durability formats/colours |
-| potion_status | PotionsHud | ✅ add blink/collapsed/dynamic colour |
-| coordinates | CoordsHud | 🟡 biome + cardinal done (M2); shout keybind left |
+| armor_status | ArmorHud | ✅ durability formats/colours |
+| potion_status | PotionsHud | ✅ blink/collapsed/dynamic colour |
+| coordinates | CoordsHud | ✅ add biome, cardinal, shout keybind |
 | block_coordinates | — | ❌ |
 | ping, memory, speed, reach_display, combo_count, pack_display, server_display | PingHud, MemoryHud, SpeedHud, ReachHud, ComboHud, PackDisplayHud, IPHud | ✅ |
 | clock, day_counter | IRLTimeHud, DayCounterHud | ✅ |
 | playtime, stopwatch, entity_count, potion_count, obsidian_count | — | ❌ simple text HUDs |
 | crosshair | CrosshairHud | ✅ add friendly/enemy dynamic colour |
-| block_overlay | block outline options | ✅ add highlight fill mode |
+| block_overlay | block outline options | ✅ highlight fill mode |
 | hit_color | `hitColor` option | ✅ armour/trim toggles |
-| tnt_timer | TntTime | ✅ add fuse colour stages |
-| particles | Particles | ✅ add disabled list, crit/sharpness multipliers |
+| tnt_timer | TntTime | ✅ fuse colour stages |
+| particles | Particles | ✅ disabled list, crit/sharpness multipliers |
 | perspective_mod | Freelook | ✅ hold mode, invert pitch, smooth |
 | snap_look | SnapLook | ✅ hold + toggle modes, composes with Freelook |
 | hurt_cam, low_hp_tint, clear_water, farming | — | ❌ small render tweaks |

@@ -69,6 +69,9 @@ public class ArmorHud extends TextHudEntry {
 	protected final BooleanOption showProtLvl = new BooleanOption("showProtectionLevel", false);
 	private final BooleanOption showDurabilityNumber = new BooleanOption("show_durability_num", false);
 	private final BooleanOption showMaxDurabilityNumber = new BooleanOption("show_max_durability_num", false);
+	private final EnumOption<DurabilityFormat> durabilityFormat = new EnumOption<>("armorhud.durability_format",
+		DurabilityFormat.class, DurabilityFormat.NONE);
+	private final BooleanOption durabilityColorTiers = new BooleanOption("armorhud.durability_color", false);
 	private final BooleanOption customDurabilityNumColor = new BooleanOption("armorhud.custom_durability_num_color",
 		false);
 	private final ColorOption durabilityNumColor = new ColorOption("armorhud.durability_num_color", Colors.WHITE);
@@ -154,8 +157,7 @@ public class ArmorHud extends TextHudEntry {
 		int width = 20;
 		int height = 100;
 		boolean boundsChanged = false;
-		boolean showDurability = showDurabilityNumber.get();
-		boolean showMaxDurability = showMaxDurabilityNumber.get();
+		DurabilityFormat format = effectiveDurabilityFormat();
 
 		if (reverseArmorOrder.get()) {
 			armor = new ArrayList<>(armor);
@@ -168,15 +170,9 @@ public class ArmorHud extends TextHudEntry {
 		}
 		var order = this.order.get();
 		if (order.isXAxis()) {
-			int labelWidth = (showDurability || showMaxDurability) ?
+			int labelWidth = format != DurabilityFormat.NONE ?
 				(mhPos == MainHandItemPosition.DISABLED ? armor.stream() : Stream.concat(Stream.of(mainHand), armor.stream()))
-				.mapToInt(stack -> {
-					String text = showDurability && showMaxDurability
-						? (stack.br$getMaxDamage() - stack.br$getDamage()) + "/" + stack.br$getMaxDamage()
-						: String.valueOf(showDurability ? stack.br$getMaxDamage() - stack.br$getDamage()
-										 : stack.br$getMaxDamage());
-					return context.br$getFont().br$getWidth(text) + 2;
-				}).max().orElse(0) : 0;
+				.mapToInt(stack -> context.br$getFont().br$getWidth(durabilityText(stack, format)) + 2).max().orElse(0) : 0;
 			width += labelWidth;
 			if (width != getContentWidth()) {
 				setContentWidth(width);
@@ -242,30 +238,25 @@ public class ArmorHud extends TextHudEntry {
 				}
 			}
 		} else {
-			int labelWidth = showDurability || showMaxDurability ?
+			int labelWidth = format != DurabilityFormat.NONE ?
 				(mhPos == MainHandItemPosition.DISABLED ? armor.stream() : Stream.concat(Stream.of(mainHand), armor.stream()))
 				.mapToInt(stack -> {
-					if (showDurability && showMaxDurability) {
+					if (format == DurabilityFormat.NUMBER_AND_MAX) {
 						var text1 = String.valueOf(stack.br$getMaxDamage() - stack.br$getDamage());
 						var text2 = "/" + stack.br$getMaxDamage();
 						int t1W = context.br$getFont().br$getWidth(text1);
 						int t2W = context.br$getFont().br$getWidth(text2);
 						return Math.max(t1W, t2W);
-					} else if (showDurability) {
-						return context.br$getFont().br$getWidth(String.valueOf(stack.br$getMaxDamage() - stack.br$getDamage()));
 					}
-					return context.br$getFont().br$getWidth(String.valueOf(stack.br$getMaxDamage()));
+					return context.br$getFont().br$getWidth(durabilityText(stack, format));
 				}).map(i -> i + 2).max().orElse(0) : 0;
 			{
 				int n = width;
 				width = height - 6;
 				height = n;
 			}
-			if (showDurability) {
-				height += 10;
-			}
-			if (showMaxDurability) {
-				height += 10;
+			if (format != DurabilityFormat.NONE) {
+				height += format == DurabilityFormat.NUMBER_AND_MAX ? 20 : 10;
 			}
 			if (labelWidth > 0) {
 				width = (mhPos == MainHandItemPosition.DISABLED ? 4 : 5) * labelWidth + 2;
@@ -334,46 +325,81 @@ public class ArmorHud extends TextHudEntry {
 	}
 
 	private void renderDurabilityNumberXAxis(AxoRenderContext graphics, AxoItemStack stack, int x, int y) {
-		boolean showDurability = showDurabilityNumber.get();
-		boolean showMaxDurability = showMaxDurabilityNumber.get();
-		if (stack.br$isEmpty() || !(showMaxDurability || showDurability) || stack.br$getMaxDamage() == 0) {
+		DurabilityFormat format = effectiveDurabilityFormat();
+		if (stack.br$isEmpty() || format == DurabilityFormat.NONE || stack.br$getMaxDamage() == 0) {
 			return;
 		}
-		String text = showDurability && showMaxDurability ?
-			(stack.br$getMaxDamage() - stack.br$getDamage()) + "/" + stack.br$getMaxDamage() :
-			String.valueOf((showDurability ? stack.br$getMaxDamage() - stack.br$getDamage() :
-				stack.br$getMaxDamage()));
+		String text = durabilityText(stack, format);
 		int textY = y + 10 - graphics.br$getFont().br$getFontHeight() / 2;
-		graphics.br$drawString(text, x, textY, customDurabilityNumColor.get() ? durabilityNumColor.get().toInt() :
-			ClientColors.ARGB.opaque(stack.br$getBarColor()), true);
+		graphics.br$drawString(text, x, textY, durabilityNumberColor(stack), true);
 	}
 
 	private int renderDurabilityNumberYAxis(AxoRenderContext graphics, AxoItemStack stack, int x, int y) {
-		boolean showDurability = showDurabilityNumber.get();
-		boolean showMaxDurability = showMaxDurabilityNumber.get();
-		if (!(showMaxDurability || showDurability)) {
+		DurabilityFormat format = effectiveDurabilityFormat();
+		if (format == DurabilityFormat.NONE) {
 			return 0;
 		}
 		if (stack.br$isEmpty() || stack.br$getMaxDamage() == 0) {
-			return showDurability && showMaxDurability ? 20 : 10;
+			return format == DurabilityFormat.NUMBER_AND_MAX ? 20 : 10;
 		}
 		int textY = y + 10 / 2 - graphics.br$getFont().br$getFontHeight() / 2;
-		if (showDurability && showMaxDurability) {
+		if (format == DurabilityFormat.NUMBER_AND_MAX) {
 			var text1 = String.valueOf(stack.br$getMaxDamage() - stack.br$getDamage());
 			var text2 = "/" + stack.br$getMaxDamage();
 			int t1W = graphics.br$getFont().br$getWidth(text1);
 			int t2W = graphics.br$getFont().br$getWidth(text2);
-			graphics.br$drawString(text1, x - t1W / 2, textY, customDurabilityNumColor.get() ? durabilityNumColor.get().toInt() :
-				ClientColors.ARGB.opaque(stack.br$getBarColor()), true);
-			graphics.br$drawString(text2, x - t2W / 2, textY + 10, customDurabilityNumColor.get() ? durabilityNumColor.get().toInt() :
-				ClientColors.ARGB.opaque(stack.br$getBarColor()), true);
+			graphics.br$drawString(text1, x - t1W / 2, textY, durabilityNumberColor(stack), true);
+			graphics.br$drawString(text2, x - t2W / 2, textY + 10, durabilityNumberColor(stack), true);
 			return 20;
 		} else {
-			var text = String.valueOf(showDurability ? stack.br$getMaxDamage() - stack.br$getDamage() : stack.br$getMaxDamage());
-			graphics.br$drawString(text, x - graphics.br$getFont().br$getWidth(text) / 2, textY, customDurabilityNumColor.get() ? durabilityNumColor.get().toInt() :
-				ClientColors.ARGB.opaque(stack.br$getBarColor()), true);
+			var text = durabilityText(stack, format);
+			graphics.br$drawString(text, x - graphics.br$getFont().br$getWidth(text) / 2, textY, durabilityNumberColor(stack), true);
 			return 10;
 		}
+	}
+
+	private DurabilityFormat effectiveDurabilityFormat() {
+		DurabilityFormat format = durabilityFormat.get();
+		if (format != DurabilityFormat.NONE) {
+			return format;
+		}
+		// Legacy toggles keep working when no explicit format is selected.
+		if (showDurabilityNumber.get() && showMaxDurabilityNumber.get()) {
+			return DurabilityFormat.NUMBER_AND_MAX;
+		}
+		if (showDurabilityNumber.get()) {
+			return DurabilityFormat.NUMBER;
+		}
+		if (showMaxDurabilityNumber.get()) {
+			return DurabilityFormat.MAX;
+		}
+		return DurabilityFormat.NONE;
+	}
+
+	private static String durabilityText(AxoItemStack stack, DurabilityFormat format) {
+		int remaining = stack.br$getMaxDamage() - stack.br$getDamage();
+		return switch (format) {
+			case NONE -> "";
+			case NUMBER -> String.valueOf(remaining);
+			case MAX -> String.valueOf(stack.br$getMaxDamage());
+			case NUMBER_AND_MAX -> remaining + "/" + stack.br$getMaxDamage();
+			case PERCENT -> stack.br$getMaxDamage() == 0 ? "0%" : Math.round(remaining * 100F / stack.br$getMaxDamage()) + "%";
+		};
+	}
+
+	private int durabilityNumberColor(AxoItemStack stack) {
+		if (durabilityColorTiers.get() && stack.br$getMaxDamage() > 0) {
+			float percent = (stack.br$getMaxDamage() - stack.br$getDamage()) / (float) stack.br$getMaxDamage();
+			if (percent > 0.5F) {
+				return Colors.GREEN.toInt();
+			}
+			if (percent > 0.2F) {
+				return Colors.YELLOW.toInt();
+			}
+			return Colors.RED.toInt();
+		}
+		return customDurabilityNumColor.get() ? durabilityNumColor.get().toInt() :
+			ClientColors.ARGB.opaque(stack.br$getBarColor());
 	}
 
 	@Override
@@ -387,6 +413,8 @@ public class ArmorHud extends TextHudEntry {
 		options.add(showProtLvl);
 		options.add(showDurabilityNumber);
 		options.add(showMaxDurabilityNumber);
+		options.add(durabilityFormat);
+		options.add(durabilityColorTiers);
 		options.add(customDurabilityNumColor);
 		options.add(durabilityNumColor);
 		options.add(mainHandItemPosition);
@@ -410,6 +438,20 @@ public class ArmorHud extends TextHudEntry {
 		@Override
 		public String toString() {
 			return "armorhud.main_hand_item_position." + super.toString().toLowerCase(Locale.ROOT);
+		}
+	}
+
+	private enum DurabilityFormat {
+		NONE,
+		NUMBER,
+		MAX,
+		NUMBER_AND_MAX,
+		PERCENT,
+		;
+
+		@Override
+		public String toString() {
+			return "armorhud.durability_format." + super.toString().toLowerCase(Locale.ROOT);
 		}
 	}
 }

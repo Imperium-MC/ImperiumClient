@@ -46,4 +46,12 @@ public interface AxoStatusEffectInstance {
 	default int br$getAmplifier() {
 		throw BridgeUtil.noImpl();
 	}
+
+	/**
+	 * Remaining effect duration in ticks, or a negative value if the effect is infinite.
+	 */
+	@RequiresImpl
+	default int br$getDuration() {
+		throw BridgeUtil.noImpl();
+	}
 }
