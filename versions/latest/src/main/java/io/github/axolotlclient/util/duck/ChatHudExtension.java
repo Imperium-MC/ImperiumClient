@@ -34,4 +34,18 @@ import net.minecraft.client.multiplayer.chat.GuiMessage;
 public interface ChatHudExtension {
 
 	List<GuiMessage> axolotlclient$getMessages();
+
+	/**
+	 * Appends persisted messages to the (expected-empty) history and rebuilds the trimmed-line
+	 * cache, the same way vanilla's own {@code restoreState} does. Used by the
+	 * {@code persistent_chat} module on join.
+	 */
+	void axolotlclient$restoreMessages(List<GuiMessage> messages);
+
+	/**
+	 * The smooth-chat animation's current fractional scroll position (lines). Equals the
+	 * scrollbar target when smooth chat is off or settled; dips below zero while a message
+	 * slides in. Exposed for tests.
+	 */
+	float axolotlclient$getSmoothScrollCurrent();
 }

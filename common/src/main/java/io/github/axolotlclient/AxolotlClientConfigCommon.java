@@ -243,6 +243,20 @@ public abstract class AxolotlClientConfigCommon {
 	public final BooleanOption chatPeek = new BooleanOption("peek_chat", false);
 	public final AxoKeybinding peekChatKey;
 
+	// smooth_chat: the chat scroll offset lerps toward its target over a short window instead
+	// of snapping line-by-line (new messages slide in, wheel scrolls glide).
+	public final BooleanOption smoothChat = new BooleanOption("smooth_chat", true);
+	public final IntegerOption smoothChatDuration = new IntegerOption("smooth_chat_duration_ms", 120, 50, 400);
+
+	// persistent_chat: the visible chat history is serialized on disconnect and restored on
+	// the next join, so it survives relogs.
+	public final BooleanOption persistentChat = new BooleanOption("persistent_chat", true);
+	public final AxoKeybinding clearChatHistoryKey;
+
+	// chat_screenshot_button: draws a small camera button on the chat screen that saves a
+	// cropped screenshot of just the chat region.
+	public final BooleanOption chatScreenshotButton = new BooleanOption("chat_screenshot_button", true);
+
 	public final BooleanOption enableCustomOutlines = new BooleanOption("enabled", false);
 	public final ColorOption outlineColor = new ColorOption("color", new Color(0x66000000));
 	public final IntegerOption outlineWidth = new IntegerOption("outlineWidth", 1, 1, 15);
@@ -296,6 +310,9 @@ public abstract class AxolotlClientConfigCommon {
 		chatSettings.add(chatNameHighlight, chatNamePing);
 		chatSettings.add(chatHoverHighlight, chatHoverHighlightColor);
 		chatSettings.add(chatPeek);
+		chatSettings.add(smoothChat, smoothChatDuration);
+		chatSettings.add(persistentChat);
+		chatSettings.add(chatScreenshotButton);
 
 		rendering.add(outlines);
 		rendering.add(nametagOptions);
@@ -368,6 +385,7 @@ public abstract class AxolotlClientConfigCommon {
 			AxolotlClientCommon.getInstance().saveConfig();
 		});
 		peekChatKey = AxoKeybinding.create(AxoKeys.KEY_UNKNOWN, "peek_chat");
+		clearChatHistoryKey = AxoKeybinding.create(AxoKeys.KEY_UNKNOWN, "clear_chat_history");
 		AxoKeybinding.create(AxoKeys.KEY_UNKNOWN, "toggle_fullbright").br$registerOnConsumeClick(() -> {
 			fullBright.toggle();
 			AxolotlClientCommon.getInstance().saveConfig();

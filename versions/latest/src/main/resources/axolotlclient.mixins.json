@@ -12,6 +12,7 @@
 		"ChatAlphaCalculatorMixin",
 		"ChatDrawingFocusedAccessAccessor",
 		"ChatHudMixin",
+		"ChatScreenMixin",
 		"ClientBrandRetrieverMixin",
 		"ClientPlayNetworkHandlerMixin",
 		"ClientWorldMixin",

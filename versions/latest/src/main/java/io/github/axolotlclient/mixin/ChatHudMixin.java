@@ -26,18 +26,24 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.github.axolotlclient.AxolotlClient;
 import io.github.axolotlclient.bridge.events.Events;
 import io.github.axolotlclient.bridge.events.types.ReceiveChatMessageEvent;
 import io.github.axolotlclient.util.ChatPeek;
+import io.github.axolotlclient.util.chat.ChatScrollSmoothing;
 import io.github.axolotlclient.util.duck.ChatHudExtension;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.client.gui.components.ChatComponent.ChatGraphicsAccess;
+import net.minecraft.client.gui.components.ChatComponent.DisplayMode;
 import net.minecraft.client.multiplayer.chat.GuiMessage;
 import net.minecraft.client.multiplayer.chat.GuiMessageSource;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -46,6 +52,9 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.MessageSignature;
 import net.minecraft.network.chat.contents.PlainTextContents;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.Mth;
+import net.minecraft.util.Util;
+import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -67,6 +76,27 @@ public abstract class ChatHudMixin implements ChatHudExtension {
 	@Final
 	private List<GuiMessage.Line> trimmedMessages;
 
+	@Shadow
+	private int chatScrollbarPos;
+
+	@Shadow
+	public abstract int getLinesPerPage();
+
+	@Shadow
+	abstract int getLineHeight();
+
+	@Shadow
+	abstract double getScale();
+
+	@Shadow
+	abstract int getWidth();
+
+	@Shadow
+	abstract int getHeight();
+
+	@Shadow
+	abstract void refreshTrimmedMessages();
+
 	/**
 	 * Base (suffix-less) text of the message that currently ends the chat, while compact chat is
 	 * stacking consecutive duplicates of it. {@code null} when no streak is live.
@@ -79,6 +109,30 @@ public abstract class ChatHudMixin implements ChatHudExtension {
 
 	@Unique
 	private static final DateTimeFormatter axolotlclient$TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("HH:mm", Locale.ROOT);
+
+	// ── Smooth chat (smooth_chat) state ─────────────────────────────────────────
+	//
+	// chatScrollbarPos stays vanilla-authoritative (the animation TARGET). The animated
+	// fractional position below only drives rendering: line selection uses its floor and a
+	// sub-line pose translation carries the remainder. Stepping happens once per rendered
+	// frame in the public extractRenderState wrap (dt==0 later in the same frame is a no-op),
+	// so the interpolation is frame-rate aware by construction.
+
+	/** Animated fractional scroll position (lines; negative while a new message slides in). */
+	@Unique
+	private float axolotlclient$smoothScrollCurrent = 0.0F;
+
+	/** Wall-clock sample of the last animation step (0 = none yet). */
+	@Unique
+	private long axolotlclient$smoothLastFrameMs = 0L;
+
+	/** Sub-line y offset (local units) the current render pass translates the chat pose by. */
+	@Unique
+	private float axolotlclient$smoothRenderOffset = 0.0F;
+
+	/** Whether the current render pass draws one extra line above the window (slide in/out). */
+	@Unique
+	private boolean axolotlclient$smoothExtraTopLine = false;
 
 	@WrapMethod(method = "addMessage")
 	private void onChatMessage(Component contents, MessageSignature signature, GuiMessageSource source, net.minecraft.client.multiplayer.chat.GuiMessageTag tag, Operation<Void> original) {
@@ -119,6 +173,33 @@ public abstract class ChatHudMixin implements ChatHudExtension {
 		}
 
 		original.call(contents, signature, source, tag);
+		axolotlclient$smoothChatKickForNewMessage();
+	}
+
+	/**
+	 * Smooth chat: when a message lands while the chat is pinned to the bottom
+	 * ({@code chatScrollbarPos == 0}), vanilla keeps the scroll target but the content visibly
+	 * jumps up by the new lines. Starting the animation below the target by the number of
+	 * lines just added makes the message slide in instead. (While scrolled up with the chat
+	 * screen focused vanilla itself bumps the scroll per line, which the animation follows
+	 * for free.)
+	 */
+	@Unique
+	private void axolotlclient$smoothChatKickForNewMessage() {
+		if (AxolotlClient.config() == null || !AxolotlClient.config().smoothChat.get() || chatScrollbarPos != 0) {
+			return;
+		}
+		if (allMessages.isEmpty()) {
+			return;
+		}
+		GuiMessage newest = allMessages.getFirst();
+		int addedLines = 0;
+		while (addedLines < trimmedMessages.size() && trimmedMessages.get(addedLines).parent() == newest) {
+			addedLines++;
+		}
+		if (addedLines > 0) {
+			axolotlclient$smoothScrollCurrent -= addedLines;
+		}
 	}
 
 	/**
@@ -279,8 +360,145 @@ public abstract class ChatHudMixin implements ChatHudExtension {
 		}
 	}
 
+	/**
+	 * Smooth chat, public render entry: advances the animation once per frame (later passes in
+	 * the same frame sample dt 0 and stay put) and — while an animation is actually in flight —
+	 * scissors the drawing to the chat rectangle so the fractional slide cannot bleed over the
+	 * rest of the HUD (one extra line is drawn above the window during a slide; without the
+	 * clip it would float over the game view).
+	 */
+	@WrapMethod(method = "extractRenderState(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/gui/Font;IIILnet/minecraft/client/gui/components/ChatComponent$DisplayMode;Z)V")
+	private void axolotlclient$smoothChatStep(GuiGraphicsExtractor extractor, Font font, int mouseX, int mouseY, int arg, DisplayMode mode, boolean restricted, Operation<Void> original) {
+		boolean smooth = AxolotlClient.config() != null && AxolotlClient.config().smoothChat.get();
+		if (smooth) {
+			long now = Util.getMillis();
+			long dt = axolotlclient$smoothLastFrameMs == 0L ? 16L : now - axolotlclient$smoothLastFrameMs;
+			axolotlclient$smoothLastFrameMs = now;
+			axolotlclient$smoothScrollCurrent = ChatScrollSmoothing.step(axolotlclient$smoothScrollCurrent, chatScrollbarPos, dt,
+				AxolotlClient.config().smoothChatDuration.get());
+		} else if (axolotlclient$smoothScrollCurrent != chatScrollbarPos) {
+			axolotlclient$smoothScrollCurrent = chatScrollbarPos;
+		}
+
+		if (!smooth || !ChatScrollSmoothing.animating(axolotlclient$smoothScrollCurrent, chatScrollbarPos)) {
+			axolotlclient$smoothRenderOffset = 0.0F;
+			axolotlclient$smoothExtraTopLine = false;
+			original.call(extractor, font, mouseX, mouseY, arg, mode, restricted);
+			return;
+		}
+
+		axolotlclient$smoothRenderOffset = ChatScrollSmoothing.pixelOffset(axolotlclient$smoothScrollCurrent, getLineHeight());
+		axolotlclient$smoothExtraTopLine = axolotlclient$smoothRenderOffset > ChatScrollSmoothing.SNAP_THRESHOLD;
+
+		int guiHeight = extractor.guiHeight();
+		// All in GUI units (the scissor is transformed by the base pose): vanilla lays the
+		// chat out with a 40 px bottom margin; one extra line keeps the queued-messages
+		// notice below the chat visible while the slide runs.
+		int lineHeightGui = Mth.ceil(getLineHeight() * (float) getScale());
+		int bottom = guiHeight - 40 + lineHeightGui + 8;
+		int top = bottom - Mth.ceil(getHeight() * (float) getScale()) - 1;
+		int right = Mth.ceil((Mth.ceil(getWidth() / (float) getScale()) + 12) * (float) getScale());
+		extractor.enableScissor(0, top, right, bottom);
+		try {
+			original.call(extractor, font, mouseX, mouseY, arg, mode, restricted);
+		} finally {
+			extractor.disableScissor();
+		}
+	}
+
+	/**
+	 * Smooth chat, the pass both render modes and the click-capture path funnel through: line
+	 * selection runs at the animation's floor while the authoritative scrollbar value is
+	 * restored afterwards, so vanilla logic (clamping, delete handling, scrollbar state) is
+	 * untouched.
+	 */
+	@WrapMethod(method = "extractRenderState(Lnet/minecraft/client/gui/components/ChatComponent$ChatGraphicsAccess;IILnet/minecraft/client/gui/components/ChatComponent$DisplayMode;)V")
+	private void axolotlclient$smoothChatWindow(ChatGraphicsAccess graphics, int guiHeight, int mouseY, DisplayMode mode, Operation<Void> original) {
+		if (axolotlclient$smoothRenderOffset == 0.0F) {
+			original.call(graphics, guiHeight, mouseY, mode);
+			return;
+		}
+		int realScrollbarPos = chatScrollbarPos;
+		chatScrollbarPos = ChatScrollSmoothing.windowBase(axolotlclient$smoothScrollCurrent);
+		try {
+			original.call(graphics, guiHeight, mouseY, mode);
+		} finally {
+			chatScrollbarPos = realScrollbarPos;
+		}
+	}
+
+	/**
+	 * Smooth chat: after vanilla's scale-and-shift pose setup, add the sub-line translation the
+	 * current frame is at. Applied inside every graphics access (background, focused and
+	 * click-capture), so hit testing stays in the same coordinate space as the pixels.
+	 */
+	@WrapOperation(method = "extractRenderState(Lnet/minecraft/client/gui/components/ChatComponent$ChatGraphicsAccess;IILnet/minecraft/client/gui/components/ChatComponent$DisplayMode;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/ChatComponent$ChatGraphicsAccess;updatePose(Ljava/util/function/Consumer;)V"))
+	private void axolotlclient$smoothChatPose(ChatGraphicsAccess graphics, Consumer<Matrix3x2f> vanillaPose, Operation<Void> original) {
+		original.call(graphics, vanillaPose);
+		float offset = axolotlclient$smoothRenderOffset;
+		if (offset != 0.0F) {
+			graphics.updatePose(matrix -> matrix.translate(0.0F, offset));
+		}
+	}
+
+	/**
+	 * Smooth chat: while a slide is in flight the window needs one extra line above the vanilla
+	 * range — the line sliding in from (or out through) the top edge. Reimplements vanilla's
+	 * tiny loop with {@code end} starting one higher; when the history does not overflow the
+	 * window the extra index points past the list and is skipped, which makes this identical
+	 * to vanilla.
+	 */
+	@WrapMethod(method = "forEachLine")
+	private int axolotlclient$smoothChatLines(ChatComponent.AlphaCalculator calculator, ChatComponent.LineConsumer consumer, Operation<Integer> original) {
+		if (!axolotlclient$smoothExtraTopLine) {
+			return original.call(calculator, consumer);
+		}
+
+		int linesPerPage = getLinesPerPage();
+		int vanillaEnd = Math.min(trimmedMessages.size() - chatScrollbarPos, linesPerPage) - 1;
+		int count = 0;
+		boolean drewExtra = false;
+		int end = vanillaEnd + 1;
+		while (end >= 0) {
+			int start = end + chatScrollbarPos;
+			if (start < trimmedMessages.size()) {
+				GuiMessage.Line line = trimmedMessages.get(start);
+				float alpha = calculator.calculate(line);
+				if (alpha > 1.0E-5F) {
+					count++;
+					if (end > vanillaEnd) {
+						drewExtra = true;
+					}
+					consumer.accept(line, end, alpha);
+				}
+			}
+			end--;
+		}
+		// Keep the returned visible-line count vanilla-equivalent (the caller sizes the
+		// scrollbar thumb from it).
+		return count - (drewExtra ? 1 : 0);
+	}
+
+	/** Snap the smooth animation whenever the history is replaced wholesale. */
+	@Inject(method = {"clearMessages", "restoreState", "rescaleChat"}, at = @At("HEAD"))
+	private void axolotlclient$snapSmoothScroll(CallbackInfo ci) {
+		axolotlclient$smoothScrollCurrent = chatScrollbarPos;
+	}
+
 	@Override
 	public List<GuiMessage> axolotlclient$getMessages() {
 		return allMessages;
+	}
+
+	@Override
+	public void axolotlclient$restoreMessages(List<GuiMessage> messages) {
+		allMessages.addAll(messages);
+		refreshTrimmedMessages();
+		axolotlclient$smoothScrollCurrent = chatScrollbarPos;
+	}
+
+	@Override
+	public float axolotlclient$getSmoothScrollCurrent() {
+		return axolotlclient$smoothScrollCurrent;
 	}
 }
