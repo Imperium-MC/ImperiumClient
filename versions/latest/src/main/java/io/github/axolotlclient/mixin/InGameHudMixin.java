@@ -36,6 +36,7 @@ import io.github.axolotlclient.modules.hud.HudManager;
 import io.github.axolotlclient.modules.hud.gui.hud.PotionsHud;
 import io.github.axolotlclient.modules.hud.gui.hud.vanilla.*;
 import io.github.axolotlclient.modules.hypixel.bedwars.BedwarsMod;
+import io.github.axolotlclient.modules.waypoints.WaypointTracers;
 import io.github.axolotlclient.util.FarmingOverlay;
 import io.github.axolotlclient.util.LowHpTint;
 import net.minecraft.client.DeltaTracker;
@@ -80,6 +81,17 @@ public abstract class InGameHudMixin {
 		target = "Lnet/minecraft/client/gui/Hud;extractCrosshair(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/DeltaTracker;)V", shift = At.Shift.AFTER))
 	private void axolotlclient$farmingOverlay(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
 		FarmingOverlay.render(graphics);
+	}
+
+	/**
+	 * waypoints tracers: world-space markers projected onto the screen after the crosshair (same
+	 * slot as the farming overlay — the camera holds this frame's pose, and the tracers sit under
+	 * the chat/panels that the HUD extracts later).
+	 */
+	@Inject(method = "extractRenderState", at = @At(value = "INVOKE",
+		target = "Lnet/minecraft/client/gui/Hud;extractCrosshair(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/DeltaTracker;)V", shift = At.Shift.AFTER))
+	private void axolotlclient$waypointTracers(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+		WaypointTracers.render(graphics);
 	}
 
 	/**

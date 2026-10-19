@@ -33,4 +33,5 @@ public class AxoKeys {
 	public static final AxoKey MOUSE_RIGHT = BridgeUtil.noImplValue();
 	public static final AxoKey KEY_RSHIFT = BridgeUtil.noImplValue();
 	public static final AxoKey KEY_C = BridgeUtil.noImplValue();
+	public static final AxoKey KEY_F7 = BridgeUtil.noImplValue();
 }

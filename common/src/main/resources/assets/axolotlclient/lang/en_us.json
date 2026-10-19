@@ -1207,5 +1207,15 @@
 		"chunk_borders.regions.tooltip": "Also draw the outline of the current region (512x512 block grid).",
 		"chunk_borders.color": "Chunk Border Color",
 		"chunk_borders.region_color": "Region Border Color",
-		"toggle_chunk_borders": "Toggle Chunk Borders"
+		"toggle_chunk_borders": "Toggle Chunk Borders",
+		"lightLevelOverlay": "Light Level Overlay",
+		"light_level.radius": "Radius (blocks)",
+		"light_level.radius.tooltip": "Blocks around the player that get sampled. 8 is cheap, 16 is the default, 32 covers a lot of ground.",
+		"light_level.safe_color": "Safe Color",
+		"light_level.safe_color.tooltip": "Tint for block tops where mobs cannot spawn (light level above 7).",
+		"light_level.unsafe_color": "Unsafe Color",
+		"light_level.unsafe_color.tooltip": "Tint for block tops where hostile mobs can spawn.",
+		"toggle_light_overlay": "Toggle Light Level Overlay",
+		"waypoints.tracers": "3D Tracers",
+		"waypoints.tracers.tooltip": "Draw each waypoint of the current dimension as a marker at its world position, clamped to the screen edge with an arrow when off-screen."
 }

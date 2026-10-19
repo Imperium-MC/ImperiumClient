@@ -232,6 +232,13 @@ public abstract class AxolotlClientConfigCommon {
 	public final ColorOption chunkBorderColor = new ColorOption("chunk_borders.color", new Color(0x80FFFF00));
 	public final ColorOption regionBorderColor = new ColorOption("chunk_borders.region_color", new Color(0x80FF5555));
 
+	// light_level (Photon parity): keybind-toggled spawn-safety overlay tinting block tops by
+	// effective light level (green = light > 7 after the sky-darkening scale, red = mobs can spawn).
+	public final BooleanOption lightOverlay = new BooleanOption("enabled", false);
+	public final IntegerOption lightOverlayRadius = new IntegerOption("light_level.radius", 16, 8, 32);
+	public final ColorOption lightOverlaySafeColor = new ColorOption("light_level.safe_color", new Color(0xA000E000));
+	public final ColorOption lightOverlayUnsafeColor = new ColorOption("light_level.unsafe_color", new Color(0xA0FF3000));
+
 	public final BooleanOption compactChat = new BooleanOption("compact_chat", false);
 
 	public final BooleanOption chatTimestamps = new BooleanOption("chat_timestamps", false);
@@ -277,6 +284,7 @@ public abstract class AxolotlClientConfigCommon {
 	public final OptionCategory lowHpTintCategory = OptionCategory.create("lowHpTint");
 	public final OptionCategory farming = OptionCategory.create("farming");
 	public final OptionCategory chunkBordersCategory = OptionCategory.create("chunkBorders");
+	public final OptionCategory lightOverlayCategory = OptionCategory.create("lightLevelOverlay");
 
 	public final BooleanOption creditsBGM = new BooleanOption("creditsBGM", true);
 	public final BooleanOption modifyClientBrand = new BooleanOption("modify_client_brand", true);
@@ -378,6 +386,12 @@ public abstract class AxolotlClientConfigCommon {
 		chunkBordersCategory.add(regionBorderColor);
 		rendering.add(chunkBordersCategory);
 
+		lightOverlayCategory.add(lightOverlay);
+		lightOverlayCategory.add(lightOverlayRadius);
+		lightOverlayCategory.add(lightOverlaySafeColor);
+		lightOverlayCategory.add(lightOverlayUnsafeColor);
+		rendering.add(lightOverlayCategory);
+
 		hidden.add(creditsBGM, someNiceBackground, modifyClientBrand, noAltIcons);
 
 		AxoKeybinding.create(AxoKeys.KEY_UNKNOWN, "toggle_hide_chat").br$registerOnConsumeClick(() -> {
@@ -392,6 +406,10 @@ public abstract class AxolotlClientConfigCommon {
 		});
 		AxoKeybinding.create(AxoKeys.KEY_UNKNOWN, "toggle_chunk_borders").br$registerOnConsumeClick(() -> {
 			chunkBorders.toggle();
+			AxolotlClientCommon.getInstance().saveConfig();
+		});
+		AxoKeybinding.create(AxoKeys.KEY_F7, "toggle_light_overlay").br$registerOnConsumeClick(() -> {
+			lightOverlay.toggle();
 			AxolotlClientCommon.getInstance().saveConfig();
 		});
 
