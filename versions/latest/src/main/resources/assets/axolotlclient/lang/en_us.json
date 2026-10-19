@@ -4,5 +4,17 @@
 	"title_screen_friends_button_mode.button": "Button (Prefer AxolotlClient)",
 	"entitycounthud": "Entity Count HUD",
 	"entitycounthud.entities": "Entities",
-	"blockcoordinateshud": "Block Coordinates HUD"
+	"blockcoordinateshud": "Block Coordinates HUD",
+	"autofish": "Auto Fishing",
+	"autoclick": "Auto Clicker",
+	"boostshud": "Boosts HUD",
+	"delay_min": "Recast Delay Min (ms)",
+	"delay_max": "Recast Delay Max (ms)",
+	"auto_recast": "Auto Recast",
+	"cps_min": "Minimum CPS",
+	"cps_max": "Maximum CPS",
+	"show_remaining": "Show Remaining Time",
+	"key.autoclick.hold": "Auto Clicker (Hold)",
+	"imperiumclient.gate.auto_fish": "This option is locked <br>because this server has not enabled auto-fishing.",
+	"imperiumclient.gate.auto_click": "This option is locked <br>because this server has not enabled auto-clicking."
 }

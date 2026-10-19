@@ -82,6 +82,15 @@ public abstract class FeatureDisablerCommon {
 
 	protected abstract void registerChannel();
 
+	/**
+	 * Registers a feature id as server-denyable after class init. Used by the latest-version
+	 * gated modules (auto_fish, auto_click), which cannot be listed in the static map above:
+	 * they call this from their {@code init()} before the disabler's channel is registered.
+	 */
+	public static void registerDeniable(String id, ForceableBooleanOption option) {
+		FEATURES.put(id, option);
+	}
+
 	private void setServers(ForceableBooleanOption option, Supplier<Boolean> condition, String... servers) {
 		disabledServers.put(option, servers);
 		conditions.put(option, condition);

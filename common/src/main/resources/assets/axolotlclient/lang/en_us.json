@@ -1073,6 +1073,7 @@
 	"imperium.menu.category.world": "World",
 	"imperium.menu.category.utility": "Utility",
 	"imperium.menu.category.server": "Server",
+	"imperium.menu.category.automation": "Automation",
 	"waypointshud": "Waypoints",
 	"waypoints_data": "Waypoint Data",
 	"waypoints.show_distance": "Show Distance",

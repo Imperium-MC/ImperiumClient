@@ -31,6 +31,8 @@ import io.github.axolotlclient.bridge.impl.Bridge;
 import io.github.axolotlclient.modules.ModuleLoader;
 import io.github.axolotlclient.modules.auth.Auth;
 import io.github.axolotlclient.modules.blur.MotionBlur;
+import io.github.axolotlclient.modules.enchantedmc.AutoClick;
+import io.github.axolotlclient.modules.enchantedmc.AutoFish;
 import io.github.axolotlclient.modules.hud.HudManager;
 import io.github.axolotlclient.modules.hud.gui.hud.CompassWaypointMarkers;
 import io.github.axolotlclient.modules.hud.gui.hud.PackDisplayHud;
@@ -54,6 +56,8 @@ public class AxolotlClient extends AxolotlClientCommon implements ClientModIniti
 		registerModule(MotionBlur.getInstance());
 		registerModule(ScrollableTooltips.getInstance());
 		registerModule(InventorySearch.getInstance());
+		registerModule(AutoFish.getInstance());
+		registerModule(AutoClick.getInstance());
 		registerModule(Particles.getInstance());
 		registerModule(ScreenshotUtils.getInstance());
 		registerModule(Auth.getInstance());

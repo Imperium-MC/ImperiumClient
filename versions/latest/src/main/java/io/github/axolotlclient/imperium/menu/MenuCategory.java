@@ -25,7 +25,7 @@ package io.github.axolotlclient.imperium.menu;
 import java.util.Locale;
 
 public enum MenuCategory {
-	ALL, HUD, RENDER, CHAT, WORLD, UTILITY, SERVER;
+	ALL, HUD, RENDER, CHAT, WORLD, UTILITY, AUTOMATION, SERVER;
 
 	public String translationKey() {
 		return "imperium.menu.category." + name().toLowerCase(Locale.ROOT);
@@ -34,6 +34,9 @@ public enum MenuCategory {
 	// Config categories carry no type, so infer one from the category name.
 	public static MenuCategory infer(String categoryName) {
 		String n = categoryName.toLowerCase(Locale.ROOT);
+		if (containsAny(n, "autofish", "autoclick")) {
+			return AUTOMATION;
+		}
 		if (containsAny(n, "hypixel", "bedwars", "skyblock", "levelhead", "autogg", "autotip", "autoboop", "nick", "mcci")) {
 			return SERVER;
 		}
