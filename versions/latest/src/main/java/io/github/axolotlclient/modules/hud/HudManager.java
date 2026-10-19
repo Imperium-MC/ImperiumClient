@@ -67,6 +67,8 @@ public class HudManager extends HudManagerCommon {
 		add(new io.github.axolotlclient.modules.hud.gui.hud.simple.WaypointsHud());
 		add(new io.github.axolotlclient.modules.minimap.MinimapHud());
 		add(new io.github.axolotlclient.modules.hud.gui.hud.simple.BoostsHud());
+		add(new io.github.axolotlclient.modules.hud.gui.hud.simple.LegionHud());
+		add(new io.github.axolotlclient.modules.hud.gui.hud.simple.BreadcrumbsHud());
 		add(new KeystrokeHud());
 		add(new PackDisplayHud());
 		add(new PlayerHud());
