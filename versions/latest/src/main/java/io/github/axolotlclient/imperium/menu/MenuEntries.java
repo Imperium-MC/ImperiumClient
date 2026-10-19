@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import io.github.axolotlclient.AxolotlClientCommon;
@@ -43,6 +44,8 @@ import io.github.axolotlclient.bridge.util.AxoI18n;
 public final class MenuEntries {
 	// "hud" is covered by HUD entries; "storedOptions" holds internal state, not user settings.
 	private static final Set<String> SKIPPED_ROOTS = Set.of("hud", "storedOptions");
+	// HUD entries that read as world-rendering modules in Alpine's menu, not HUD widgets.
+	private static final Map<String, MenuCategory> CATEGORY_OVERRIDES = Map.of("imperiumclient:minimaphud", MenuCategory.RENDER);
 
 	private MenuEntries() {
 	}
@@ -51,7 +54,8 @@ public final class MenuEntries {
 		List<MenuEntry> entries = new ArrayList<>();
 		for (HudEntry hud : HudManager.getInstance().getEntries()) {
 			if (hud.getCategory() == null) continue;
-			entries.add(new MenuEntry("hud/" + hud.getId(), hud.getName(), MenuCategory.HUD, hud.getCategory(),
+			MenuCategory category = CATEGORY_OVERRIDES.getOrDefault(hud.getId().toString(), MenuCategory.HUD);
+			entries.add(new MenuEntry("hud/" + hud.getId(), hud.getName(), category, hud.getCategory(),
 				hud::isEnabled, value -> {
 				hud.setEnabled(value);
 				hud.onBoundsUpdate();

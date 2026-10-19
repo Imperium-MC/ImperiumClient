@@ -78,7 +78,7 @@ Status: ✅ exists in Axolotl (needs Alpine-style settings), 🟡 partial, ❌ b
 | snap_look | SnapLook | ✅ hold + toggle modes, composes with Freelook |
 | hurt_cam, low_hp_tint, clear_water, farming | — | ❌ small render tweaks |
 | chunk_borders | — | ❌ |
-| minimap | — | ❌ large: chunk-colour map, shapes, rotation |
+| minimap | MinimapHud (M3) | 🟡 chunk-colour square/circle map, north-lock/follow-camera rotation, zoom, waypoint dots; fullscreen map view still ❌ |
 | worldedit_cui | — | ❌ |
 | spotify_state | — | ❌ Spotify Web API HUD |
 | discord_rpc | DiscordRPC | ✅ server IP toggle |
