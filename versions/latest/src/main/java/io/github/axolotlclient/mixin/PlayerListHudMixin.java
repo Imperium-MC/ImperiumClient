@@ -102,7 +102,7 @@ public abstract class PlayerListHudMixin {
 			}
 		}
 		if (((PlayerTabOverlayHud) HudManagerCommon.getInstance().get(PlayerTabOverlayHud.ID)).numericalPing.get())
-			width += instance.width(String.valueOf(info.getLatency())) - 10;
+			width += instance.width(PlayerTabOverlayHud.numericPingText(info.getLatency())) - 10;
 		return width;
 	}
 
@@ -126,8 +126,19 @@ public abstract class PlayerListHudMixin {
 	private void badgeBeforePing(PlayerTabOverlay instance, GuiGraphicsExtractor graphics, int slotWidth, int xo, int yo, PlayerInfo info, Operation<Void> original) {
 		if (AxolotlClient.config().showBadges.get() && AxolotlClient.config().tabBadgeMode.get() == AxolotlClientConfigCommon.TabBadgeMode.BEFORE_PING
 			&& UserRequest.getOnline(info.getProfile().id().toString())) {
-			var pingWidth = (((PlayerTabOverlayHud) HudManagerCommon.getInstance().get(PlayerTabOverlayHud.ID)).numericalPing.get()) ? graphics.br$getFont().br$getWidth(String.valueOf(info.getLatency())) + 1 : 11;
+			var pingWidth = (((PlayerTabOverlayHud) HudManagerCommon.getInstance().get(PlayerTabOverlayHud.ID)).numericalPing.get()) ? graphics.br$getFont().br$getWidth(PlayerTabOverlayHud.numericPingText(info.getLatency())) + 1 : 11;
 			graphics.blit(RenderPipelines.GUI_TEXTURED, (Identifier) AxolotlClientCommon.BADGE_PATH, xo + slotWidth - pingWidth - 9, yo, 0, 0, 8, 8, 8, 8);
+		}
+		original.call(instance, graphics, slotWidth, xo, yo, info);
+	}
+
+	@WrapOperation(method = "extractRenderState", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/PlayerTabOverlay;extractPingIcon(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IIILnet/minecraft/client/multiplayer/PlayerInfo;)V"))
+	private void axolotlclient$highlightSelfRow(PlayerTabOverlay instance, GuiGraphicsExtractor graphics, int slotWidth, int xo, int yo, PlayerInfo info, Operation<Void> original) {
+		if (minecraft.player != null && info.getProfile().equals(minecraft.player.getGameProfile())) {
+			var tablist = (PlayerTabOverlayHud) HudManagerCommon.getInstance().get(PlayerTabOverlayHud.ID);
+			if (tablist != null && tablist.highlightSelf.get()) {
+				graphics.fill(xo, yo, xo + slotWidth, yo + 8, tablist.getSelfHighlightColor());
+			}
 		}
 		original.call(instance, graphics, slotWidth, xo, yo, info);
 	}

@@ -44,7 +44,9 @@ public class PlayerTabOverlayHud extends TextHudEntry {
 	public final BooleanOption showHeader = new BooleanOption("showHeader", true);
 	public final BooleanOption showFooter = new BooleanOption("showFooter", true);
 	public final BooleanOption alwaysShowHeadLayer = new BooleanOption("alwaysShowHeadLayer", false);
-	public final BooleanOption numericalPing = new BooleanOption("numericalPing", false);
+	public final BooleanOption numericalPing = new BooleanOption("numericalPing", true);
+	public final BooleanOption highlightSelf = new BooleanOption("highlightSelf", true);
+	private final ColorOption selfHighlightColor = new ColorOption("selfHighlightColor", Color.parse("#40408CFF"));
 	private final BooleanOption smallPingText = new BooleanOption("tablist.small_ping_text", false);
 	private final ColorOption pingColor0 = new ColorOption("pingColor0", Color.parse("#FF00FFFF"));
 	private final ColorOption pingColor1 = new ColorOption("pingColor1", Color.parse("#FF00FF00"));
@@ -77,7 +79,7 @@ public class PlayerTabOverlayHud extends TextHudEntry {
 				current = pingColor5.get();
 			}
 
-			String text = applySmallText(String.valueOf(entry.br$getPing()));
+			String text = applySmallText(numericPingText(entry.br$getPing()));
 			graphics.br$pushMatrix();
 			graphics.br$translateMatrix(x + width - 1, y);
 			graphics.br$translateMatrix(-graphics.br$getFont().br$getWidth(text), 0);
@@ -102,6 +104,18 @@ public class PlayerTabOverlayHud extends TextHudEntry {
 		return text;
 	}
 
+	/**
+	 * Text rendered in place of the vanilla ping bars, shared so that width
+	 * compensation in version mixins matches the drawn string.
+	 */
+	public static String numericPingText(int ping) {
+		return ping + "ms";
+	}
+
+	public int getSelfHighlightColor() {
+		return selfHighlightColor.get().toInt();
+	}
+
 	@Override
 	public void render(AxoRenderContext ctx, float delta) {
 		// done in mixins with transformations
@@ -124,8 +138,8 @@ public class PlayerTabOverlayHud extends TextHudEntry {
 		options.add(enabled);
 		Collections.addAll(options, background, customBackgroundColor, backgroundColor, roundBackground, backgroundRounding, backgroundPadding, outline, outlineColor);
 		options.add(anchor);
-		Collections.addAll(options, numericalPing, smallPingText, showPlayerHeads, shadow, showHeader, showFooter, alwaysShowHeadLayer);
-		Collections.addAll(options, pingColor0, pingColor1, pingColor2, pingColor3, pingColor4, pingColor5);
+		Collections.addAll(options, numericalPing, smallPingText, showPlayerHeads, shadow, showHeader, showFooter, alwaysShowHeadLayer, highlightSelf);
+		Collections.addAll(options, pingColor0, pingColor1, pingColor2, pingColor3, pingColor4, pingColor5, selfHighlightColor);
 		return options;
 	}
 
