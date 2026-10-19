@@ -23,6 +23,7 @@
 package io.github.axolotlclient.mixin;
 
 import io.github.axolotlclient.AxolotlClient;
+import io.github.axolotlclient.util.DrawUtil;
 import net.minecraft.client.renderer.LevelRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -35,6 +36,11 @@ public abstract class WorldRendererMixin {
 		target = "Lnet/minecraft/client/renderer/LevelRenderer;submitHitOutline(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/rendertype/RenderType;Lnet/minecraft/client/renderer/state/level/BlockOutlineRenderState;IFZ)V", ordinal = 1), index = 4)
 	private int axolotlclient$customOutlineColor(int par5) {
 		if (AxolotlClient.config().enableCustomOutlines.get()) {
+			if (DrawUtil.shouldHideOutlineLines()) {
+				// Fill mode: the outline lines become fully transparent, only the translucent
+				// fill of the targeted block remains.
+				return 0;
+			}
 			return AxolotlClient.config().outlineColor.get().toInt();
 		}
 		return par5;

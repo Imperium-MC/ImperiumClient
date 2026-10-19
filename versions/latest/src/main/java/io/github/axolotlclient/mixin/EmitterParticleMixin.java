@@ -40,6 +40,7 @@ public abstract class EmitterParticleMixin {
 
 	@ModifyConstant(method = "tick", constant = @Constant(intValue = 16))
 	public int axolotlclient$multiplyParticles(int constant) {
-		return constant * Particles.getInstance().getMultiplier(particleType.getType());
+		return Math.round(constant * Particles.getInstance().getMultiplier(particleType.getType())
+			* Particles.getInstance().getGlobalMultiplier(particleType.getType()));
 	}
 }

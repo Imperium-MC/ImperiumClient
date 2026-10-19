@@ -75,6 +75,21 @@ public abstract class AxolotlClientConfigCommon {
 
 	}
 
+	/**
+	 * Block overlay highlight modes: outline lines only (vanilla default), a translucent fill
+	 * of the targeted block's faces, or both at once.
+	 */
+	public enum OutlineMode {
+		OUTLINE,
+		FILL,
+		BOTH;
+
+		@Override
+		public String toString() {
+			return "block_outlines.mode." + super.toString().toLowerCase(Locale.ROOT);
+		}
+	}
+
 	// options
 
 	public final BooleanOption showOwnNametag = new BooleanOption("showOwnNametag", false);
@@ -105,6 +120,8 @@ public abstract class AxolotlClientConfigCommon {
 	public final BooleanOption enableCustomOutlines = new BooleanOption("enabled", false);
 	public final ColorOption outlineColor = new ColorOption("color", new Color(0x66000000));
 	public final IntegerOption outlineWidth = new IntegerOption("outlineWidth", 1, 1, 15);
+	public final EnumOption<OutlineMode> outlineMode = new EnumOption<>("block_outlines.mode", OutlineMode.class,
+		OutlineMode.OUTLINE);
 	public final BooleanOption outlineFill = new BooleanOption("block_outlines.fill", false);
 	public final ColorOption outlineFillColor = new ColorOption("block_outlines.fill_color", Colors.WINE_RED.withAlpha(165));
 
@@ -167,7 +184,7 @@ public abstract class AxolotlClientConfigCommon {
 
 		outlines.add(enableCustomOutlines);
 		outlines.add(outlineColor);
-		outlines.add(outlineWidth, outlineFill, outlineFillColor);
+		outlines.add(outlineWidth, outlineMode, outlineFill, outlineFillColor);
 
 		rendering.add(timeChanger);
 

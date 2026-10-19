@@ -31,7 +31,9 @@ import io.github.axolotlclient.AxolotlClientConfig.api.options.OptionCategory;
 import io.github.axolotlclient.AxolotlClientConfig.api.util.Color;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.BooleanOption;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.ColorOption;
+import io.github.axolotlclient.AxolotlClientConfig.impl.options.FloatOption;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.IntegerOption;
+import io.github.axolotlclient.AxolotlClientConfig.impl.options.StringOption;
 import io.github.axolotlclient.mixin.SingleQuadParticleAccessor;
 import io.github.axolotlclient.modules.AbstractModule;
 import io.github.axolotlclient.util.ClientColors;
@@ -40,6 +42,7 @@ import net.minecraft.client.particle.SingleQuadParticle;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import org.apache.commons.lang3.StringUtils;
 
 public class Particles extends AbstractModule {
@@ -47,14 +50,30 @@ public class Particles extends AbstractModule {
 	@Getter
 	private static final Particles Instance = new Particles();
 
+	/**
+	 * Convenience aliases so short names from Alpine-style profiles resolve: "crit" suppresses
+	 * critical_hit, "sharpness"/"enchant" suppress enchanted_hit.
+	 */
+	private static final Map<String, String> PARTICLE_ALIASES = Map.of(
+		"crit", "critical_hit",
+		"sharpness", "enchanted_hit",
+		"enchant", "enchanted_hit",
+		"enchanted", "enchanted_hit"
+	);
+
 	public final HashMap<ParticleType<?>, HashMap<String, Option<?>>> particleOptions = new HashMap<>();
 
 	private final OptionCategory cat = OptionCategory.create("particles");
 	private final BooleanOption enabled = new BooleanOption("enabled", false);
+	private final StringOption disabledParticles = new StringOption("disabled_particles", "",
+		this::updateDisabledParticles);
+	private final FloatOption critMultiplier = new FloatOption("crit_multiplier", 1.0F, 0.0F, 2.0F);
+	private final FloatOption sharpnessMultiplier = new FloatOption("sharpness_multiplier", 1.0F, 0.0F, 2.0F);
+	private final Set<String> disabledParticleNames = new HashSet<>();
 
 	@Override
 	public void init() {
-		cat.add(enabled);
+		cat.add(enabled, disabledParticles, critMultiplier, sharpnessMultiplier);
 
 		addParticleOptions();
 		AxolotlClient.config().rendering.add(cat);
@@ -110,6 +129,63 @@ public class Particles extends AbstractModule {
 			return ((IntegerOption) options.get("count")).get();
 		}
 		return 1;
+	}
+
+	/**
+	 * Global emitter scaling for crit (critical_hit) and sharpness (enchanted_hit) particles,
+	 * applied on top of the per-particle count: 0 removes them entirely, 2 doubles them.
+	 */
+	public float getGlobalMultiplier(ParticleType<?> type) {
+		if (!enabled.get()) {
+			return 1F;
+		}
+		if (type == ParticleTypes.CRIT) {
+			return critMultiplier.get();
+		}
+		if (type == ParticleTypes.ENCHANTED_HIT) {
+			return sharpnessMultiplier.get();
+		}
+		return 1F;
+	}
+
+	/**
+	 * Whether the particle type is named in the comma-separated "disabled particles" list.
+	 * Entries match registry names ("critical_hit", "enchanted_hit") case-insensitively,
+	 * namespaces are ignored and the aliases crit/sharpness/enchant are accepted.
+	 */
+	public boolean isDisabled(ParticleType<?> type) {
+		if (!enabled.get() || disabledParticleNames.isEmpty()) {
+			return false;
+		}
+		Identifier key = BuiltInRegistries.PARTICLE_TYPE.getKey(type);
+		if (key == null) {
+			return false;
+		}
+		String path = key.getPath();
+		for (String name : disabledParticleNames) {
+			if (name.equals(path)) {
+				return true;
+			}
+			String alias = PARTICLE_ALIASES.get(name);
+			if (alias != null && alias.equals(path)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private void updateDisabledParticles(String value) {
+		disabledParticleNames.clear();
+		for (String entry : value.split(",")) {
+			String name = entry.trim().toLowerCase(Locale.ROOT).replace(' ', '_');
+			int namespace = name.indexOf(':');
+			if (namespace >= 0) {
+				name = name.substring(namespace + 1);
+			}
+			if (!name.isEmpty()) {
+				disabledParticleNames.add(name);
+			}
+		}
 	}
 
 	public boolean getAlwaysOn(ParticleType<?> type) {

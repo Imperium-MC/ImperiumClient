@@ -30,6 +30,7 @@ import com.mojang.renderpearl.api.pipeline.DepthStencilState;
 import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import io.github.axolotlclient.AxolotlClient;
 import io.github.axolotlclient.AxolotlClientCommon;
+import io.github.axolotlclient.AxolotlClientConfigCommon;
 import io.github.axolotlclient.AxolotlClientConfig.api.util.Color;
 import io.github.axolotlclient.modules.hud.util.Rectangle;
 import net.minecraft.client.Minecraft;
@@ -96,7 +97,7 @@ public class DrawUtil {
 		.createRenderSetup());
 
 	public static void drawOutlines(Function<RenderType, VertexConsumer> bufferSource, PoseStack.Pose pose, VoxelShape shape) {
-		if (AxolotlClient.config().enableCustomOutlines.get() && AxolotlClient.config().outlineFill.get()) {
+		if (AxolotlClient.config().enableCustomOutlines.get() && shouldDrawFill()) {
 			var color = AxolotlClient.config().outlineFillColor.get().toInt();
 			//var pos = levelRenderState.cameraRenderState.pos;
 			//var blockPos = state.pos();
@@ -110,6 +111,22 @@ public class DrawUtil {
 					(float) (z1 + z), (float) (z2 + z),
 					color));
 		}
+	}
+
+	/**
+	 * The translucent fill draws in fill and both modes, and keeps honouring the legacy
+	 * {@code block_outlines.fill} toggle for configs saved before the mode option existed.
+	 */
+	public static boolean shouldDrawFill() {
+		return AxolotlClient.config().outlineFill.get()
+			|| AxolotlClient.config().outlineMode.get() != AxolotlClientConfigCommon.OutlineMode.OUTLINE;
+	}
+
+	/**
+	 * In fill mode the outline lines are hidden so only the translucent highlight remains.
+	 */
+	public static boolean shouldHideOutlineLines() {
+		return AxolotlClient.config().outlineMode.get() == AxolotlClientConfigCommon.OutlineMode.FILL;
 	}
 
 	private static void fillOutlineQuads(VertexConsumer consumer, PoseStack.Pose matrix, float x1, float x2, float y1, float y2, float z1, float z2, int color) {

@@ -27,9 +27,11 @@ import java.util.Locale;
 
 import io.github.axolotlclient.AxolotlClientConfig.api.options.Option;
 import io.github.axolotlclient.AxolotlClientConfig.api.util.Color;
+import io.github.axolotlclient.AxolotlClientConfig.api.util.Colors;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.BooleanOption;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.ColorOption;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.EnumOption;
+import io.github.axolotlclient.AxolotlClientConfig.impl.options.IntegerOption;
 import io.github.axolotlclient.bridge.entity.effect.AxoStatusEffectInstance;
 import io.github.axolotlclient.bridge.entity.effect.AxoStatusEffects;
 import io.github.axolotlclient.bridge.render.AxoRenderContext;
@@ -39,6 +41,7 @@ import io.github.axolotlclient.modules.hud.gui.entry.TextHudEntry;
 import io.github.axolotlclient.modules.hud.gui.layout.CardinalOrder;
 import io.github.axolotlclient.modules.hud.util.DefaultOptions;
 import io.github.axolotlclient.modules.hud.util.Rectangle;
+import io.github.axolotlclient.util.ClientColors;
 import io.github.axolotlclient.util.CommonUtil;
 import lombok.AllArgsConstructor;
 
@@ -56,6 +59,9 @@ public class PotionsHud extends TextHudEntry {
 	private final EnumOption<Mode> mode = new EnumOption<>("mode", Mode.class, Mode.ICONS_AND_TEXT);
 	private final BooleanOption showEffectName = new BooleanOption("showEffectNames", true);
 	private final ColorOption timerTextColor = new ColorOption("potionshud.timer_text_color", Color.parse("#7F7F7F"));
+	private final BooleanOption collapsed = new BooleanOption("potionshud.collapsed", false);
+	private final IntegerOption blinkLastSeconds = new IntegerOption("potionshud.blink_last_seconds", 0, 0, 60);
+	private final BooleanOption dynamicColor = new BooleanOption("potionshud.dynamic_color", false);
 
 	private static AxoText formatNameAndAmplifier(AxoStatusEffectInstance effect) {
 		return effect.br$getType().br$getDisplayName().br$copy()
@@ -132,13 +138,13 @@ public class PotionsHud extends TextHudEntry {
 			if (direction.isXAxis()) {
 				renderPotion(graphics, effect, x + lastPos + 2, y + 2);
 				int nameWidth = 0;
-				if (mode.get().hasText) {
+				if (showText()) {
 					nameWidth += graphics.br$getFont().br$getWidth(effect.br$formatDuration()) + 2;
 					if (showEffectName.get()) {
 						nameWidth = Math.max(nameWidth, client.br$getFont().br$getWidth(formatNameAndAmplifier(effect)) + 2);
 					}
 				}
-				if (mode.get().hasIcons) {
+				if (showIcons()) {
 					nameWidth += 20;
 				}
 				lastPos += nameWidth;
@@ -159,11 +165,11 @@ public class PotionsHud extends TextHudEntry {
 
 		int width = 2;
 		if (order.get().isXAxis()) {
-			if (mode.get().hasIcons) {
+			if (showIcons()) {
 				width += 20 * effects.size();
 			}
 
-			if (mode.get().hasText) {
+			if (showText()) {
 				if (!showEffectName.get()) {
 					width += widthStreamDuration.map(i -> i + 2).sum();
 				} else {
@@ -171,11 +177,11 @@ public class PotionsHud extends TextHudEntry {
 				}
 			}
 		} else {
-			if (mode.get().hasIcons) {
+			if (showIcons()) {
 				width += 20;
 			}
 
-			if (mode.get().hasText) {
+			if (showText()) {
 				if (!showEffectName.get()) {
 					width += widthStreamDuration.max().orElse(0) + 2;
 				} else {
@@ -197,22 +203,76 @@ public class PotionsHud extends TextHudEntry {
 	private void renderPotion(AxoRenderContext graphics, AxoStatusEffectInstance effect, int x, int y) {
 		final var type = effect.br$getType();
 
-		var mode = this.mode.get();
-		if (mode.hasIcons) {
-			graphics.br$drawTexture(type.br$getSprite(), x, y, 18, 18);
+		if (showIcons()) {
+			if (!isIconBlinkingOff(effect)) {
+				Color tint = dynamicTint(effect);
+				graphics.br$drawTexture(type.br$getSprite(), x, y, 18, 18, tint != null ? tint.toInt() : -1);
+			}
 			x += 19;
 		}
 
-		if (mode.hasText) {
+		if (showText()) {
+			Color tint = dynamicTint(effect);
+			Color durationColor = tint != null ? tint : timerTextColor.get();
 			if (showEffectName.get()) {
 				graphics.br$drawString(formatNameAndAmplifier(effect), x, y + 1, textColor.get().toInt(), shadow.get());
 				graphics.br$drawString(effect.br$formatDuration(), x, y + 1 + 10,
-					timerTextColor.get().toInt(), shadow.get());
+					durationColor.toInt(), shadow.get());
 			} else {
 				graphics.br$drawString(effect.br$formatDuration(), x, y + 5,
-					timerTextColor.get().toInt(), shadow.get());
+					durationColor.toInt(), shadow.get());
 			}
 		}
+	}
+
+	private boolean showIcons() {
+		return collapsed.get() || mode.get().hasIcons;
+	}
+
+	private boolean showText() {
+		return !collapsed.get() && mode.get().hasText;
+	}
+
+	/**
+	 * Whether the icon is currently in its "off" blink phase: effects with less than
+	 * {@code blink_last_seconds} remaining toggle their icon on a ~250 ms cycle so expiring
+	 * effects are hard to miss.
+	 */
+	private boolean isIconBlinkingOff(AxoStatusEffectInstance effect) {
+		int threshold = blinkLastSeconds.get();
+		if (threshold <= 0) {
+			return false;
+		}
+		int duration = effect.br$getDuration();
+		if (duration < 0 || duration >= threshold * 20) {
+			return false;
+		}
+		return (System.currentTimeMillis() / 250L) % 2L == 0L;
+	}
+
+	/**
+	 * Duration-based tint for icon and timer text: yellow in the last 30 seconds, orange in
+	 * the last 10, red in the last 3. Infinite effects are not tinted.
+	 */
+	private Color dynamicTint(AxoStatusEffectInstance effect) {
+		if (!dynamicColor.get()) {
+			return null;
+		}
+		int duration = effect.br$getDuration();
+		if (duration < 0) {
+			return null;
+		}
+		float seconds = duration / 20F;
+		if (seconds <= 3) {
+			return Colors.RED;
+		}
+		if (seconds <= 10) {
+			return ClientColors.GOLD;
+		}
+		if (seconds <= 30) {
+			return Colors.YELLOW;
+		}
+		return null;
 	}
 
 	@Override
@@ -228,6 +288,9 @@ public class PotionsHud extends TextHudEntry {
 		List<Option<?>> options = super.getConfigurationOptions();
 		options.add(order);
 		options.add(mode);
+		options.add(collapsed);
+		options.add(blinkLastSeconds);
+		options.add(dynamicColor);
 		options.add(showEffectName);
 		options.add(timerTextColor);
 		return options;

@@ -54,6 +54,11 @@ public abstract class StatusEffectInstanceMixin implements AxoStatusEffectInstan
 	}
 
 	@Override
+	public int br$getDuration() {
+		return ((MobEffectInstance) (Object) this).getDuration();
+	}
+
+	@Override
 	public AxoText br$formatDuration() {
 		final var client = Minecraft.getInstance();
 		final var tickRate = client.level != null ? client.level.tickRateManager().tickrate() : 1;
