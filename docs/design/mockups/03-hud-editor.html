@@ -1,0 +1,75 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>HUD editor</title><link rel="stylesheet" href="imperium.css">
+<style>
+  body { background:
+    linear-gradient(180deg, #7fa7cf 0%, #a9c6e0 40%, #6d8a5c 41%, #57713f 70%, #3e4c33 100%); }
+  body::after { content: ''; position: absolute; inset: 0; background: rgba(12,11,10,.28); }
+  .hud { position: absolute; z-index: 2; background: rgba(12,11,10,.62); border-radius: 6px; padding: 5px 9px; font-weight: 700; font-size: 13px; color: var(--marble); text-shadow: 0 1px 0 rgba(0,0,0,.6); border: 1px solid rgba(206,164,100,.28); }
+  .hud.ghost { outline: 1px dashed rgba(236,231,223,.35); outline-offset: 3px; }
+  .hud.sel { outline: 1.5px solid var(--gold); outline-offset: 3px; box-shadow: 0 0 0 9999px rgba(0,0,0,0); }
+  .hud .k { color: var(--muted); font-weight: 600; }
+  .handle { position: absolute; width: 8px; height: 8px; background: var(--marble); border: 2px solid var(--gold); border-radius: 2px; z-index: 3; }
+  .nametag { position: absolute; z-index: 3; background: var(--gold); color: #17110a; font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
+  .guide { position: absolute; z-index: 1; background: var(--blood-light); opacity: .85; }
+  .bar { position: absolute; left: 50%; top: 14px; transform: translateX(-50%); z-index: 4; display: flex; gap: 4px; padding: 5px; border-radius: 10px; background: rgba(20,19,17,.95); border: 1px solid var(--hair-strong); box-shadow: 0 14px 34px -14px rgba(0,0,0,.8); }
+  .bar .b { height: 30px; padding: 0 11px; border-radius: 7px; display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: #d6ccbd; }
+  .bar .b.on { background: rgba(206,164,100,.16); color: var(--gold-light); }
+  .bar .b svg { width: 15px; height: 15px; }
+  .bar .sep { width: 1px; background: var(--hair); margin: 4px 2px; }
+  .menu { position: absolute; z-index: 5; width: 190px; padding: 5px; border-radius: 10px; background: rgba(20,19,17,.98); border: 1px solid var(--hair-strong); box-shadow: 0 18px 40px -14px rgba(0,0,0,.85); }
+  .menu .it { height: 30px; display: flex; align-items: center; gap: 9px; padding: 0 9px; border-radius: 6px; font-size: 12px; color: #d6ccbd; }
+  .menu .it svg { width: 14px; height: 14px; color: var(--muted); }
+  .menu .it.hover { background: rgba(206,164,100,.12); color: var(--gold-light); }
+  .menu .it .sc { margin-left: auto; font-size: 10.5px; color: var(--dim); }
+  .menu .div { height: 1px; background: var(--hair); margin: 4px 2px; }
+  .anchor { display: grid; grid-template-columns: repeat(3, 10px); gap: 3px; margin-left: auto; }
+  .anchor i { width: 10px; height: 10px; border-radius: 2px; border: 1px solid var(--hair-strong); }
+  .anchor i.on { background: var(--gold); border-color: var(--gold); }
+  .hotbar { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); width: 364px; height: 44px; background: rgba(0,0,0,.45); border: 2px solid rgba(0,0,0,.5); z-index: 1; }
+</style></head>
+<body>
+<div class="bar">
+  <span class="b on"><span data-i="magnet"></span>Snapping</span>
+  <span class="b"><span data-i="grid"></span>Grid</span>
+  <span class="sep"></span>
+  <span class="b"><span data-i="undo"></span>Undo</span>
+  <span class="b"><span data-i="reset"></span>Reset all</span>
+  <span class="sep"></span>
+  <span class="b"><span data-i="sliders"></span>Modules</span>
+  <span class="b" style="background:var(--gold);color:#17110a"><span data-i="check"></span>Done</span>
+</div>
+
+<div class="hud" style="left:16px;top:16px">78 <span class="k">FPS</span></div>
+<div class="hud ghost" style="left:16px;top:52px">12 <span class="k">|</span> 4 <span class="k">CPS</span></div>
+<div class="hud" style="left:16px;top:88px;line-height:1.6">
+  <div><span class="k">X</span> 1244 <span class="k">Y</span> 64 <span class="k">Z</span> -322</div>
+  <div><span class="k">Facing</span> North-East <span class="k">Biome</span> Plains</div>
+</div>
+
+<div class="guide" style="left:520px;top:0;bottom:0;width:1px"></div>
+<div class="guide" style="left:0;right:0;top:196px;height:1px"></div>
+<div class="nametag" style="left:520px;top:166px">Potion Status · drag, Alt to stop snapping</div>
+<div class="hud sel" style="left:520px;top:196px;width:178px;line-height:1.7">
+  <div style="color:#8fd18f">Speed II <span class="k" style="float:right">1:23</span></div>
+  <div style="color:#f2a54a">Fire Resistance <span class="k" style="float:right">6:40</span></div>
+  <div style="color:#c9b7ff">Night Vision <span class="k" style="float:right">**:**</span></div>
+</div>
+<span class="handle" style="left:513px;top:189px"></span><span class="handle" style="left:701px;top:189px"></span>
+<span class="handle" style="left:513px;top:275px"></span><span class="handle" style="left:701px;top:275px"></span>
+
+<div class="menu" style="left:712px;top:208px">
+  <div class="it hover"><span data-i="gear"></span>Settings<span class="sc">Right-click</span></div>
+  <div class="it"><span data-i="reset"></span>Reset position</div>
+  <div class="it"><span data-i="eye"></span>Hide<span class="sc">Del</span></div>
+  <div class="div"></div>
+  <div class="it">Anchor<span class="anchor"><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+</div>
+
+<div class="hud" style="right:16px;top:16px;display:flex;gap:10px;align-items:center">
+  <span style="width:22px;height:22px;border-radius:50%;border:3px solid var(--gold);border-right-color:rgba(206,164,100,.2)"></span>
+  <span>Ender Pearl <span class="k">4.2s</span></span>
+</div>
+<div class="hotbar"></div>
+<div class="caption" style="z-index:5;color:rgba(236,231,223,.8)">HUD editor over the live game · arrows nudge 1 px, Shift 10 px · Ctrl+Z undo</div>
+<script src="icons.js"></script>
+</body></html>
