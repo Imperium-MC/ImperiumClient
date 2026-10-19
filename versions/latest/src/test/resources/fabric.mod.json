@@ -19,6 +19,7 @@
 			"io.github.axolotlclient.AxolotlClientTest"
 		],
 		"fabric-client-gametest": [
+			"io.github.axolotlclient.ChatGameTest",
 			"io.github.axolotlclient.ImperiumMenuGameTest",
 			"io.github.axolotlclient.InventorySearchGameTest",
 			"io.github.axolotlclient.ImperiumProtocolGameTest"
