@@ -109,4 +109,7 @@ public class AxoItems {
 
 	@RequiresImpl
 	public static final AxoItem ENDER_EYE = BridgeUtil.noImplValue();
+
+	@RequiresImpl
+	public static final AxoItem OBSIDIAN = BridgeUtil.noImplValue();
 }

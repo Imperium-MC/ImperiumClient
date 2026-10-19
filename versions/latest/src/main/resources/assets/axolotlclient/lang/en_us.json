@@ -1,5 +1,8 @@
 {
 	"title_screen_friends_button_mode": "Title Screen Friends Button Mode",
 	"title_screen_friends_button_mode.icon": "Icon (Prefer Vanilla)",
-	"title_screen_friends_button_mode.button": "Button (Prefer AxolotlClient)"
+	"title_screen_friends_button_mode.button": "Button (Prefer AxolotlClient)",
+	"entitycounthud": "Entity Count HUD",
+	"entitycounthud.entities": "Entities",
+	"blockcoordinateshud": "Block Coordinates HUD"
 }

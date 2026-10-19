@@ -155,6 +155,11 @@ public abstract class AxoItemsMixin {
 	@Final
 	public static AxoItem ENDER_EYE;
 
+	@Mutable
+	@Shadow
+	@Final
+	public static AxoItem OBSIDIAN;
+
 	@Shadow
 	@Mutable
 	@Final
@@ -196,6 +201,7 @@ public abstract class AxoItemsMixin {
 		STONE_HOE = Items.STONE_HOE;
 		GLOWSTONE_DUST = Items.GLOWSTONE_DUST;
 		ENDER_EYE = Items.ENDER_EYE;
+		OBSIDIAN = Items.OBSIDIAN;
 		DIAMOND_PICKAXE = Items.DIAMOND_PICKAXE;
 		GOLD_PICKAXE = Items.GOLDEN_PICKAXE;
 		IRON_PICKAXE = Items.IRON_PICKAXE;

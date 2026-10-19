@@ -58,6 +58,12 @@ public class HudManager extends HudManagerCommon {
 		add(new ScoreboardHud());
 		add(new TitleHud());
 		add(new io.github.axolotlclient.modules.hud.gui.hud.simple.CooldownsHud());
+		add(new io.github.axolotlclient.modules.hud.gui.hud.simple.BlockCoordinatesHud());
+		add(new io.github.axolotlclient.modules.hud.gui.hud.simple.EntityCountHud());
+		add(new io.github.axolotlclient.modules.hud.gui.hud.simple.ObsidianCountHud());
+		add(new io.github.axolotlclient.modules.hud.gui.hud.simple.PlaytimeHud());
+		add(new io.github.axolotlclient.modules.hud.gui.hud.simple.PotionCountHud());
+		add(new io.github.axolotlclient.modules.hud.gui.hud.simple.StopwatchHud());
 		add(new KeystrokeHud());
 		add(new PackDisplayHud());
 		add(new PlayerHud());
