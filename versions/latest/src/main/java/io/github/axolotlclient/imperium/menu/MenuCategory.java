@@ -43,7 +43,7 @@ public enum MenuCategory {
 		if (containsAny(n, "time", "weather", "tnt", "rain", "sky", "world")) {
 			return WORLD;
 		}
-		if (containsAny(n, "zoom", "freelook", "blur", "beam", "particle", "outline", "nametag", "render", "fov", "fire", "shield", "hit", "bright", "crosshair")) {
+		if (containsAny(n, "zoom", "freelook", "snaplook", "blur", "beam", "particle", "outline", "nametag", "render", "fov", "fire", "shield", "hit", "bright", "crosshair")) {
 			return RENDER;
 		}
 		return UTILITY;

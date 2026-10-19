@@ -27,6 +27,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.github.axolotlclient.AxolotlClient;
 import io.github.axolotlclient.modules.freelook.Freelook;
+import io.github.axolotlclient.modules.snaplook.SnapLook;
 import io.github.axolotlclient.modules.zoom.Zoom;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -86,8 +87,8 @@ public abstract class CameraMixin {
 		var inverseView = minecraft.options.getCameraType().isMirrored();
 		this.xRot = Freelook.getInstance().pitch(xRot)
 			* (inverseView && Freelook.getInstance().enabled.get() && Freelook.getInstance().isActive() ? -1 : 1);
-		this.yRot = Freelook.getInstance().yaw(yRot)
-			+ (inverseView && Freelook.getInstance().enabled.get() && Freelook.getInstance().isActive() ? 180 : 0);
+		this.yRot = SnapLook.getInstance().yaw(Freelook.getInstance().yaw(yRot)
+			+ (inverseView && Freelook.getInstance().enabled.get() && Freelook.getInstance().isActive() ? 180 : 0));
 	}
 
 	@WrapOperation(method = "alignWithEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setRotation" +
@@ -95,6 +96,7 @@ public abstract class CameraMixin {
 	private void axolotlclient$perspectiveFixRotation(Camera instance, float yaw, float pitch, Operation<Void> original) {
 		yaw = Freelook.getInstance().yaw(yaw);
 		pitch = Freelook.getInstance().pitch(pitch);
+		yaw = SnapLook.getInstance().yaw(yaw);
 		original.call(instance, yaw, pitch);
 	}
 

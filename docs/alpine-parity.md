@@ -75,7 +75,7 @@ Status: ✅ exists in Axolotl (needs Alpine-style settings), 🟡 partial, ❌ b
 | tnt_timer | TntTime | ✅ add fuse colour stages |
 | particles | Particles | ✅ add disabled list, crit/sharpness multipliers |
 | perspective_mod | Freelook | ✅ hold mode, invert pitch, smooth |
-| snap_look | — | ❌ |
+| snap_look | SnapLook | ✅ hold + toggle modes, composes with Freelook |
 | hurt_cam, low_hp_tint, clear_water, farming | — | ❌ small render tweaks |
 | chunk_borders | — | ❌ |
 | minimap | — | ❌ large: chunk-colour map, shapes, rotation |

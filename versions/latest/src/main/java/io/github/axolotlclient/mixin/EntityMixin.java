@@ -26,6 +26,7 @@ import io.github.axolotlclient.bridge.events.Events;
 import io.github.axolotlclient.bridge.events.types.PlayerDirectionChangeEvent;
 import io.github.axolotlclient.modules.freelook.Freelook;
 import io.github.axolotlclient.modules.hypixel.Skyblock;
+import io.github.axolotlclient.modules.snaplook.SnapLook;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
@@ -49,7 +50,10 @@ public abstract class EntityMixin {
 
 	@Inject(method = "turn", at = @At("HEAD"), cancellable = true)
 	public void axolotlclient$interceptMovement(double cursorDeltaX, double cursorDeltaY, CallbackInfo callback) {
+		// Freelook is evaluated first: while it actively overrides the camera,
+		// SnapLook defers, so the two never fight over the same rotation.
 		if (Freelook.getInstance().consumeRotation(cursorDeltaX, cursorDeltaY) ||
+			SnapLook.getInstance().consumeRotation() ||
 			Skyblock.getInstance().rotationLocked.get()) {
 			callback.cancel();
 		}

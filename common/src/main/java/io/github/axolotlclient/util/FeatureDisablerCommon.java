@@ -33,6 +33,7 @@ import io.github.axolotlclient.bridge.util.AxoIdentifier;
 import io.github.axolotlclient.modules.freelook.Freelook;
 import io.github.axolotlclient.modules.hud.HudManagerCommon;
 import io.github.axolotlclient.modules.hud.gui.hud.simple.ToggleSprintHud;
+import io.github.axolotlclient.modules.snaplook.SnapLook;
 import io.github.axolotlclient.util.options.ForceableBooleanOption;
 import lombok.Getter;
 
@@ -47,6 +48,7 @@ public abstract class FeatureDisablerCommon {
 	protected static final HashMap<String, ForceableBooleanOption> FEATURES = CommonUtil.make(() -> {
 		HashMap<String, ForceableBooleanOption> features = new HashMap<>();
 		features.put("freelook", Freelook.getInstance().enabled);
+		features.put("snaplook", SnapLook.getInstance().enabled);
 		features.put("timechanger", AxolotlClientCommon.getInstance().getConfig().timeChangerEnabled);
 		features.put("lowfire", AxolotlClientCommon.getInstance().getConfig().lowFire);
 		features.put("fullbright", AxolotlClientCommon.getInstance().getConfig().fullBright);
@@ -64,6 +66,7 @@ public abstract class FeatureDisablerCommon {
 
 	public void init() {
 		setServers(Freelook.getInstance().enabled, () -> Freelook.getInstance().needsDisabling(), "hypixel", "mineplex", "gommehd", "nucleoid", "mccisland", "mcpvp.club");
+		setServers(SnapLook.getInstance().enabled, NONE, "hypixel", "mineplex", "gommehd", "nucleoid", "mccisland", "mcpvp.club");
 		setServers(((ToggleSprintHud) HudManagerCommon.getInstance().get(ToggleSprintHud.ID)).toggleSneak, NONE, "hypixel", "gommehd");
 
 		Events.CONNECTION_PLAY_READY.register(info -> {
