@@ -49,7 +49,7 @@ Status: ✅ exists in Axolotl (needs Alpine-style settings), 🟡 partial, ❌ b
 | **fullbright** | `fullBright` option | ✅ add keybind toggle |
 | **environment** | `timeChanger` option (partial) | 🟡 add weather state/intensity, time multiplier |
 | **chat_settings** | ChatHud (partial) | 🟡 smooth chat, timestamps, persistent chat, hover highlight, peek, screenshot, IGN highlight/ping, empty filter |
-| chat_settings/compact_chat | — | ❌ stack duplicate messages |
+| chat_settings/compact_chat | `compactChat` option | ✅ stack duplicate messages |
 | **tab_editor** | — | ❌ numeric ping, self/group highlight |
 | **nametag_editor** | `nametagOptions` | 🟡 own nametag, client icon, shadow, background |
 | **waypoints** | — | ❌ waypoints + death waypoints, world render, keybind |

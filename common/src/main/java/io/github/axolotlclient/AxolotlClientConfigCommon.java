@@ -100,6 +100,8 @@ public abstract class AxolotlClientConfigCommon {
 	public final BooleanOption noHurtCam = new BooleanOption("noHurtCam", false);
 	public final BooleanOption hideChat = new BooleanOption("hide_chat", false);
 
+	public final BooleanOption compactChat = new BooleanOption("compact_chat", false);
+
 	public final BooleanOption enableCustomOutlines = new BooleanOption("enabled", false);
 	public final ColorOption outlineColor = new ColorOption("color", new Color(0x66000000));
 	public final IntegerOption outlineWidth = new IntegerOption("outlineWidth", 1, 1, 15);
@@ -114,6 +116,7 @@ public abstract class AxolotlClientConfigCommon {
 	public final OptionCategory rendering = OptionCategory.create("rendering");
 	public final OptionCategory outlines = OptionCategory.create("blockOutlines");
 	public final OptionCategory timeChanger = OptionCategory.create("timeChanger");
+	public final OptionCategory chatSettings = OptionCategory.create("chatSettings");
 
 	public final BooleanOption creditsBGM = new BooleanOption("creditsBGM", true);
 	public final BooleanOption modifyClientBrand = new BooleanOption("modify_client_brand", true);
@@ -135,7 +138,10 @@ public abstract class AxolotlClientConfigCommon {
 	public AxolotlClientConfigCommon() {
 		config.add(general);
 		config.add(rendering);
+		config.add(chatSettings);
 		config.add(hidden);
+
+		chatSettings.add(compactChat);
 
 		rendering.add(outlines);
 		rendering.add(nametagOptions);
