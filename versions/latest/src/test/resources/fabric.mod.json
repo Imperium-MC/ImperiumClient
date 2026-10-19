@@ -25,7 +25,9 @@
 			"io.github.axolotlclient.ImperiumProtocolGameTest",
 			"io.github.axolotlclient.GatedModulesGameTest",
 			"io.github.axolotlclient.EnvironmentTogglesGameTest",
-			"io.github.axolotlclient.MinimapGameTest"
+
+			"io.github.axolotlclient.MinimapGameTest",
+			"io.github.axolotlclient.WorldEditCuiGameTest"
 		]
 	},
 	"depends": {

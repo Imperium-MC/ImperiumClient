@@ -80,6 +80,8 @@ Status: ✅ exists in Axolotl (needs Alpine-style settings), 🟡 partial, ❌ b
 | chunk_borders | — | ❌ |
 | minimap | MinimapHud (M3) | 🟡 chunk-colour square/circle map, north-lock/follow-camera rotation, zoom, waypoint dots; fullscreen map view still ❌ |
 | worldedit_cui | — | ❌ |
+| minimap | — | ❌ large: chunk-colour map, shapes, rotation |
+| worldedit_cui | WorldEditCui module | ✅ `worldedit:cui` protocol client (cuboid + ellipsoid), gizmo-rendered grid; server guide: docs/wecui-server.md |
 | spotify_state | — | ❌ Spotify Web API HUD |
 | discord_rpc | DiscordRPC | ✅ server IP toggle |
 | emotes | — | ❌ emote wheel (needs cosmetics backend) |
