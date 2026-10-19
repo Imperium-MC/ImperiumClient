@@ -35,7 +35,8 @@
 	"mixins": [
 		"axolotlclient.mixins.json",
 		"axolotlclient-bridge.mixins.json",
-		"axolotlclient.e4mc.mixins.json"
+		"axolotlclient.e4mc.mixins.json",
+		"imperiumclient-enforcement.mixins.json"
 	],
 	"custom": {
 		"axolotlclient:bridge_impl_version": "V26_3"

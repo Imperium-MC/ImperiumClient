@@ -115,6 +115,9 @@ public class AxolotlClientConfig extends AxolotlClientConfigCommon {
 
 		rendering.add(lowShield);
 
+		// Local rules enforcement (W4-C): outgoing-packet interceptor scoped to ImperiumMC.
+		config.add(io.github.axolotlclient.imperium.enforcement.EnforcementConfig.category);
+
 		general.add(new GenericOption("profiles.title", "profiles.configure", () ->
 			Minecraft.getInstance().gui.setScreen(new ProfilesScreen(Minecraft.getInstance().gui.screen()))), false);
 	}

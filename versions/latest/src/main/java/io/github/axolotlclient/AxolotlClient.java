@@ -98,6 +98,8 @@ public class AxolotlClient extends AxolotlClientCommon implements ClientModIniti
 		FeatureRendererRegistry.register(BadgeFeatureRenderer.TYPE, BadgeFeatureRenderer::new);
 		// ImperiumMC server handshake (hello/features channels) — roadmap M5 slice 1.
 		io.github.axolotlclient.imperium.ImperiumIntegration.init();
+		// Local rules enforcement layer (W4-C): outgoing-packet interceptor scoped to ImperiumMC.
+		io.github.axolotlclient.imperium.enforcement.EnforcementService.instance().init();
 		getLogger().debug("Debug Output enabled, Logs will be quite verbose!");
 		getLogger().info("AxolotlClient Initialized");
 	}

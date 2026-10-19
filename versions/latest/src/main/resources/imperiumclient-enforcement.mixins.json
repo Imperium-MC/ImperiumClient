@@ -1,0 +1,16 @@
+{
+	"required": true,
+	"package": "io.github.axolotlclient.imperium.enforcement.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"client": [
+		"ClientConnectionAccess",
+		"ClientPacketListenerEnforcementMixin",
+		"ConnectionEnforcementMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"mixinextras": {
+		"minVersion": "0.5.0"
+	}
+}
