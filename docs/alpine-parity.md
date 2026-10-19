@@ -55,7 +55,7 @@ Status: ✅ exists in Axolotl (needs Alpine-style settings), 🟡 partial, ❌ b
 | **waypoints** | WaypointsHud + WaypointManager | 🟡 per-dimension waypoints, death points, add keybind (B), list screen; on-screen arrows not 3D tracers (no projection math in codebase) |
 | **inventory_tweaks/inventory_search** | InventorySearch | ✅ search bar with slot highlight |
 | **inventory_tweaks/scrollable_tooltips** | ScrollableTooltips | ✅ add smooth scroll, activation key |
-| inventory_tweaks | — | ❌ hide potion effects, keep centred |
+| inventory_tweaks | InventoryTweaks | ✅ hide potion effects (`hide_vanilla_potion_hud`, HUD corner + inventory panel), keep centred (`keep_centered`, panel suppressed + leftPos recompute), compact item counts (1.2k) |
 | **factions** (+ breadcrumbs, cannon_playback, cannon_view, explosion_boxes, patchcrumbs, status HUD) | Legions tooling: LegionHud + LegionStateRegistry, BreadcrumbsHud + BreadcrumbManager, ExplosionBoxes | 🟡 reimplemented for ImperiumMC Legions (docs/legions-tooling.md): status HUD shell (waits on `imperiumclient:legion` channel), breadcrumbs with age/auto-expire, explosion boxes; cannon_playback/cannon_view need physics prediction (next), patchcrumbs ride the breadcrumb mechanism once sieges exist |
 | **enchantedmc** / boosts | BoostsHud + BoostRegistry | 🟡 HUD shell (registry waits on the server boost channel) |
 | **enchantedmc/fishing** | AutoFish | ✅ server-gated (`auto_fish`) |

@@ -158,9 +158,9 @@ _no own settings_ **+ HUD style**
 
 `display_title` (boolean), `brace_style` (dropdown), `header_color` (color), `primary_color` (color), `secondary_color` (color), `registry` (obj) **+ HUD style**
 
-### inventory_tweaks
+### inventory_tweaks (W5)
 
-`disable_potion_effects` (boolean), `keep_centered` (boolean)
+`hide_vanilla_potion_hud` (boolean), `keep_centered` (boolean), `compact_item_counts` (boolean)
 
 ### inventory_tweaks/inventory_search (ON)
 

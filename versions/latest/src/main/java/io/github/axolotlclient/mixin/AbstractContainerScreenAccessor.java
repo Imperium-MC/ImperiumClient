@@ -32,4 +32,12 @@ public interface AbstractContainerScreenAccessor {
 
 	@Accessor("hoveredSlot")
 	Slot getHoveredSlot();
+
+	// keep_centered (wave 5 inventory_tweaks): read back the container position the centering
+	// mixin recomputes, for tests and debugging. Additive — the hoveredSlot accessor stays.
+	@Accessor("leftPos")
+	int axolotlclient$getLeftPos();
+
+	@Accessor("imageWidth")
+	int axolotlclient$getImageWidth();
 }

@@ -64,5 +64,19 @@
 		"line_width": "Line Width",
 		"enforcement": "Server Rules Enforcement",
 		"enabled": "Enforce Server Rules",
-		"server_allowlist": "Enforced Server Addresses"
+		"server_allowlist": "Enforced Server Addresses",
+		"inventoryTweaks": "Inventory Tweaks",
+		"hide_vanilla_potion_hud": "Hide Vanilla Potion HUD",
+		"hide_vanilla_potion_hud.tooltip": "Removes the vanilla potion effect icons everywhere:<br>the top-right HUD stack and the panel beside an<br>open inventory. The custom Potions HUD is not affected.",
+		"keep_centered": "Keep Inventory Centered",
+		"keep_centered.tooltip": "Keeps container screens centered instead of the vanilla<br>effect panel occupying the space beside the inventory;<br>effect icons fall back to the screen corner while open.",
+		"compact_item_counts": "Compact Item Counts",
+		"compact_item_counts.tooltip": "Renders stack counts of 10,000 and up in the short<br>1.2k / 3.4m format.",
+		"hitboxes": "Hitboxes",
+		"hitboxes.show_eye_line": "Show Eye Line",
+		"hitboxes.player_color": "Player Color",
+		"hitboxes.mob_color": "Mob Color",
+		"hitboxes.item_color": "Item Color",
+		"hitboxes.eye_line_color": "Eye Line Color",
+		"key.hitboxes.toggle": "Toggle Hitboxes"
 }

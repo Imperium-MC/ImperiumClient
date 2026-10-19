@@ -57,6 +57,10 @@ public class AxolotlClient extends AxolotlClientCommon implements ClientModIniti
 		registerModule(MotionBlur.getInstance());
 		registerModule(ScrollableTooltips.getInstance());
 		registerModule(InventorySearch.getInstance());
+		// Wave 5 inventory tweaks completion: hidden vanilla effect HUD, centered containers,
+		// compact stack counts, plus F3+B-style hitboxes on a keybind.
+		registerModule(io.github.axolotlclient.modules.inventoryTweaks.InventoryTweaks.getInstance());
+		registerModule(io.github.axolotlclient.modules.hitboxes.Hitboxes.getInstance());
 		registerModule(AutoFish.getInstance());
 		registerModule(AutoClick.getInstance());
 		registerModule(Particles.getInstance());
