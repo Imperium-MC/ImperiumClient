@@ -52,7 +52,7 @@ Status: ✅ exists in Axolotl (needs Alpine-style settings), 🟡 partial, ❌ b
 | chat_settings/compact_chat | `compactChat` option | ✅ stack duplicate messages |
 | **tab_editor** | — | ❌ numeric ping, self/group highlight |
 | **nametag_editor** | `nametagOptions` | 🟡 own nametag, client icon, shadow, background |
-| **waypoints** | — | ❌ waypoints + death waypoints, world render, keybind |
+| **waypoints** | WaypointsHud + WaypointManager | 🟡 per-dimension waypoints, death points, add keybind (B), list screen; on-screen arrows not 3D tracers (no projection math in codebase) |
 | **inventory_tweaks/inventory_search** | — | ❌ search bar with slot highlight |
 | **inventory_tweaks/scrollable_tooltips** | ScrollableTooltips | ✅ add smooth scroll, activation key |
 | inventory_tweaks | — | ❌ hide potion effects, keep centred |

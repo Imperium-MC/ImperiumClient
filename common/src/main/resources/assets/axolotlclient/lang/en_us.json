@@ -1035,5 +1035,22 @@
 	"imperium.menu.category.chat": "Chat",
 	"imperium.menu.category.world": "World",
 	"imperium.menu.category.utility": "Utility",
-	"imperium.menu.category.server": "Server"
+	"imperium.menu.category.server": "Server",
+	"waypointshud": "Waypoints",
+	"waypoints_data": "Waypoint Data",
+	"waypoints.show_distance": "Show Distance",
+	"waypoints.show_arrow": "Show Direction Arrow",
+	"waypoints.death_points": "Death Waypoints",
+	"waypoints.death_points.tooltip": "Automatically place a waypoint where you died",
+	"waypoints.open_list": "Open Waypoints",
+	"waypoints.screen.title": "Waypoints",
+	"waypoints.add": "Add Waypoint",
+	"waypoints.add.title": "Add Waypoint",
+	"waypoints.add.name": "Name",
+	"waypoints.toggle": "Enable/Disable",
+	"waypoints.enabled": "on",
+	"waypoints.disabled": "off",
+	"waypoints.added": "Waypoint added: %1$s",
+	"waypoints.death.set": "Death waypoint set",
+	"key.waypoints.add": "Add Waypoint at Current Position"
 }

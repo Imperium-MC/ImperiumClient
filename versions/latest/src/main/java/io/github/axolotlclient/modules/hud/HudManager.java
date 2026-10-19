@@ -64,6 +64,7 @@ public class HudManager extends HudManagerCommon {
 		add(new io.github.axolotlclient.modules.hud.gui.hud.simple.PlaytimeHud());
 		add(new io.github.axolotlclient.modules.hud.gui.hud.simple.PotionCountHud());
 		add(new io.github.axolotlclient.modules.hud.gui.hud.simple.StopwatchHud());
+		add(new io.github.axolotlclient.modules.hud.gui.hud.simple.WaypointsHud());
 		add(new KeystrokeHud());
 		add(new PackDisplayHud());
 		add(new PlayerHud());
