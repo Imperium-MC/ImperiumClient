@@ -64,6 +64,8 @@ public class CoordsHud extends TextHudEntry {
 	}, 0, 15);
 	private final BooleanOption minimal = new BooleanOption("minimal", false);
 	private final BooleanOption biome = new BooleanOption("show_biome", false);
+	// Alpine parity M2: toggle for the N/NE/E/... direction readout (shown in both modes).
+	private final BooleanOption cardinal = new BooleanOption("show_cardinal", true);
 	private final StringOption delimiter = new StringOption("coordshud.delimiter", " ");
 	private final StringOption separator = new StringOption("coordshud.separator", ", ");
 	private final ColorOption separatorColor = new ColorOption("coordshud.separator.color", firstColor.getDefault());
@@ -162,6 +164,9 @@ public class CoordsHud extends TextHudEntry {
 			currPos = context.br$drawString(separator, currPos, pos.y() + 2, separatorColor.get(), shadow.get());
 			currPos = context.br$drawString(fz, currPos, pos.y() + 2, secondColor.get(),
 				shadow.get());
+			if (cardinal.get()) {
+				currPos = context.br$drawString(" " + direction, currPos, pos.y() + 2, firstColor.get(), shadow.get());
+			}
 			width = currPos - pos.x() + 2;
 			height = 11;
 			if (showNetherConversions.get() && (isNether || isOverworld)) {
@@ -198,13 +203,15 @@ public class CoordsHud extends TextHudEntry {
 
 			xEnd = Math.max(pos.x() + 60, xEnd + 4);
 
-			context.br$drawString(direction, xEnd, pos.y() + 12, firstColor.get(), shadow.get());
+			if (cardinal.get()) {
+				context.br$drawString(direction, xEnd, pos.y() + 12, firstColor.get(), shadow.get());
 
-			context.br$drawString(getXDir(dir), xEnd, pos.y() + 2, secondColor.get(),
-				shadow.get());
-			context.br$drawString(getZDir(dir), xEnd, pos.y() + 22, secondColor.get(),
-				shadow.get());
-			xEnd += 14;
+				context.br$drawString(getXDir(dir), xEnd, pos.y() + 2, secondColor.get(),
+					shadow.get());
+				context.br$drawString(getZDir(dir), xEnd, pos.y() + 22, secondColor.get(),
+					shadow.get());
+				xEnd += 14;
+			}
 
 			if (showNetherConversions.get() && (isNether || isOverworld)) {
 				var name = AxoI18n.translate(isNether ? "coordshud.dimension.overworld" : "coordshud.dimension.nether");
@@ -259,7 +266,7 @@ public class CoordsHud extends TextHudEntry {
 		doRender(context, client.br$getPlayer().br$getYaw() + 180, client.br$getPlayer().br$getPos(), client.br$getWorld().br$getBiomeName(client.br$getPlayer().br$getPos()), client.br$getWorld().br$isOverworld(), client.br$getWorld().br$isNether());
 	}
 
-	public String getWordedDirection(int dir) {
+	public static String getWordedDirection(int dir) {
 		return switch (dir) {
 			case 1 -> "N";
 			case 2 -> "NE";
@@ -288,6 +295,7 @@ public class CoordsHud extends TextHudEntry {
 		options.add(decimalPlaces);
 		options.add(minimal);
 		options.add(biome);
+		options.add(cardinal);
 		options.add(showNetherConversions);
 		options.add(delimiter);
 		options.add(separator);

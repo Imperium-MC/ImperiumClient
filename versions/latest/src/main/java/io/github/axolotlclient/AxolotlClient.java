@@ -32,6 +32,7 @@ import io.github.axolotlclient.modules.ModuleLoader;
 import io.github.axolotlclient.modules.auth.Auth;
 import io.github.axolotlclient.modules.blur.MotionBlur;
 import io.github.axolotlclient.modules.hud.HudManager;
+import io.github.axolotlclient.modules.hud.gui.hud.CompassWaypointMarkers;
 import io.github.axolotlclient.modules.hud.gui.hud.PackDisplayHud;
 import io.github.axolotlclient.modules.hypixel.HypixelMods;
 import io.github.axolotlclient.modules.inventorySearch.InventorySearch;
@@ -68,6 +69,9 @@ public class AxolotlClient extends AxolotlClientCommon implements ClientModIniti
 
 		addBuiltinModules();
 		addExternalModules();
+
+		// Feed the common CompassHud waypoint markers from the latest-side WaypointManager.
+		CompassWaypointMarkers.init();
 
 		init(Notifications.getInstance());
 		new API(new StatusUpdateProviderImpl());

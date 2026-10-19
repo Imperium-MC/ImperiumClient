@@ -132,6 +132,7 @@ public abstract class HudManagerCommon extends AbstractCommonModule implements P
 		add(new ComboHud());
 		add(new MouseMovementHud());
 		add(new DayCounterHud());
+		add(new InfoHud());
 		add(new InventoryHud());
 		add(new XPHud());
 		add(new PlayerTabOverlayHud());

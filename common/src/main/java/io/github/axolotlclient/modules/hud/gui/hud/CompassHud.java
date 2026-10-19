@@ -23,6 +23,7 @@
 package io.github.axolotlclient.modules.hud.gui.hud;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 import io.github.axolotlclient.AxolotlClientConfig.api.options.Option;
 import io.github.axolotlclient.AxolotlClientConfig.api.util.Color;
@@ -46,6 +47,33 @@ import io.github.axolotlclient.util.ClientColors;
 public class CompassHud extends TextHudEntry {
 	public static final AxoIdentifier ID = AxoIdentifier.of("kronhud", "compasshud");
 
+	/** Height without the arrow row (ticks + cardinal letters + degrees readout). */
+	private static final int BASE_HEIGHT = 33;
+	/** Extra height reserved below the cardinal letters for the direction arrow. */
+	private static final int ARROW_ROW_HEIGHT = 7;
+	/** Width (in px) of the colored waypoint marker bars, distinct from the 1px tick marks. */
+	private static final int MARKER_WIDTH = 3;
+
+	/**
+	 * Feed for waypoint markers (Alpine parity M2). Common cannot see the latest-side
+	 * {@code WaypointManager}, so the version side registers a supplier here at init.
+	 */
+	private static Supplier<List<CompassMarker>> waypointProvider = () -> List.of();
+
+	/**
+	 * A single marker on the compass strip.
+	 *
+	 * @param label   waypoint name (only its first few characters are drawn)
+	 * @param color   ARGB marker color
+	 * @param bearing absolute bearing of the waypoint from the player, N = 0, E = 90
+	 */
+	public record CompassMarker(String label, int color, float bearing) {
+	}
+
+	public static void setWaypointProvider(Supplier<List<CompassMarker>> provider) {
+		waypointProvider = provider == null ? () -> List.of() : provider;
+	}
+
 	private final IntegerOption widthOption = new IntegerOption("width", width, this::updateWidth, 100, 800);
 
 	private final ColorOption lookingBox = new ColorOption("lookingbox", new Color(0x80000000));
@@ -57,8 +85,14 @@ public class CompassHud extends TextHudEntry {
 	private final BooleanOption invert = new BooleanOption("invert_direction", false);
 	private final BooleanOption showDegrees = new BooleanOption("showdegrees", true);
 
+	// Alpine parity M2: direction arrow + waypoint markers on the compass strip.
+	private final BooleanOption showArrow = new BooleanOption("compasshud.show_arrow", true, val -> updateHeight());
+	private final ColorOption arrowColor = new ColorOption("compasshud.arrow_color", new Color(-1));
+	private final BooleanOption showWaypoints = new BooleanOption("compasshud.show_waypoints", true);
+	private final BooleanOption waypointLabels = new BooleanOption("compasshud.waypoint_labels", true);
+
 	public CompassHud() {
-		super(240, 33, false);
+		super(240, BASE_HEIGHT, false);
 	}
 
 	private static Indicator getIndicator(int degrees) {
@@ -93,6 +127,21 @@ public class CompassHud extends TextHudEntry {
 	private void updateWidth(int newWidth) {
 		setWidth(newWidth);
 		onBoundsUpdate();
+	}
+
+	private void updateHeight() {
+		int newHeight = BASE_HEIGHT + (showArrow.get() ? ARROW_ROW_HEIGHT : 0);
+		if (getHeight() != newHeight) {
+			setHeight(newHeight);
+			onBoundsUpdate();
+		}
+	}
+
+	@Override
+	public void postConfigLoad() {
+		super.postConfigLoad();
+		// The saved arrow setting may differ from the constructor default; re-apply the height.
+		updateHeight();
 	}
 
 	@Override
@@ -132,9 +181,10 @@ public class CompassHud extends TextHudEntry {
 		DrawPosition pos = getPos();
 		int x = pos.x();
 		int y = pos.y() + 1;
+		int arrowOffset = showArrow.get() ? ARROW_ROW_HEIGHT : 0;
 		context.br$fillRect(pos.x() + (int) halfWidth - 1, pos.y(), 3, 11, lookingBox.get());
 		if (showDegrees.get()) {
-			context.br$drawCenteredString(String.valueOf((int) degrees), x + (int) halfWidth, y + 20, degreesColor.get(), shadow.get());
+			context.br$drawCenteredString(String.valueOf((int) degrees), x + (int) halfWidth, y + 20 + arrowOffset, degreesColor.get(), shadow.get());
 		}
 		float shift = (startIndicator - start) / 15f * dist;
 		if (invert.get()) {
@@ -182,6 +232,66 @@ public class CompassHud extends TextHudEntry {
 		}
 
 		context.br$popMatrix();
+
+		renderWaypointMarkers(context, x, y, halfWidth, dist, degrees);
+
+		if (showArrow.get()) {
+			// Small pixel arrow under the strip, tip pointing up at the current bearing.
+			int cx = x + (int) halfWidth;
+			int arrowY = y + 20;
+			context.br$fillRect(cx, arrowY, 1, 1, arrowColor.get());
+			context.br$fillRect(cx - 1, arrowY + 1, 3, 1, arrowColor.get());
+			context.br$fillRect(cx - 2, arrowY + 2, 5, 1, arrowColor.get());
+		}
+	}
+
+	/**
+	 * Draws one colored bar (plus an optional short name) per waypoint marker, positioned by
+	 * its absolute bearing relative to the player's heading. Markers fade out towards the
+	 * strip edges exactly like the tick indicators, and are skipped outside the ±150° window.
+	 */
+	private void renderWaypointMarkers(AxoRenderContext context, int x, int y, float halfWidth, int dist, float degrees) {
+		if (!showWaypoints.get()) {
+			return;
+		}
+		List<CompassMarker> markers = waypointProvider.get();
+		if (markers == null || markers.isEmpty()) {
+			return;
+		}
+		for (CompassMarker marker : markers) {
+			float delta = marker.bearing() - degrees;
+			while (delta > 180) {
+				delta -= 360;
+			}
+			while (delta < -180) {
+				delta += 360;
+			}
+			if (Math.abs(delta) > 150) {
+				continue;
+			}
+			float offset = delta / 15f * dist;
+			if (invert.get()) {
+				offset = -offset;
+			}
+			float trueDist = halfWidth + offset;
+			float targetOpacity = 1 - Math.abs(halfWidth - trueDist) / halfWidth;
+			if (targetOpacity <= 0) {
+				continue;
+			}
+			Color base = new Color(marker.color());
+			Color color = base.withAlpha((int) (base.getAlpha() * targetOpacity));
+			if (color.getAlpha() <= 0) {
+				continue;
+			}
+			int mx = x + (int) halfWidth + Math.round(offset);
+			context.br$fillRect(mx - MARKER_WIDTH / 2, y, MARKER_WIDTH, 11, color);
+			if (waypointLabels.get() && Math.abs(offset) > 12) {
+				// Skip the label near the center: there it would sit on top of the
+				// looking box and the cardinal letter at the player's heading.
+				String label = marker.label().length() > 3 ? marker.label().substring(0, 3) : marker.label();
+				context.br$drawCenteredString(label, mx + 1, y + 10, color, shadow.get());
+			}
+		}
 	}
 
 	@Override
@@ -190,6 +300,10 @@ public class CompassHud extends TextHudEntry {
 		options.add(widthOption);
 		options.add(showDegrees);
 		options.add(invert);
+		options.add(showArrow);
+		options.add(arrowColor);
+		options.add(showWaypoints);
+		options.add(waypointLabels);
 		options.add(lookingBox);
 		options.add(degreesColor);
 		options.add(cardinalColor);

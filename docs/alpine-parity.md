@@ -39,11 +39,11 @@ Status: ✅ exists in Axolotl (needs Alpine-style settings), 🟡 partial, ❌ b
 | **cps** | CPSHud | ✅ add right-click toggle |
 | **fps** | FPSHud | ✅ |
 | **tps** | TPSHud | ✅ add adaptive colour tiers |
-| **compass** | CompassHud | 🟡 add waypoint markers, yaw, arrow |
-| **scoreboard** | ScoreboardHud | ✅ add server-HUD-safety, score toggle |
+| **compass** | CompassHud | ✅ waypoint markers, direction arrow, yaw degrees (M2) |
+| **scoreboard** | ScoreboardHud | ✅ server-HUD-safety, score toggle (M2) |
 | **boss_bar** | BossBarHud | ✅ add health/text toggles |
 | **titles** | TitleHud (PR #1, fixed on `review/pr-1`) | 🟡 needs merge |
-| **info_hud** | CoordsHud (partial) | 🟡 configurable multi-line info registry |
+| **info_hud** | InfoHud | ✅ configurable multi-line info lines: coords/facing/biome/fps/time/day/playtime (M2) |
 | **cooldowns** | — | ❌ item cooldown bars/circles |
 | **toggle_sneak_sprint** (+ status HUD) | ToggleSprintHud | 🟡 add double-tap, sneak-fly, fly boost |
 | **fullbright** | `fullBright` option | ✅ add keybind toggle |
@@ -64,7 +64,7 @@ Status: ✅ exists in Axolotl (needs Alpine-style settings), 🟡 partial, ❌ b
 | keystrokes | KeystrokeHud | ✅ |
 | armor_status | ArmorHud | ✅ add durability formats/colours |
 | potion_status | PotionsHud | ✅ add blink/collapsed/dynamic colour |
-| coordinates | CoordsHud | ✅ add biome, cardinal, shout keybind |
+| coordinates | CoordsHud | 🟡 biome + cardinal done (M2); shout keybind left |
 | block_coordinates | — | ❌ |
 | ping, memory, speed, reach_display, combo_count, pack_display, server_display | PingHud, MemoryHud, SpeedHud, ReachHud, ComboHud, PackDisplayHud, IPHud | ✅ |
 | clock, day_counter | IRLTimeHud, DayCounterHud | ✅ |
