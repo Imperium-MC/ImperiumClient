@@ -64,6 +64,12 @@ public class AxolotlClient extends AxolotlClientCommon implements ClientModIniti
 		registerModule(Auth.getInstance());
 		registerModule(WorldEditCui.getInstance());
 		registerModule(io.github.axolotlclient.modules.legions.ExplosionBoxes.getInstance());
+		// Wave 4 native utilities (QoL tier, plus the limited-tier auto-walk).
+		registerModule(io.github.axolotlclient.modules.autoutils.AutoEat.getInstance());
+		registerModule(io.github.axolotlclient.modules.autoutils.AutoTool.getInstance());
+		registerModule(io.github.axolotlclient.modules.autoutils.AutoArmor.getInstance());
+		registerModule(io.github.axolotlclient.modules.autoutils.AutoReconnect.getInstance());
+		registerModule(io.github.axolotlclient.modules.autoutils.AutoWalk.getInstance());
 	}
 
 	private void addExternalModules() {

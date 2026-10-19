@@ -25,6 +25,8 @@
 			"io.github.axolotlclient.ImperiumProtocolGameTest",
 			"io.github.axolotlclient.GatedModulesGameTest",
 			"io.github.axolotlclient.EnvironmentTogglesGameTest",
+			"io.github.axolotlclient.SessionTiersGameTest",
+			"io.github.axolotlclient.AutoEatGameTest",
 
 			"io.github.axolotlclient.MinimapGameTest",
 			"io.github.axolotlclient.WorldEditCuiGameTest",
