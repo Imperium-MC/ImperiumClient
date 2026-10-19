@@ -70,6 +70,9 @@ public class AxolotlClient extends AxolotlClientCommon implements ClientModIniti
 		registerModule(io.github.axolotlclient.modules.autoutils.AutoArmor.getInstance());
 		registerModule(io.github.axolotlclient.modules.autoutils.AutoReconnect.getInstance());
 		registerModule(io.github.axolotlclient.modules.autoutils.AutoWalk.getInstance());
+		// Wave 5: cannon trajectory prediction + fullscreen map (large parity items).
+		registerModule(io.github.axolotlclient.modules.legions.CannonTrajectory.getInstance());
+		registerModule(io.github.axolotlclient.modules.minimap.FullscreenMap.getInstance());
 	}
 
 	private void addExternalModules() {
