@@ -45,13 +45,13 @@ Status: ✅ exists in Axolotl (needs Alpine-style settings), 🟡 partial, ❌ b
 | **titles** | TitleHud (PR #1, fixed on `review/pr-1`) | 🟡 needs merge |
 | **info_hud** | InfoHud | ✅ configurable multi-line info lines: coords/facing/biome/fps/time/day/playtime (M2) |
 | **cooldowns** | — | ❌ item cooldown bars/circles |
-| **toggle_sneak_sprint** (+ status HUD) | ToggleSprintHud | 🟡 add double-tap, sneak-fly, fly boost |
+| **toggle_sneak_sprint** (+ status HUD) | ToggleSprintHud | ✅ double-tap sneak toggle (window ms), fly boost via sprint key while flying |
 | **fullbright** | `fullBright` option | ✅ add keybind toggle |
-| **environment** | `timeChanger` option (partial) | 🟡 add weather state/intensity, time multiplier |
-| **chat_settings** | ChatHud (partial) | 🟡 smooth chat, persistent chat, screenshot left; timestamps, IGN highlight/ping, empty filter, hover highlight, peek done |
+| **environment** | `timeChanger` option | ✅ fixed time, weather state/intensity override, time multiplier |
+| **chat_settings** | ChatHud (partial) | 🟡 smooth chat, timestamps, persistent chat, hover highlight, peek, screenshot, IGN highlight/ping, empty filter |
 | chat_settings/compact_chat | `compactChat` option | ✅ stack duplicate messages |
 | **tab_editor** | — | ❌ numeric ping, self/group highlight |
-| **nametag_editor** | `nametagOptions` | 🟡 own nametag, client icon, shadow, background |
+| **nametag_editor** | `nametagOptions` | ✅ own nametag, shadow, background (none/translucent/opaque), scale; client icon via existing badges |
 | **waypoints** | WaypointsHud + WaypointManager | 🟡 per-dimension waypoints, death points, add keybind (B), list screen; on-screen arrows not 3D tracers (no projection math in codebase) |
 | **inventory_tweaks/inventory_search** | InventorySearch | ✅ search bar with slot highlight |
 | **inventory_tweaks/scrollable_tooltips** | ScrollableTooltips | ✅ add smooth scroll, activation key |

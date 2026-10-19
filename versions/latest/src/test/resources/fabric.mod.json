@@ -23,7 +23,8 @@
 			"io.github.axolotlclient.ImperiumMenuGameTest",
 			"io.github.axolotlclient.InventorySearchGameTest",
 			"io.github.axolotlclient.ImperiumProtocolGameTest",
-			"io.github.axolotlclient.GatedModulesGameTest"
+			"io.github.axolotlclient.GatedModulesGameTest",
+			"io.github.axolotlclient.EnvironmentTogglesGameTest"
 		]
 	},
 	"depends": {

@@ -29,8 +29,12 @@ import java.util.Random;
 
 import io.github.axolotlclient.AxolotlClientConfig.api.options.Option;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.BooleanOption;
+import io.github.axolotlclient.AxolotlClientConfig.impl.options.FloatOption;
+import io.github.axolotlclient.AxolotlClientConfig.impl.options.IntegerOption;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.StringOption;
 import io.github.axolotlclient.bridge.AxoMinecraftClient;
+import io.github.axolotlclient.bridge.Platform;
+import io.github.axolotlclient.bridge.events.Events;
 import io.github.axolotlclient.bridge.key.AxoKeybinding;
 import io.github.axolotlclient.bridge.key.AxoKeys;
 import io.github.axolotlclient.bridge.render.AxoRenderContext;
@@ -55,6 +59,10 @@ public class ToggleSprintHud extends SimpleTextHudEntry {
 	private final BooleanOption randomPlaceholder = new BooleanOption("randomPlaceholder", false);
 	private final StringOption placeholder = new StringOption("placeholder", "No keys pressed");
 	private final BooleanOption hideInsteadOfPlaceholder = new BooleanOption("togglesprint.hide_instead_of_placeholder", true);
+	public final BooleanOption flyBoost = new BooleanOption("fly_boost", true);
+	public final FloatOption flyBoostMultiplier = new FloatOption("fly_boost_multiplier", 2.0F, 1.0F, 2.5F);
+	private final BooleanOption doubleTap = new BooleanOption("double_tap", true);
+	private final IntegerOption doubleTapWindow = new IntegerOption("double_tap_window_ms", 250, 50, 1000);
 
 	private final AxoKeybinding sprintToggle = AxoKeybinding.create(AxoKeys.KEY_K, "key.toggleSprint");
 	private final AxoKeybinding sneakToggle = AxoKeybinding.create(AxoKeys.KEY_I, "key.toggleSneak");
@@ -66,6 +74,7 @@ public class ToggleSprintHud extends SimpleTextHudEntry {
 
 	private final List<String> texts = new ArrayList<>();
 	private String text = "";
+	private long lastSneakTap;
 
 	public ToggleSprintHud() {
 		super(100);
@@ -75,6 +84,19 @@ public class ToggleSprintHud extends SimpleTextHudEntry {
 	public void init() {
 		sprintToggle.br$registerOnConsumeClick(() -> sprintToggled.set(toggleSprint.get() && !sprintToggled.get()));
 		sneakToggle.br$registerOnConsumeClick(() -> sneakToggled.set(toggleSneak.get() && !sneakToggled.get()));
+		Events.KEY_INPUT.register(key -> {
+			if (doubleTap.get() && toggleSneak.get() && isEnabled()
+				&& key.equals(client.br$getGameOptions().br$getSneakKeybind().br$getBoundKey())) {
+				long now = Platform.getMeasuringTimeMs();
+				if (lastSneakTap > 0 && now - lastSneakTap <= doubleTapWindow.get()) {
+					sneakToggled.set(!sneakToggled.get());
+					// Require a fresh pair of taps for the next toggle.
+					lastSneakTap = 0;
+				} else {
+					lastSneakTap = now;
+				}
+			}
+		});
 	}
 
 	@Override
@@ -100,6 +122,10 @@ public class ToggleSprintHud extends SimpleTextHudEntry {
 		List<Option<?>> options = super.getConfigurationOptions();
 		options.add(toggleSprint);
 		options.add(toggleSneak);
+		options.add(doubleTap);
+		options.add(doubleTapWindow);
+		options.add(flyBoost);
+		options.add(flyBoostMultiplier);
 		options.add(randomPlaceholder);
 		options.add(placeholder);
 		options.add(hideInsteadOfPlaceholder);
