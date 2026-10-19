@@ -28,7 +28,8 @@
 
 			"io.github.axolotlclient.MinimapGameTest",
 			"io.github.axolotlclient.WorldEditCuiGameTest",
-			"io.github.axolotlclient.LegionsToolingGameTest"
+			"io.github.axolotlclient.LegionsToolingGameTest",
+			"io.github.axolotlclient.RenderTweaksGameTest"
 		]
 	},
 	"depends": {

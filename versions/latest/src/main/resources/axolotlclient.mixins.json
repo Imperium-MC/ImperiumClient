@@ -74,6 +74,7 @@
 		"ToastMixin",
 		"WeatherEffectRendererMixin",
 		"WeatherOverrideMixin",
+		"WaterFogEnvironmentMixin",
 		"WorldListWidgetEntryMixin",
 		"WorldRendererMixin",
 		"api.JoinMulitplayerScreenMixin",

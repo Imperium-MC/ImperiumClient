@@ -23,14 +23,30 @@
 package io.github.axolotlclient.mixin;
 
 import io.github.axolotlclient.AxolotlClient;
+import io.github.axolotlclient.util.ChunkBorders;
 import io.github.axolotlclient.util.DrawUtil;
 import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.gizmos.Gizmos;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LevelRenderer.class)
 public abstract class WorldRendererMixin {
+
+	/**
+	 * chunk_borders: the frame's render-thread gizmo collector is active for the whole body
+	 * of this method (opened at its head, closed by the caller after the frame renders), so
+	 * emitting the chunk/region boundary lines at its tail feeds them into this frame's gizmo
+	 * submission — the same rendering path the vanilla F3+G chunk border debug renderer uses.
+	 */
+	@Inject(method = "collectPerFrameRenderThreadGizmos", at = @At("TAIL"))
+	private void axolotlclient$chunkBorders(CallbackInfoReturnable<Gizmos.TemporaryCollection> cir) {
+		ChunkBorders.emit();
+	}
 
 	@ModifyArg(method = "submitBlockOutline", at = @At(value = "INVOKE",
 		target = "Lnet/minecraft/client/renderer/LevelRenderer;submitHitOutline(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/rendertype/RenderType;Lnet/minecraft/client/renderer/state/level/BlockOutlineRenderState;IFZ)V", ordinal = 1), index = 4)
