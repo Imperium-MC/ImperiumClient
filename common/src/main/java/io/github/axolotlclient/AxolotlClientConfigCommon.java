@@ -117,6 +117,15 @@ public abstract class AxolotlClientConfigCommon {
 
 	public final BooleanOption compactChat = new BooleanOption("compact_chat", false);
 
+	public final BooleanOption chatTimestamps = new BooleanOption("chat_timestamps", false);
+	public final BooleanOption chatEmptyFilter = new BooleanOption("empty_chat_filter", false);
+	public final BooleanOption chatNameHighlight = new BooleanOption("name_highlight", false);
+	public final BooleanOption chatNamePing = new BooleanOption("name_highlight_ping", true);
+	public final BooleanOption chatHoverHighlight = new BooleanOption("hover_highlight", false);
+	public final ColorOption chatHoverHighlightColor = new ColorOption("hover_highlight_color", new Color(0x33FFFFFF));
+	public final BooleanOption chatPeek = new BooleanOption("peek_chat", false);
+	public final AxoKeybinding peekChatKey;
+
 	public final BooleanOption enableCustomOutlines = new BooleanOption("enabled", false);
 	public final ColorOption outlineColor = new ColorOption("color", new Color(0x66000000));
 	public final IntegerOption outlineWidth = new IntegerOption("outlineWidth", 1, 1, 15);
@@ -159,6 +168,11 @@ public abstract class AxolotlClientConfigCommon {
 		config.add(hidden);
 
 		chatSettings.add(compactChat);
+		chatSettings.add(chatTimestamps);
+		chatSettings.add(chatEmptyFilter);
+		chatSettings.add(chatNameHighlight, chatNamePing);
+		chatSettings.add(chatHoverHighlight, chatHoverHighlightColor);
+		chatSettings.add(chatPeek);
 
 		rendering.add(outlines);
 		rendering.add(nametagOptions);
@@ -207,6 +221,7 @@ public abstract class AxolotlClientConfigCommon {
 			hideChat.toggle();
 			AxolotlClientCommon.getInstance().saveConfig();
 		});
+		peekChatKey = AxoKeybinding.create(AxoKeys.KEY_UNKNOWN, "peek_chat");
 		AxoKeybinding.create(AxoKeys.KEY_UNKNOWN, "toggle_fullbright").br$registerOnConsumeClick(() -> {
 			fullBright.toggle();
 			AxolotlClientCommon.getInstance().saveConfig();

@@ -9,6 +9,8 @@
 		"BossBarHudAccessor",
 		"BossBarHudMixin",
 		"CameraMixin",
+		"ChatAlphaCalculatorMixin",
+		"ChatDrawingFocusedAccessAccessor",
 		"ChatHudMixin",
 		"ClientBrandRetrieverMixin",
 		"ClientPlayNetworkHandlerMixin",
