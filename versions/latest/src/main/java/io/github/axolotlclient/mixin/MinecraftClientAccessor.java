@@ -36,6 +36,7 @@ import net.minecraft.server.Services;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.gen.Accessor;
+import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(Minecraft.class)
 public interface MinecraftClientAccessor {
@@ -44,6 +45,21 @@ public interface MinecraftClientAccessor {
 	static int axolotlclient$getCurrentFps() {
 		return 0;
 	}
+
+	/**
+	 * The vanilla right-click path (item use): runs the same hand loop and sends the same
+	 * use packets a physical right-click would. Used by the server-gated auto-fish module
+	 * to reel and recast.
+	 */
+	@Invoker("startUseItem")
+	void axolotlclient$startUseItem();
+
+	/**
+	 * The vanilla left-click path (attack): miss-time, spectator and item guards, attack
+	 * packet plus hand swing. Used by the server-gated auto-click module.
+	 */
+	@Invoker("startAttack")
+	boolean axolotlclient$startAttack();
 
 	@Accessor("user")
 	@Mutable

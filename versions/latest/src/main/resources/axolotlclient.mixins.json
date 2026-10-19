@@ -21,6 +21,7 @@
 		"EntityRendererMixin",
 		"EquipmentLayerRendererMixin",
 		"FireworkParticlesMixin",
+		"FishingHookAccessor",
 		"FriendsOverlayScreenMixin",
 		"GameMenuScreenMixin",
 		"GameOptionsMixin",

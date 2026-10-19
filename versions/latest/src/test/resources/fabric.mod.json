@@ -21,7 +21,8 @@
 		"fabric-client-gametest": [
 			"io.github.axolotlclient.ImperiumMenuGameTest",
 			"io.github.axolotlclient.InventorySearchGameTest",
-			"io.github.axolotlclient.ImperiumProtocolGameTest"
+			"io.github.axolotlclient.ImperiumProtocolGameTest",
+			"io.github.axolotlclient.GatedModulesGameTest"
 		]
 	},
 	"depends": {

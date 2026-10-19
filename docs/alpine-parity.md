@@ -57,9 +57,9 @@ Status: ✅ exists in Axolotl (needs Alpine-style settings), 🟡 partial, ❌ b
 | **inventory_tweaks/scrollable_tooltips** | ScrollableTooltips | ✅ add smooth scroll, activation key |
 | inventory_tweaks | — | ❌ hide potion effects, keep centred |
 | **factions** (+ breadcrumbs, cannon_playback, cannon_view, explosion_boxes, patchcrumbs, status HUD) | — | ❌ factions tooling, low priority |
-| **enchantedmc** / boosts | — | ❌ boosts HUD (server-specific) |
-| **enchantedmc/fishing** | — | 🔒 auto-fish, server opt-in only |
-| enchantedmc/clicking | — | 🔒 autoclicker, server opt-in only |
+| **enchantedmc** / boosts | BoostsHud + BoostRegistry | 🟡 HUD shell (registry waits on the server boost channel) |
+| **enchantedmc/fishing** | AutoFish | ✅ server-gated (`auto_fish`) |
+| enchantedmc/clicking | AutoClick | ✅ server-gated (`auto_click`) |
 | zoom | Zoom | ✅ scroll, cinematic, smooth, sensitivity |
 | keystrokes | KeystrokeHud | ✅ |
 | armor_status | ArmorHud | ✅ add durability formats/colours |
