@@ -76,8 +76,11 @@ Status: ✅ exists in Axolotl (needs Alpine-style settings), 🟡 partial, ❌ b
 | particles | Particles | ✅ disabled list, crit/sharpness multipliers |
 | perspective_mod | Freelook | ✅ hold mode, invert pitch, smooth |
 | snap_look | SnapLook | ✅ hold + toggle modes, composes with Freelook |
-| hurt_cam, low_hp_tint, clear_water, farming | — | ❌ small render tweaks |
-| chunk_borders | — | ❌ |
+| hurt_cam | `hurt_cam` option (M3) | ✅ FULL/SUBTLE (30%)/OFF enum replacing `noHurtCam` (V11 config migration), composes with the vanilla damage-tilt accessibility slider |
+| low_hp_tint | `lowHpTint` options (M3) | ✅ vignette-texture or flat tint, linear ramp from threshold (default 6 hp) to 1 hp, colour alpha = peak intensity |
+| clear_water | `clear_water` option (M3) | ✅ water fog start/end pushed to the render distance in `WaterFogEnvironment` |
+| farming | `farming` options (M3) | ✅ crop growth stage as "3/8" text or progress bar near the crosshair, optional hoe-only mode (hoes are data-driven in 26.3, detected by vanilla `*_hoe` ids) |
+| chunk_borders | `chunkBorders` options (M3) | ✅ world-space gizmo lines (the vanilla F3+G path): current chunk 16x16 outline plus optional 512-block region outline, configurable colours, toggle keybind |
 | minimap | — | ❌ large: chunk-colour map, shapes, rotation |
 | worldedit_cui | — | ❌ |
 | spotify_state | — | ❌ Spotify Web API HUD |

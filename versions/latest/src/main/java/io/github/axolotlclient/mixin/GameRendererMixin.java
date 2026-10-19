@@ -30,6 +30,7 @@ import com.mojang.blaze3d.resource.CrossFrameResourcePool;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.renderpearl.api.textures.GpuTextureView;
 import io.github.axolotlclient.AxolotlClient;
+import io.github.axolotlclient.AxolotlClientConfigCommon;
 import io.github.axolotlclient.modules.blur.MotionBlur;
 import io.github.axolotlclient.modules.hud.HudManager;
 import io.github.axolotlclient.modules.hud.gui.hud.vanilla.CrosshairHud;
@@ -44,6 +45,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(GameRenderer.class)
@@ -92,10 +94,21 @@ public abstract class GameRendererMixin {
 	@Inject(method = "bobHurt", at = @At(value = "FIELD",
 		target = "Lnet/minecraft/client/renderer/state/level/CameraEntityRenderState;hurtDuration:I", opcode = Opcodes.GETFIELD),
 		cancellable = true)
-	private void axolotlclient$noHurtCam(CameraRenderState cameraState, PoseStack poseStack, CallbackInfo ci) {
-		if (AxolotlClient.config().noHurtCam.get()) {
+	private void axolotlclient$hurtCamOff(CameraRenderState cameraState, PoseStack poseStack, CallbackInfo ci) {
+		if (AxolotlClient.config().hurtCam.get() == AxolotlClientConfigCommon.HurtCamMode.OFF) {
 			ci.cancel();
 		}
+	}
+
+	/**
+	 * Scales the hurt-camera roll angle (the second Z-axis rotation in bobHurt — the first is
+	 * the death-screen tilt, which stays vanilla). SUBTLE multiplies the angle by
+	 * {@link AxolotlClientConfigCommon.HurtCamMode#tiltMultiplier()}; FULL keeps it as-is.
+	 */
+	@ModifyArg(method = "bobHurt", at = @At(value = "INVOKE",
+		target = "Lcom/mojang/blaze3d/vertex/PoseStack;rotateDegrees(Lcom/mojang/math/Axis;F)V", ordinal = 2), index = 1)
+	private float axolotlclient$hurtCamTilt(float angle) {
+		return angle * AxolotlClient.config().hurtCam.get().tiltMultiplier();
 	}
 
 	@Inject(method = "renderLevel", at = @At("TAIL"))

@@ -116,6 +116,57 @@ public abstract class AxolotlClientConfigCommon {
 
 	}
 
+	/**
+	 * Hurt camera tilt modes: vanilla tilt, a scaled-down tilt (30%), or none at all.
+	 * Composes with the vanilla accessibility damage-tilt-strength slider.
+	 */
+	public enum HurtCamMode {
+		FULL,
+		SUBTLE,
+		OFF;
+
+		@Override
+		public String toString() {
+			return "hurt_cam." + super.toString().toLowerCase(Locale.ROOT);
+		}
+
+		/**
+		 * Multiplier applied to the hurt-camera roll angle; OFF cancels the roll entirely.
+		 */
+		public float tiltMultiplier() {
+			return this == SUBTLE ? 0.3F : 1.0F;
+		}
+	}
+
+	/**
+	 * How the low-health tint is drawn: the vanilla vignette texture tinted towards the
+	 * configured colour, or a flat translucent fill of the whole screen.
+	 */
+	public enum LowHpTintStyle {
+		VIGNETTE,
+		FLAT;
+
+		@Override
+		public String toString() {
+			return "low_hp_tint.style." + super.toString().toLowerCase(Locale.ROOT);
+		}
+
+	}
+
+	/**
+	 * Crop growth stage overlay style: text ("3/8") or a small progress bar near the crosshair.
+	 */
+	public enum FarmingOverlayStyle {
+		TEXT,
+		BAR;
+
+		@Override
+		public String toString() {
+			return "farming.style." + super.toString().toLowerCase(Locale.ROOT);
+		}
+
+	}
+
 	// options
 
 	public final BooleanOption showOwnNametag = new BooleanOption("showOwnNametag", false);
@@ -142,8 +193,29 @@ public abstract class AxolotlClientConfigCommon {
 	public final BooleanOption hitColorOnArmor = new BooleanOption("hit_color_on_armor", false);
 
 	public final BooleanOption minimalViewBob = new BooleanOption("minimalViewBob", false);
-	public final BooleanOption noHurtCam = new BooleanOption("noHurtCam", false);
+	public final EnumOption<HurtCamMode> hurtCam = new EnumOption<>("hurt_cam", HurtCamMode.class, HurtCamMode.FULL);
 	public final BooleanOption hideChat = new BooleanOption("hide_chat", false);
+
+	// clear_water (Alpine parity): push the underwater fog out towards the render distance.
+	public final BooleanOption clearWater = new BooleanOption("clear_water", false);
+
+	// low_hp_tint (Alpine parity): red vignette/tint when below a health threshold.
+	// The tint colour's alpha is the peak intensity reached at 1 hp.
+	public final BooleanOption lowHpTint = new BooleanOption("enabled", false);
+	public final IntegerOption lowHpThreshold = new IntegerOption("low_hp_threshold", 6, 1, 19);
+	public final EnumOption<LowHpTintStyle> lowHpTintStyle = new EnumOption<>("low_hp_tint_style", LowHpTintStyle.class, LowHpTintStyle.VIGNETTE);
+	public final ColorOption lowHpTintColor = new ColorOption("low_hp_tint_color", new Color(0x66FF0000));
+
+	// farming (Alpine parity): crop growth stage overlay near the crosshair.
+	public final BooleanOption farmingOverlay = new BooleanOption("enabled", false);
+	public final BooleanOption farmingHoeOnly = new BooleanOption("farming.hoe_only", false);
+	public final EnumOption<FarmingOverlayStyle> farmingStyle = new EnumOption<>("farming.style", FarmingOverlayStyle.class, FarmingOverlayStyle.TEXT);
+
+	// chunk_borders (Alpine parity): chunk (and optional region) boundary gizmo lines.
+	public final BooleanOption chunkBorders = new BooleanOption("enabled", false);
+	public final BooleanOption regionBorders = new BooleanOption("chunk_borders.regions", false);
+	public final ColorOption chunkBorderColor = new ColorOption("chunk_borders.color", new Color(0x80FFFF00));
+	public final ColorOption regionBorderColor = new ColorOption("chunk_borders.region_color", new Color(0x80FF5555));
 
 	public final BooleanOption compactChat = new BooleanOption("compact_chat", false);
 
@@ -173,6 +245,9 @@ public abstract class AxolotlClientConfigCommon {
 	public final OptionCategory outlines = OptionCategory.create("blockOutlines");
 	public final OptionCategory timeChanger = OptionCategory.create("timeChanger");
 	public final OptionCategory chatSettings = OptionCategory.create("chatSettings");
+	public final OptionCategory lowHpTintCategory = OptionCategory.create("lowHpTint");
+	public final OptionCategory farming = OptionCategory.create("farming");
+	public final OptionCategory chunkBordersCategory = OptionCategory.create("chunkBorders");
 
 	public final BooleanOption creditsBGM = new BooleanOption("creditsBGM", true);
 	public final BooleanOption modifyClientBrand = new BooleanOption("modify_client_brand", true);
@@ -242,12 +317,30 @@ public abstract class AxolotlClientConfigCommon {
 			removeVignette,
 			lowFire,
 			minimalViewBob,
-			noHurtCam,
+			hurtCam,
+			clearWater,
 			noRain,
 			hideChat,
 			hitColor,
 			hitColorOnArmor
 		);
+
+		lowHpTintCategory.add(lowHpTint);
+		lowHpTintCategory.add(lowHpThreshold);
+		lowHpTintCategory.add(lowHpTintStyle);
+		lowHpTintCategory.add(lowHpTintColor);
+		rendering.add(lowHpTintCategory);
+
+		farming.add(farmingOverlay);
+		farming.add(farmingHoeOnly);
+		farming.add(farmingStyle);
+		rendering.add(farming);
+
+		chunkBordersCategory.add(chunkBorders);
+		chunkBordersCategory.add(regionBorders);
+		chunkBordersCategory.add(chunkBorderColor);
+		chunkBordersCategory.add(regionBorderColor);
+		rendering.add(chunkBordersCategory);
 
 		hidden.add(creditsBGM, someNiceBackground, modifyClientBrand, noAltIcons);
 
@@ -258,6 +351,10 @@ public abstract class AxolotlClientConfigCommon {
 		peekChatKey = AxoKeybinding.create(AxoKeys.KEY_UNKNOWN, "peek_chat");
 		AxoKeybinding.create(AxoKeys.KEY_UNKNOWN, "toggle_fullbright").br$registerOnConsumeClick(() -> {
 			fullBright.toggle();
+			AxolotlClientCommon.getInstance().saveConfig();
+		});
+		AxoKeybinding.create(AxoKeys.KEY_UNKNOWN, "toggle_chunk_borders").br$registerOnConsumeClick(() -> {
+			chunkBorders.toggle();
 			AxolotlClientCommon.getInstance().saveConfig();
 		});
 

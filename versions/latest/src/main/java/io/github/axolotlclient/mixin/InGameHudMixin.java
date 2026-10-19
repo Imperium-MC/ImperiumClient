@@ -36,6 +36,8 @@ import io.github.axolotlclient.modules.hud.HudManager;
 import io.github.axolotlclient.modules.hud.gui.hud.PotionsHud;
 import io.github.axolotlclient.modules.hud.gui.hud.vanilla.*;
 import io.github.axolotlclient.modules.hypixel.bedwars.BedwarsMod;
+import io.github.axolotlclient.util.FarmingOverlay;
+import io.github.axolotlclient.util.LowHpTint;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -67,6 +69,26 @@ public abstract class InGameHudMixin {
 		if (!(AxoMinecraftClient.getInstance().br$getScreen() instanceof HudEditScreen)) {
 			HudManager.getInstance().render(guiGraphicsExtractor, deltaTracker.getGameTimeDeltaTicks());
 		}
+	}
+
+	/**
+	 * farming: drawn right after the crosshair so the growth stage sits next to it whether
+	 * the vanilla or the custom crosshair is active (the call itself always executes even if
+	 * extractCrosshair's body was cancelled by the custom crosshair).
+	 */
+	@Inject(method = "extractRenderState", at = @At(value = "INVOKE",
+		target = "Lnet/minecraft/client/gui/Hud;extractCrosshair(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/DeltaTracker;)V", shift = At.Shift.AFTER))
+	private void axolotlclient$farmingOverlay(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+		FarmingOverlay.render(graphics);
+	}
+
+	/**
+	 * low_hp_tint: drawn with the camera overlays (vignette/spyglass/pumpkin section), before
+	 * the vanilla vignette itself.
+	 */
+	@Inject(method = "extractCameraOverlays", at = @At("HEAD"))
+	private void axolotlclient$lowHpTint(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+		LowHpTint.render(graphics, minecraft.getCameraEntity());
 	}
 
 	@Inject(method = "extractEffects", at = @At("HEAD"), cancellable = true)
