@@ -22,7 +22,10 @@
 
 package io.github.axolotlclient;
 
+import io.github.axolotlclient.AxolotlClientConfigCommon.MenuTheme;
+import io.github.axolotlclient.imperium.menu.CarvedTheme;
 import io.github.axolotlclient.imperium.menu.ImperiumMenuScreen;
+import io.github.axolotlclient.imperium.menu.MenuCategory;
 import io.github.axolotlclient.imperium.menu.MenuEntry;
 import io.github.axolotlclient.modules.hud.HudEditScreen;
 import io.github.axolotlclient.modules.hud.HudManager;
@@ -37,6 +40,8 @@ public class ImperiumMenuGameTest implements FabricClientGameTest {
 
 	@Override
 	public void runTest(ClientGameTestContext context) {
+		// The run directory keeps config between runs; pin the theme so screenshots are deterministic.
+		setTheme(context, MenuTheme.CARVED);
 		// Keybinds only fire in-game with no screen open, so test the menu from a world like a player would.
 		try (TestSingleplayerContext world = context.worldBuilder().create()) {
 			world.getConnection().waitForChunksRender();
@@ -49,6 +54,20 @@ public class ImperiumMenuGameTest implements FabricClientGameTest {
 
 			int total = context.computeOnClient(mc -> menu(mc).visibleEntries().size());
 			check(total > 20, "menu should list the client's modules, got " + total);
+
+			// Carved cards resolve real item sprites for modules that map onto one.
+			int withIcons = context.computeOnClient(mc -> (int) menu(mc).visibleEntries().stream()
+				.filter(e -> CarvedTheme.iconFor(e) != null).count());
+			check(withIcons >= 3, "carved theme should map several modules to item sprites, got " + withIcons);
+
+			// Selecting a sidebar category shows the carved selected marker.
+			clickGui(context, context.computeOnClient(mc -> menu(mc).categoryCenter(MenuCategory.RENDER)));
+			context.waitTicks(3);
+			context.takeScreenshot("imperium-menu-category");
+
+			// The FPS card lives in the HUD category, so return to ALL before searching.
+			clickGui(context, context.computeOnClient(mc -> menu(mc).categoryCenter(MenuCategory.ALL)));
+			context.waitTicks(3);
 
 			context.getInput().typeChars("fps");
 			context.waitTicks(3);
@@ -66,6 +85,13 @@ public class ImperiumMenuGameTest implements FabricClientGameTest {
 			check(after, "clicking the disabled FPS card should enable it");
 			context.takeScreenshot("imperium-menu-toggled");
 
+			// CLASSIC is the fallback theme; prove it still renders and returns.
+			setTheme(context, MenuTheme.CLASSIC);
+			context.waitTicks(3);
+			context.takeScreenshot("imperium-menu-classic");
+			setTheme(context, MenuTheme.CARVED);
+			context.waitTicks(3);
+
 			clickGui(context, context.computeOnClient(mc -> menu(mc).cardGearCenter(fpsIndex)));
 			context.waitFor(mc -> !(mc.gui.screen() instanceof ImperiumMenuScreen));
 			context.waitTicks(5);
@@ -82,6 +108,7 @@ public class ImperiumMenuGameTest implements FabricClientGameTest {
 			});
 			context.setScreen(() -> new HudEditScreen());
 			context.waitTicks(5);
+			context.takeScreenshot("imperium-hud-editor");
 			int[] start = context.computeOnClient(mc -> {
 				var bounds = fpsHud().getTrueBounds();
 				return new int[]{bounds.x() + bounds.width() / 2, bounds.y() + bounds.height() / 2};
@@ -101,6 +128,10 @@ public class ImperiumMenuGameTest implements FabricClientGameTest {
 			check(Math.abs(movedX - start[0]) >= 20, "dragging the FPS HUD should move it (from x=" + start[0] + " to " + movedX + ")");
 			context.takeScreenshot("imperium-hud-editor-dragged");
 		}
+	}
+
+	private static void setTheme(ClientGameTestContext context, MenuTheme theme) {
+		context.runOnClient(mc -> AxolotlClient.config().menuTheme.set(theme));
 	}
 
 	private static HudEntry fpsHud() {

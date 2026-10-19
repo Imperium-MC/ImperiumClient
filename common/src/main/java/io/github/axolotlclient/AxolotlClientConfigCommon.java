@@ -167,6 +167,21 @@ public abstract class AxolotlClientConfigCommon {
 
 	}
 
+	/**
+	 * Visual identity of the Imperium module menu: the carved chiseled-stone and bronze theme
+	 * (W4-A), or the flat dark-and-gold look the menu shipped with.
+	 */
+	public enum MenuTheme {
+		CARVED,
+		CLASSIC;
+
+		@Override
+		public String toString() {
+			return "menu.theme." + super.toString().toLowerCase(Locale.ROOT);
+		}
+
+	}
+
 	// options
 
 	public final BooleanOption showOwnNametag = new BooleanOption("showOwnNametag", false);
@@ -264,6 +279,9 @@ public abstract class AxolotlClientConfigCommon {
 	public final EnumOption<MenuButtonMode> titleScreenOptionButtonMode = new EnumOption<>("title_screen_button_mode", MenuButtonMode.class, MenuButtonMode.MODMENU);
 	public final EnumOption<MenuButtonMode> gameMenuScreenOptionButtonMode = new EnumOption<>("game_menu_screen_button_mode", MenuButtonMode.class, MenuButtonMode.MODMENU);
 
+	// menu.theme (W4-A): carved imperial identity is the default, the previous look stays as fallback.
+	public final EnumOption<MenuTheme> menuTheme = new EnumOption<>("menu.theme", MenuTheme.class, MenuTheme.CARVED);
+
 	public DateTimeFormatter dateTimeFormatter;
 
 	public AxolotlClientConfigCommon() {
@@ -293,6 +311,7 @@ public abstract class AxolotlClientConfigCommon {
 		general.add(datetimeFormat);
 		general.add(titleScreenOptionButtonMode);
 		general.add(gameMenuScreenOptionButtonMode);
+		general.add(menuTheme);
 		general.add(confirmDisconnect);
 
 		timeChanger.add(timeChangerEnabled);

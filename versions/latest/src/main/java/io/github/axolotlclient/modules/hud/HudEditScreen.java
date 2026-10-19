@@ -33,6 +33,8 @@ import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import io.github.axolotlclient.AxolotlClient;
 import io.github.axolotlclient.AxolotlClientConfig.api.AxolotlClientConfig;
 import io.github.axolotlclient.AxolotlClientConfig.impl.util.ConfigStyles;
+import io.github.axolotlclient.AxolotlClientConfigCommon;
+import io.github.axolotlclient.imperium.menu.CarvedTheme;
 import io.github.axolotlclient.modules.hud.gui.component.HudEntry;
 import io.github.axolotlclient.modules.hud.gui.component.Positionable;
 import io.github.axolotlclient.modules.hud.snapping.SnappingHelper;
@@ -86,6 +88,25 @@ public class HudEditScreen extends Screen {
 		} else if (snap != null) {
 			snap = null;
 		}
+	}
+
+	// Carved chrome (menu.theme = CARVED): a chiseled stone strip framing the editor's tools.
+	private static final int CHROME_H = 24;
+
+	@Override
+	public void extractBackground(@NotNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
+		super.extractBackground(graphics, mouseX, mouseY, delta);
+		if (AxolotlClient.config().menuTheme.get() != AxolotlClientConfigCommon.MenuTheme.CARVED) {
+			return;
+		}
+		graphics.fill(0, 0, width, CHROME_H, 0xFF17130F);
+		CarvedTheme.drawStoneFill(graphics, 0, 0, width, CHROME_H);
+		CarvedTheme.outline(graphics, 0, 0, width, CHROME_H, 0xFF0B0908);
+		CarvedTheme.carvedRule(graphics, 0, CHROME_H - 2, width);
+		CarvedTheme.engravedCaps(graphics, font, Component.translatable("imperium.hud_editor.title").getString(),
+			8, 8, CarvedTheme.BRONZE_LIGHT);
+		String hint = Component.translatable("imperium.hud_editor.hint").getString();
+		CarvedTheme.engravedText(graphics, font, hint, width - 8 - font.width(hint), 9, CarvedTheme.MUTED);
 	}
 
 	@Override
