@@ -23,11 +23,45 @@ Plugin channel `imperiumclient:features`, server → client, sent after join:
 - `deny`: any module the server wants force-disabled for fairness (applies to non-gated modules too).
 - Clients ignore unknown IDs. Without the packet, everything gated stays locked and nothing is denied.
 
+### Version 2: tiers and rate budgets
+
+```json
+{ "version": 2,
+  "allow": ["auto_fish"],
+  "limited": ["auto_walk"],
+  "deny": [],
+  "limits": { "auto_walk": { "per_hour": 30 } } }
+```
+
+- `limited`: the limited tier — the module is enabled but rate-budgeted. The client keeps a
+  token bucket per id (capacity and refill from `limits`; a limited id without a `limits`
+  entry is treated as unbounded) and the module spends one token per activation. When the
+  budget is spent the module force-offs with its own tooltip until the bucket refills
+  (tokens refill continuously at `amount / window`, so long sessions converge on the
+  advertised rate; a fresh session starts with a full bucket).
+- `limits`: per-id rate hints. `per_hour` is the documented unit; `per_minute` is accepted
+  too (and wins when both are given — the finer window).
+- v1 payloads keep working unchanged: no `limited`/`limits` means no limited tier and no
+  budgets.
+
 The ImperiumMC plugin sends this from its config; other servers can implement the same channel.
 
 ## Gated module IDs
 
+| ID | Module | Tier |
+|---|---|---|
+| `auto_click` | EnchantedMC Clicking | gated (`allow`) |
+| `auto_fish` | EnchantedMC Fishing | gated (`allow`) |
+| `auto_walk` | Auto Walk | limited (`limited` + budget) |
+
+## QoL module IDs
+
+These ship **enabled** — the singleplayer-style default — and stay that way on v1 servers;
+a `deny` (or the `block_mods` channel) is the only thing that force-offs them.
+
 | ID | Module |
 |---|---|
-| `auto_click` | EnchantedMC Clicking |
-| `auto_fish` | EnchantedMC Fishing |
+| `auto_eat` | Auto Eat |
+| `auto_tool` | Auto Tool |
+| `auto_armor` | Auto Armor |
+| `auto_reconnect` | Auto Reconnect |
