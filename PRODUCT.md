@@ -18,34 +18,32 @@ Lunar or Feather because it is quicker, cleaner and feels like part of the serve
 setting without asking in Discord.
 
 ## Brand Personality
-Carved, disciplined, imperial. A legion's official equipment, not a party: engraved capitals, bronze and
-stone, restrained ornament, everything in its place. Confident and quiet. Copy is plain British English;
-Latin appears only in the brand mark and a few named places (the motto "Roma Aeterna"), never as filler.
+Clean, confident, imperial. The owner's reference is Alpine Client's menus (owner decision, 2026-10-19):
+the same layout, sizing, motion and polish, carrying ImperiumMC's emblem, name and bronze palette. Copy is
+plain British English; Latin appears only in the brand mark and the motto "Roma Aeterna", never as filler.
 
 ## Anti-references
-- Low-effort AI output: muddy textures, over-designed visual noise, plastic-looking metal, low-contrast
-  dark-on-dark menus.
-- The generic "dark SaaS dashboard with a gold accent".
-- Glassy, frosted, blurred cards and glows.
-- Neon gamer clients (Lunar/Badlion-style RGB edges and aggressive gradients).
+- Low-effort AI output: muddy textures, visual noise, low-contrast grey-on-grey text, generic stock art.
+- Generic "dark SaaS dashboard with a gold accent": flat cards with no hierarchy and no game behind them.
+- Neon gamer clients (RGB edges, aggressive gradients and glows everywhere).
 - Cartoon fantasy RPG UI (parchment scrolls, bubbly ornaments).
-
-The bar is a high-budget, hand-crafted custom client: sharp high-contrast typography, crisp bronze and stone
-materials, clean pixel-grid borders, AAA polish.
+- Mismatched screens: vanilla grey buttons or old config screens next to the new shell.
 
 ## Design Principles
-1. **Belongs in Minecraft.** Pixel-grid borders, real item icons and crisp edges at every GUI scale; smooth
-   type only where it reads better.
-2. **Built, not generated.** Every texture, icon and ornament has a reason and a material (bronze, stone,
-   marble). If it could appear in any app, it doesn't belong here.
-3. **Back to the game fast.** Search first, one click to toggle, settings one level deep.
-4. **Discipline over decoration.** One ornament system (the meander frieze and engraved capitals), used
-   consistently and sparingly.
-5. **One product.** The client, launcher and website share the same palette and voice.
+1. **Alpine's structure, our identity.** Copy Alpine's layout and proportions faithfully: the title screen,
+   the sidebar shell, module cards, setting rows, toasts and HUD editor. Change only the brand (emblem,
+   wordmark), the palette (bronze on warm dark) and the icons.
+2. **The game stays visible.** Translucent overlay controls with a light blur over the real world or
+   panorama, never a flat opaque wallpaper.
+3. **Minecraft-native details.** Vanilla item icons in module tiles, the Minecraft font for HUD text and
+   in-world numbers, the vanilla panorama (later an ImperiumMC one) behind the title screen.
+4. **Back to the game fast.** Search first, one click to toggle, settings one level deep.
+5. **One theme system.** Every colour is a token with the same names as Alpine's theme files, so themes can
+   be swapped without touching layout.
 
 ## Accessibility & Inclusion
 - Text meets WCAG AA contrast (4.5:1 body, 3:1 large) against the menu surface, including labels and
   placeholders.
 - Works at GUI scales 1–4 and with the vanilla font option.
 - "Reduce motion" removes all animation.
-- State is never shown by colour alone (toggles also differ in position; locked modules show a lock icon).
+- State is never shown by colour alone: enabled cards change border and the power icon, server-blocked cards show a block icon and a reason line.

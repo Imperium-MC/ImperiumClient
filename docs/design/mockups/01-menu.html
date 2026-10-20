@@ -1,59 +1,58 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><title>Imperium menu</title><link rel="stylesheet" href="imperium.css"></head>
-<body class="world">
-<div class="panel frame">
-  <div class="header stone">
-    <img src="emblem.png" alt="">
-    <div class="mark">IMPERIUM<small>Client 0.1.0 · Roma Aeterna</small></div>
-    <div class="spacer"></div>
-    <div class="search sunken"><span data-g="search"></span>Search modules and settings<span class="hit"><span data-mc="Ctrl+F" data-color="#a3937a" data-scale="2"></span></span></div>
-    <div class="close" data-g="close" data-color="#cdbfa6"></div>
+<html><head><meta charset="utf-8"><title>Modules</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Cinzel:wght@700;800&display=block" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,0&display=block" rel="stylesheet">
+<link rel="stylesheet" href="imperium-ui.css">
+</head>
+<body>
+<div class="dim"></div>
+<div id="sidebar">
+  <div id="sidebar-header"><img src="emblem-512.png" alt=""><b>IMPERIUM<br>CLIENT</b></div>
+  <div id="nav">
+    <div class="nav sel"><span class="ms">extension</span>Modules</div>
+    <div class="nav"><span class="ms">dashboard_customize</span>Edit HUD</div>
+    <div class="nav"><span class="ms">location_on</span>Waypoints</div>
+    <div class="nav"><span class="ms">keyboard</span>Macros</div>
+    <div class="nav"><span class="ms">person</span>Profiles</div>
+    <div class="nav"><span class="ms">checkroom</span>Cosmetics</div>
+    <div class="nav"><span class="ms">shield</span>Legion</div>
+    <div class="nav"><span class="ms">settings</span>Settings</div>
   </div>
-
-  <div class="sidebar stone">
-    <div class="nav plate on"><img src="mc/book.png">Modules<span class="n"><span data-mc="71" data-color="#1a130a" data-scale="2"></span></span></div>
-    <div class="nav"><img src="mc/painting.png">HUD Editor</div>
-    <div class="nav"><img src="mc/recovery_compass_16.png">Waypoints<span class="n"><span data-mc="6" data-color="#a3937a" data-scale="2"></span></span></div>
-    <div class="nav"><img src="mc/writable_book.png">Macros</div>
-    <div class="nav"><img src="mc/armor_stand.png">Profiles</div>
-    <div class="navrule"></div>
-    <div class="nav"><img src="mc/totem_of_undying.png">Cosmetics</div>
-    <div class="nav"><img src="mc/golden_helmet.png">Legion</div>
-    <div class="navrule"></div>
-    <div class="nav"><img src="mc/comparator.png">Settings</div>
-    <div class="profile sunken"><b>PvP profile</b><span>Switches on for imperiummc.net</span></div>
-  </div>
-
-  <div class="content stone">
-    <div class="tabs">
-      <span class="tab on">All <span data-mc="71" data-color="#cdbfa6" data-scale="2"></span></span>
-      <span class="tab">Enabled <span data-mc="18" data-color="#a3937a" data-scale="2"></span></span>
-      <span class="tab">HUD</span><span class="tab">Render</span><span class="tab">Chat</span><span class="tab">World</span><span class="tab">Utility</span><span class="tab">Server</span>
-    </div>
-    <div class="ledger">
-      <div class="group">On screen <span class="k">31</span></div>
-      <div class="mod"><span class="slot sunken"><img src="mc/redstone.png"></span><div class="t"><b>FPS</b><span>Frames per second, with 1% lows</span></div><span class="lever sunken on"></span></div>
-      <div class="mod"><span class="slot sunken"><img src="mc/clock_00.png"></span><div class="t"><b>Cooldowns</b><span>Pearl, shield and combat tag timers</span></div><span class="lever sunken"></span></div>
-      <div class="mod"><span class="slot sunken"><img src="mc/compass_16.png"></span><div class="t"><b>Compass</b><span>Heading strip with your waypoints</span></div><span class="lever sunken on"></span></div>
-      <div class="mod"><span class="slot sunken"><img src="mc/name_tag.png"></span><div class="t"><b>Tab Editor</b><span>Numeric ping, highlight your legion</span></div><span class="lever sunken on"></span></div>
-      <div class="mod"><span class="slot sunken"><img src="mc/oak_sign.png"></span><div class="t"><b>Scoreboard</b><span>Move it and hide the red numbers</span></div><span class="lever sunken on"></span></div>
-      <div class="mod"><span class="slot sunken"><img src="mc/potion.png"></span><div class="t"><b>Potion Status</b><span>Effects with time left, blinks at 10 s</span></div><span class="lever sunken"></span></div>
-
-      <div class="group">View and camera <span class="k">14</span></div>
-      <div class="mod"><span class="slot sunken"><img src="mc/spyglass.png"></span><div class="t"><b>Zoom</b><span>Hold to zoom, scroll to adjust</span></div><span class="kb sunken"><span data-mc="C" data-color="#ecd6a6" data-scale="2"></span></span><span class="lever sunken on"></span></div>
-      <div class="mod"><span class="slot sunken"><img src="mc/glowstone_dust.png"></span><div class="t"><b>Fullbright</b><span>See in caves without torches</span></div><span class="kb sunken"><span data-mc="B" data-color="#ecd6a6" data-scale="2"></span></span><span class="lever sunken on"></span></div>
-
-      <div class="group">Server <span class="k">4</span></div>
-      <div class="mod locked"><span class="slot sunken"><img src="mc/fishing_rod.png"></span><div class="t"><b>Auto Fish</b><span>Not enabled on imperiummc.net</span></div><span class="gear" data-g="lock" data-color="#e3a58d"></span></div>
-      <div class="mod hover"><span class="slot sunken"><img src="mc/iron_sword.png"></span><div class="t"><b>Legion Markers</b><span>Show your legion through walls in events</span></div><span class="gear" data-g="gear" data-color="#cdbfa6"></span><span class="lever sunken"></span></div>
-
-      <div class="group">Chat <span class="k">4</span></div>
-      <div class="mod"><span class="slot sunken"><img src="mc/writable_book.png"></span><div class="t"><b>Chat Settings</b><span>Timestamps, compact chat, name pings</span></div><span class="lever sunken on"></span></div>
-      <div class="mod"><span class="slot sunken"><img src="mc/lead.png"></span><div class="t"><b>Peek Chat</b><span>Hold a key to read history in game</span></div><span class="kb sunken"><span data-mc="Z" data-color="#ecd6a6" data-scale="2"></span></span><span class="lever sunken"></span></div>
-    </div>
+  <div id="sidebar-footer">
+    <div class="pill"><span class="ms">public</span>imperiummc.net</div>
+    <div class="pill"><span class="ms">close</span>Close</div>
   </div>
 </div>
-<div class="tip stone frame" style="left:860px;top:534px"><b>Legion Markers</b>Outlines legion members during server events. Only works where the server allows it.</div>
-<div class="caption">Modules · opened with Right Shift</div>
-<script src="glyphs.js"></script><script src="mcfont.js"></script>
+
+<div id="content-header"><h2>Modules</h2><p>Turn features on and off. Right-click a module for its settings.</p></div>
+<div class="controls"><div class="badge"><span class="ms" style="font-size:16px">bolt</span>11 enabled</div><div class="search"><span class="ms">search</span>Search modules and settings</div></div>
+
+<div id="content">
+  <div class="segments"><span class="on">All</span><span>HUD</span><span>Render</span><span>Chat</span><span>World</span><span>Utility</span><span>Server</span></div>
+  <div class="grid">
+    <div class="card on"><div class="icon"><img src="mc/compass_16.png"></div><div class="name">Coordinates</div><div class="tag">X Y Z, biome, facing</div><div class="acts"><span class="ms power">power_settings_new</span><span class="ms pinned">keep</span><span class="ms">settings</span></div></div>
+    <div class="card on"><div class="icon"><img src="mc/map.png"></div><div class="name">Minimap</div><div class="tag">Square, rotating</div><div class="acts"><span class="ms power">power_settings_new</span><span class="ms">keep</span><span class="ms">settings</span></div></div>
+    <div class="card on"><div class="icon"><img src="mc/recovery_compass_16.png"></div><div class="name">Waypoints</div><div class="tag">6 in this world</div><div class="acts"><span class="ms power">power_settings_new</span><span class="ms">keep</span><span class="ms">settings</span></div></div>
+
+    <div class="card on"><div class="icon"><img src="mc/golden_helmet.png"></div><div class="name">Armour Status</div><div class="acts"><span class="ms power">power_settings_new</span><span class="ms">keep</span><span class="ms">settings</span></div></div>
+    <div class="card hover"><div class="icon"><img src="mc/writable_book.png"></div><div class="name">Chat Settings</div><div class="tag">Timestamps, name ping</div><div class="acts"><span class="ms power">power_settings_new</span><span class="ms">keep</span><span class="ms">settings</span></div></div>
+    <div class="card on"><div class="icon"><img src="mc/spyglass.png"></div><div class="name">Zoom</div><div class="tag">Hold C</div><div class="acts"><span class="ms power">power_settings_new</span><span class="ms">keep</span><span class="ms">settings</span></div></div>
+
+    <div class="card blocked"><div class="icon"><img src="mc/ender_pearl.png"></div><div class="name">Freelook</div><div class="tag">Turned off on ImperiumMC</div><div class="acts"><span class="ms power">block</span><span class="ms">keep</span><span class="ms">settings</span></div></div>
+    <div class="card on"><div class="icon"><img src="mc/clock_00.png"></div><div class="name">Cooldowns</div><div class="tag">Pearls, abilities</div><div class="acts"><span class="ms power">power_settings_new</span><span class="ms">keep</span><span class="ms">settings</span></div></div>
+    <div class="card"><div class="icon"><img src="mc/name_tag.png"></div><div class="name">Nametags</div><div class="acts"><span class="ms power">power_settings_new</span><span class="ms">keep</span><span class="ms">settings</span></div></div>
+
+    <div class="card on"><div class="icon"><img src="mc/glowstone_dust.png"></div><div class="name">Fullbright</div><div class="tag">Toggle B</div><div class="acts"><span class="ms power">power_settings_new</span><span class="ms">keep</span><span class="ms">settings</span></div></div>
+    <div class="card on"><div class="icon"><img src="mc/potion.png"></div><div class="name">Potion Status</div><div class="acts"><span class="ms power">power_settings_new</span><span class="ms">keep</span><span class="ms">settings</span></div></div>
+    <div class="card"><div class="icon"><img src="mc/fishing_rod.png"></div><div class="name">Auto Fish</div><div class="tag">Allowed in fishing areas</div><div class="acts"><span class="ms power">power_settings_new</span><span class="ms">keep</span><span class="ms">settings</span></div></div>
+
+    <div class="card on"><div class="icon"><img src="mc/iron_sword.png"></div><div class="name">Legion Status</div><div class="tag">Fed by the server</div><div class="acts"><span class="ms power">power_settings_new</span><span class="ms">keep</span><span class="ms">settings</span></div></div>
+    <div class="card"><div class="icon"><img src="mc/oak_sign.png"></div><div class="name">Scoreboard</div><div class="acts"><span class="ms power">power_settings_new</span><span class="ms">keep</span><span class="ms">settings</span></div></div>
+    <div class="card on"><div class="icon"><img src="mc/feather.png"></div><div class="name">Toggle Sprint</div><div class="acts"><span class="ms power">power_settings_new</span><span class="ms">keep</span><span class="ms">settings</span></div></div>
+
+    <div class="card"><div class="icon"><img src="mc/totem_of_undying.png"></div><div class="name">Totem Counter</div><div class="acts"><span class="ms power">power_settings_new</span><span class="ms">keep</span><span class="ms">settings</span></div></div>
+    <div class="card"><div class="icon"><img src="mc/book.png"></div><div class="name">Inventory Search</div><div class="acts"><span class="ms power">power_settings_new</span><span class="ms">keep</span><span class="ms">settings</span></div></div>
+    <div class="card"><div class="icon"><img src="mc/redstone.png"></div><div class="name">CPS</div><div class="acts"><span class="ms power">power_settings_new</span><span class="ms">keep</span><span class="ms">settings</span></div></div>
+  </div>
+</div>
 </body></html>
