@@ -20,18 +20,23 @@ that branch (or squash it) rather than PR #1 as submitted.
 
 ## Next tasks
 
-Pick from the top; each is one PR. Check [dev-notes.md](dev-notes.md) first.
+**Work strictly in this order.** Each item is one or more PRs with green CI, held to #3. This list overrides
+everything below it. The full backlog is the work order in #12. Don't start wave 6 features until 1–6 are done.
 
-1. Inline settings panel in the menu: the gear opens the module's settings inside the menu instead of
-   Axolotl's config screen. Spec per module: [module-settings.md](module-settings.md).
-2. Background blur option for HUD elements (`blur_radius`). `MenuBlur` has a blur pass to reuse.
-3. M2 modules, in this order: tab editor, waypoints, inventory search, cooldowns, info HUD, environment
-   (weather), chat settings (timestamps, smooth chat, compact chat), toggle sneak/sprint extras, compass
-   waypoints, nametag editor, TPS colour tiers.
-4. Hide config categories that aren't modules (Account Management, Authentication) from the module grid,
-   or move them to a separate "Client" section.
-5. Gated modules (auto fish/click) checking `ImperiumClientSession.isAllowed(...)` once PR #1 lands.
-
+1. **The owner can't play:** Imperium-MC/ImperiumLauncher#4 (natives extracted to the wrong folder, so
+   `lwjgl.dll` isn't found). Ship it in a new launcher release with a bumped version number.
+2. **Launcher security advisory** GHSA-vggq-h9gm-26m2 (private; see its top note). Ship it in the same release
+   as item 1, with neutral commit titles.
+3. **Launcher download integrity:** Imperium-MC/ImperiumLauncher#6 (hashes not verified).
+4. **CI on this repo** (#11): build plus `runClientGameTest` on every PR. Render tests must assert pixels, not
+   just save screenshots (see #15).
+5. **Plugin CI:** Imperium-MC/ImperiumMC-Plugin#12 step 0 (`gradlew` mode, stray `ares` gitlink), then the
+   anticheat fixes in ImperiumMC-Plugin#13.
+6. **Review fixes in #15:** the titles fix, Kotlin toolchain (#2), the features/perks dispatch, removing the
+   enforcement toggle from module settings.
+7. **UI v3** (#4, spec on PR #14 `docs/design/README.md`): title screen, then the shell and module cards,
+   then settings pages inside the shell, then the HUD editor. In Kotlin, replacing CarvedTheme.
+8. Everything else in #12, top to bottom.
 
 ## M0: Fork baseline
 
