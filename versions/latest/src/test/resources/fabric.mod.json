@@ -44,7 +44,8 @@
 			"io.github.axolotlclient.CannonTrajectoryGameTest",
 			"io.github.axolotlclient.FullscreenMapGameTest",
 			"io.github.axolotlclient.WorldSpaceRenderingGameTest",
-			"io.github.axolotlclient.HudBlurGameTest"
+			"io.github.axolotlclient.HudBlurGameTest",
+		"io.github.axolotlclient.TitlesGameTest"
 		]
 	},
 	"depends": {
