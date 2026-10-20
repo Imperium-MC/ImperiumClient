@@ -20,15 +20,24 @@ History note: PR #1 (titles HUD + handshake) landed on `main` together with its 
 
 ## Next tasks
 
-Pick from the top; check [dev-notes.md](dev-notes.md) first.
+The authoritative backlog is the work order in [issue #12](https://github.com/Imperium-MC/ImperiumClient/issues/12);
+work strictly in its order. Status as of 2026-10-20 (wave 6 shipped the inline settings panel, HUD background
+blur, the gizmo-window fix, and the first M3 performance slice — see the milestone table above):
 
-1. M3 remainder, in this order: `hud_frame_limit` (needs an offscreen HUD texture cache), hopper
-   *block* hiding (chunk-meshed — belongs with lazy chunk loading), hologram/sign text distance
-   limits, cannon-minimal TNT rendering, chest/spawner/enchant-table render simplification,
-   lazy chunk loading with an update cap. Each needs a before/after FPS measurement on the same
-   scene before it merges.
-2. Cosmetics channel design (owner input wanted: which cosmetics surface the emote wheel targets).
-3. Real-server spot-check of the enforcement interceptor (DNS scoping can't be gametested).
+1. **Launcher blockers, all in flight for release 0.1.2:** the launch crash (ImperiumLauncher#4),
+   the renderer hardening (private advisory, neutral commits), download verification
+   (ImperiumLauncher#6), and the crash screen (ImperiumLauncher#5 part 3).
+2. **This repo's CI** (#11): build plus gametest on every PR; PR-gated merges from then on.
+3. **Review fixes** (#15): titles colour/wrap fix, enforcement toggle removed from player settings,
+   interceptor replace-policy doc — then the Kotlin toolchain and the `imperium/` package port (#2),
+   with Fabric Language Kotlin added to the launcher pack.
+4. **Plugin CI + anticheat** (ImperiumMC-Plugin#12 step 0, #13).
+5. **UI v3** per the design spec now merged at `docs/design/` (#4): title screen, shell and module
+   cards, settings pages, HUD editor — in Kotlin.
+6. Everything else in #12, top to bottom: M3 remainder (`hud_frame_limit` needs an offscreen HUD
+   texture cache; hopper *block* hiding belongs with lazy chunk loading; hologram/sign text distance
+   limits; cannon-minimal TNT; chest/spawner simplification), cosmetics channel design (owner input
+   wanted), real-server enforcement spot-check, parity-sheet regeneration, translations.
 
 
 ## M0: Fork baseline
