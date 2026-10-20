@@ -7,14 +7,17 @@ Things that have already cost time on 26.3. Read before touching input, networki
 - `./gradlew :latest:runClientGameTest` runs the client gametests in `versions/latest/src/test`
   (registered under the `fabric-client-gametest` entrypoint in the test `fabric.mod.json`). They start a real
   client, so they take about a minute. Screenshots land in `versions/latest/build/run/clientGameTest/screenshots/`.
-- `ImperiumMenuGameTest` opens the menu in a test world, searches, toggles a card, opens settings, renders a
-  coloured title and drags a HUD element in the HUD editor.
+- `ImperiumMenuGameTest` opens the menu in a test world, searches, toggles a card, opens settings
+  and drags a HUD element in the HUD editor.
 - `ImperiumProtocolGameTest` feeds the handshake code the exact bytes the ImperiumMC plugin sends.
 - `MovementEnvelopeGameTest` / `LocalEnforcementGameTest` cover the W4-C enforcement layer: pure
   movement-envelope math (vanilla speeds never clamp, cheat deltas clamp under the plugin's flag
   edges), the address-scope rule, the channel allowlist + register filtering (against the real
   Fabric register payload), sign/book payload rules, and live evidence that the `Connection.send`
-  hook is applied while the integrated server stays out of scope.
+  hook is applied while the integrated server stays out of scope. The policy for which outgoing
+  packets the interceptor may replace vs refuse is [enforcement-policy.md](enforcement-policy.md).
+- `TitlesGameTest` drives a coloured, over-long title through the real `Hud.setTitle` path and
+  screenshots the wrapped result.
 - The gametest run directory keeps its config between runs. Pin any state a test depends on, or delete
   `build/run/clientGameTest/config/imperiumclient` for a clean start.
 - To stop a dev client, stop the process you started (its PID). Don't kill by matching `KnotClient` in
