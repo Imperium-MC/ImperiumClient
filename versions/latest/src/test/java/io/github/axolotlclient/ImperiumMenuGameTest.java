@@ -22,9 +22,14 @@
 
 package io.github.axolotlclient;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import io.github.axolotlclient.AxolotlClientConfigCommon.MenuTheme;
+import io.github.axolotlclient.imperium.ImperiumClientSession;
 import io.github.axolotlclient.imperium.menu.CarvedTheme;
 import io.github.axolotlclient.imperium.menu.ImperiumMenuScreen;
+import io.github.axolotlclient.imperium.menu.ImperiumTitleScreen;
 import io.github.axolotlclient.imperium.menu.MenuCategory;
 import io.github.axolotlclient.imperium.menu.MenuEntry;
 import io.github.axolotlclient.modules.hud.HudEditScreen;
@@ -34,6 +39,7 @@ import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.TitleScreen;
 import com.mojang.blaze3d.platform.InputConstants;
 
 public class ImperiumMenuGameTest implements FabricClientGameTest {
@@ -41,7 +47,15 @@ public class ImperiumMenuGameTest implements FabricClientGameTest {
 	@Override
 	public void runTest(ClientGameTestContext context) {
 		// The run directory keeps config between runs; pin the theme so screenshots are deterministic.
-		setTheme(context, MenuTheme.CARVED);
+		setTheme(context, MenuTheme.IMPERIUM);
+		// The review's acceptance pins the screenshots to GUI scale 2 (the spec's measurements
+		// are CSS px at 1080p / scale 2).
+		double guiScale = context.computeOnClient(mc -> mc.getWindow().getGuiScale());
+		check(guiScale == 2.0, "menu screenshots must be taken at GUI scale 2, got " + guiScale);
+
+		titleShellScreenshot(context);
+		blockedCardOnTitleScreen(context);
+
 		// Keybinds only fire in-game with no screen open, so test the menu from a world like a player would.
 		try (TestSingleplayerContext world = context.worldBuilder().create()) {
 			world.getConnection().waitForChunksRender();
@@ -55,15 +69,32 @@ public class ImperiumMenuGameTest implements FabricClientGameTest {
 			int total = context.computeOnClient(mc -> menu(mc).visibleEntries().size());
 			check(total > 20, "menu should list the client's modules, got " + total);
 
-			// Carved cards resolve real item sprites for modules that map onto one.
-			int withIcons = context.computeOnClient(mc -> (int) menu(mc).visibleEntries().stream()
-				.filter(e -> CarvedTheme.iconFor(e) != null).count());
-			check(withIcons >= 3, "carved theme should map several modules to item sprites, got " + withIcons);
+			// Every module card must resolve a vanilla item icon; the test fails naming the offenders.
+			List<String> missing = context.computeOnClient(mc -> {
+				List<String> offenders = new ArrayList<>();
+				for (MenuEntry e : menu(mc).visibleEntries()) {
+					if (CarvedTheme.iconFor(e) == null) {
+						offenders.add(e.name());
+					}
+				}
+				return offenders;
+			});
+			check(missing.isEmpty(), "every module card needs an item icon, missing: " + missing);
+			// The keyword mapping must stay broad, not everything on the category fallback.
+			int specific = context.computeOnClient(mc -> (int) menu(mc).visibleEntries().stream()
+				.filter(e -> CarvedTheme.specificIconFor(e) != null).count());
+			check(specific * 2 >= total, "at least half the modules should map to a specific item, got " + specific + "/" + total);
 
-			// Selecting a sidebar category shows the carved selected marker.
+			// Selecting a sidebar category moves the sliding pill.
 			clickGui(context, context.computeOnClient(mc -> menu(mc).categoryCenter(MenuCategory.RENDER)));
 			context.waitTicks(3);
 			context.takeScreenshot("imperium-menu-category");
+
+			// The category segments filter the same way.
+			clickGui(context, context.computeOnClient(mc -> menu(mc).segmentCenter(MenuCategory.CHAT)));
+			context.waitTicks(3);
+			check(context.computeOnClient(mc -> menu(mc).visibleEntries().stream()
+				.allMatch(e -> e.category() == MenuCategory.CHAT)), "the CHAT segment should filter to chat modules");
 
 			// The FPS card lives in the HUD category, so return to ALL before searching.
 			clickGui(context, context.computeOnClient(mc -> menu(mc).categoryCenter(MenuCategory.ALL)));
@@ -85,15 +116,46 @@ public class ImperiumMenuGameTest implements FabricClientGameTest {
 			check(after, "clicking the disabled FPS card should enable it");
 			context.takeScreenshot("imperium-menu-toggled");
 
-			// CLASSIC is the fallback theme; prove it still renders and returns.
+			// The power glyph toggles like the card body.
+			clickGui(context, context.computeOnClient(mc -> menu(mc).cardPowerCenter(fpsIndex)));
+			context.waitTicks(3);
+			check(!context.computeOnClient(mc -> menu(mc).visibleEntries().get(fpsIndex).enabled()),
+				"the power glyph should toggle the module off again");
+
+			// Pinning sorts the card first and shows the pin tag; unpinning restores the order.
+			clickGui(context, context.computeOnClient(mc -> menu(mc).cardPinCenter(fpsIndex)));
+			context.waitTicks(3);
+			check(context.computeOnClient(mc -> menu(mc).visibleEntries().get(0).name().toLowerCase().contains("fps")),
+				"pinning the FPS card should sort it first");
+			context.takeScreenshot("imperium-menu-pinned");
+			clickGui(context, context.computeOnClient(mc -> {
+				int idx = indexOfAny(menu(mc), "fps");
+				return menu(mc).cardPinCenter(idx);
+			}));
+			context.waitTicks(3);
+			// Clear the search so the whole grid is back before asserting the sort order.
+			context.runOnClient(mc -> menu(mc).setSearchQuery(""));
+			context.waitTicks(2);
+			int fpsFull = context.computeOnClient(mc -> indexOf(menu(mc), "fps"));
+			check(fpsFull > 0, "unpinning should restore the alphabetical order");
+
+			// CARVED and CLASSIC are the fallback themes; prove they still render and return.
+			setTheme(context, MenuTheme.CARVED);
+			context.waitTicks(3);
+			context.takeScreenshot("imperium-menu-carved");
 			setTheme(context, MenuTheme.CLASSIC);
 			context.waitTicks(3);
 			context.takeScreenshot("imperium-menu-classic");
-			setTheme(context, MenuTheme.CARVED);
+			setTheme(context, MenuTheme.IMPERIUM);
 			context.waitTicks(3);
 
 			// The gear now opens the module's settings INLINE over the card grid, not a new screen.
-			clickGui(context, context.computeOnClient(mc -> menu(mc).cardGearCenter(fpsIndex)));
+			// Re-search so the FPS card is the (visible) first card before clicking its gear.
+			context.runOnClient(mc -> menu(mc).setSearchQuery("fps"));
+			context.waitTicks(2);
+			int fpsCard = context.computeOnClient(mc -> indexOfAny(menu(mc), "fps"));
+			check(fpsCard >= 0, "searching \"fps\" should show the FPS card again");
+			clickGui(context, context.computeOnClient(mc -> menu(mc).cardGearCenter(fpsCard)));
 			context.waitTicks(3);
 			check(context.computeOnClient(mc -> menu(mc).isSettingsPanelOpen()), "the gear click should open the inline settings panel");
 			int[] fpsPanel = context.computeOnClient(mc -> {
@@ -110,10 +172,12 @@ public class ImperiumMenuGameTest implements FabricClientGameTest {
 			check(!context.computeOnClient(mc -> menu(mc).isSettingsPanelOpen()), "ESC should close the settings panel, not the menu");
 			check(context.computeOnClient(mc -> mc.gui.screen() instanceof ImperiumMenuScreen), "the menu should survive ESC closing the panel");
 			context.runOnClient(mc -> fpsHud().setEnabled(false));
-			clickGui(context, context.computeOnClient(mc -> menu(mc).cardBodyCenter(fpsIndex)));
+			clickGui(context, context.computeOnClient(mc -> menu(mc).cardBodyCenter(fpsCard)));
 			context.waitTicks(3);
-			check(context.computeOnClient(mc -> menu(mc).visibleEntries().get(fpsIndex).enabled()),
-				"clicking the FPS card should still toggle it after the panel closed");
+			check(context.computeOnClient(mc -> {
+				int idx = indexOfAny(menu(mc), "fps");
+				return idx >= 0 && menu(mc).visibleEntries().get(idx).enabled();
+			}), "clicking the FPS card should still toggle it after the panel closed");
 
 			// A long option list scrolls inside the panel and survives a window resize.
 			context.runOnClient(mc -> menu(mc).setSearchQuery("minimap"));
@@ -128,10 +192,9 @@ public class ImperiumMenuGameTest implements FabricClientGameTest {
 			setTheme(context, MenuTheme.CLASSIC);
 			context.waitTicks(2);
 			context.takeScreenshot("imperium-menu-settings-classic");
-			setTheme(context, MenuTheme.CARVED);
+			setTheme(context, MenuTheme.IMPERIUM);
 			context.waitTicks(2);
 			int[] band = context.computeOnClient(mc -> menu(mc).settingsScrollCenter());
-			double guiScale = context.computeOnClient(mc -> mc.getWindow().getGuiScale());
 			context.getInput().setCursorPos(band[0] * guiScale, band[1] * guiScale);
 			context.getInput().scroll(0, -8);
 			context.waitTicks(3);
@@ -198,6 +261,58 @@ public class ImperiumMenuGameTest implements FabricClientGameTest {
 			int movedX = context.computeOnClient(mc -> fpsHud().getTrueBounds().x() + fpsHud().getTrueBounds().width() / 2);
 			check(Math.abs(movedX - start[0]) >= 20, "dragging the FPS HUD should move it (from x=" + start[0] + " to " + movedX + ")");
 			context.takeScreenshot("imperium-hud-editor-dragged");
+		}
+	}
+
+	/**
+	 * The v3 title shell: constructing a vanilla TitleScreen must swap in the Imperium layout
+	 * (TitleScreenMixin), and the live player-count parser handles real and broken payloads.
+	 */
+	private void titleShellScreenshot(ClientGameTestContext context) {
+		try {
+			context.setScreen(() -> new TitleScreen());
+			context.waitTicks(5);
+			check(context.computeOnClient(mc -> mc.gui.screen() instanceof ImperiumTitleScreen),
+				"a vanilla TitleScreen should be swapped for the Imperium title shell");
+			context.waitTicks(10);
+			context.takeScreenshot("imperium-title");
+			String parsed = ImperiumTitleScreen.parsePlayerCount("{\"players\":{\"online\":12,\"max\":50}}");
+			check("12 / 50".equals(parsed), "the status parser should read players.online/max, got " + parsed);
+			check(ImperiumTitleScreen.parsePlayerCount("<html>offline</html>") == null,
+				"the status parser should fail gracefully on a non-JSON body");
+		} finally {
+			context.setScreen(() -> null);
+			context.waitTicks(2);
+		}
+	}
+
+	/**
+	 * With no world open, an ungranted gated module is server-blocked: the card renders the
+	 * blocked state (red tint, block glyph, reason line) and cannot be toggled.
+	 */
+	private void blockedCardOnTitleScreen(ClientGameTestContext context) {
+		try {
+			ImperiumClientSession.getInstance().reset();
+			context.setScreen(() -> new ImperiumMenuScreen(null));
+			context.waitForScreen(ImperiumMenuScreen.class);
+			context.waitTicks(5);
+			context.runOnClient(mc -> menu(mc).setSearchQuery("autofish"));
+			context.waitTicks(3);
+			int fishIndex = context.computeOnClient(mc -> indexOfAny(menu(mc), "autofish"));
+			check(fishIndex >= 0, "searching \"autofish\" should show the auto-fish card");
+			check(context.computeOnClient(mc -> menu(mc).isCardBlocked(fishIndex)),
+				"the auto-fish card should render blocked without a server grant");
+			check(!context.computeOnClient(mc -> menu(mc).visibleEntries().get(fishIndex).enabled()),
+				"a blocked module must not read as enabled");
+			clickGui(context, context.computeOnClient(mc -> menu(mc).cardBodyCenter(fishIndex)));
+			context.waitTicks(3);
+			check(!context.computeOnClient(mc -> menu(mc).visibleEntries().get(fishIndex).enabled()),
+				"clicking a blocked card must not enable the module");
+			context.takeScreenshot("imperium-menu-blocked");
+		} finally {
+			context.setScreen(() -> null);
+			context.waitTicks(2);
+			ImperiumClientSession.getInstance().reset();
 		}
 	}
 

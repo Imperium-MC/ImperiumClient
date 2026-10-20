@@ -198,10 +198,12 @@ public abstract class AxolotlClientConfigCommon {
 	}
 
 	/**
-	 * Visual identity of the Imperium module menu: the carved chiseled-stone and bronze theme
-	 * (W4-A), or the flat dark-and-gold look the menu shipped with.
+	 * Visual identity of the Imperium module menu: the UI v3 Imperium theme (bronze on warm
+	 * dark, docs/design/README.md), with the carved chiseled-stone theme and the original flat
+	 * dark-and-gold look kept as fallbacks.
 	 */
 	public enum MenuTheme {
+		IMPERIUM,
 		CARVED,
 		CLASSIC;
 
@@ -347,8 +349,11 @@ public abstract class AxolotlClientConfigCommon {
 	public final EnumOption<MenuButtonMode> titleScreenOptionButtonMode = new EnumOption<>("title_screen_button_mode", MenuButtonMode.class, MenuButtonMode.MODMENU);
 	public final EnumOption<MenuButtonMode> gameMenuScreenOptionButtonMode = new EnumOption<>("game_menu_screen_button_mode", MenuButtonMode.class, MenuButtonMode.MODMENU);
 
-	// menu.theme (W4-A): carved imperial identity is the default, the previous look stays as fallback.
-	public final EnumOption<MenuTheme> menuTheme = new EnumOption<>("menu.theme", MenuTheme.class, MenuTheme.CARVED);
+	// menu.theme: Imperium (UI v3) is the default, CARVED/CLASSIC stay as fallbacks.
+	public final EnumOption<MenuTheme> menuTheme = new EnumOption<>("menu.theme", MenuTheme.class, MenuTheme.IMPERIUM);
+
+	// Spec "Reduce motion": disables every menu animation (nav pill slide, hover colour/scale).
+	public final BooleanOption menuReduceMotion = new BooleanOption("menu.reduce_motion", false);
 
 	public DateTimeFormatter dateTimeFormatter;
 
@@ -383,6 +388,7 @@ public abstract class AxolotlClientConfigCommon {
 		general.add(titleScreenOptionButtonMode);
 		general.add(gameMenuScreenOptionButtonMode);
 		general.add(menuTheme);
+		general.add(menuReduceMotion);
 		general.add(confirmDisconnect);
 
 		timeChanger.add(timeChangerEnabled);
