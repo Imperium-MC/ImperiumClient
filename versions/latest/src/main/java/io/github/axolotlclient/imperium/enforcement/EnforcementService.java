@@ -58,9 +58,9 @@ import net.minecraft.world.effect.MobEffects;
  * <p><strong>Scope rule (non-negotiable):</strong> the layer is completely inert unless the
  * connection's address matches the configured allowlist (hostname suffix match, dot boundary,
  * default exactly imperiummc.net / play.imperiummc.net). In singleplayer, on LAN (memory
- * connections never match), and on every other server no packet of any kind is touched. When
- * the master toggle is off the same inertness applies everywhere — the honest fallback is a
- * normal modded client under the server's normal anticheat.</p>
+ * connections never match), and on every other server no packet of any kind is touched. There is
+ * no player-facing master toggle: enforcement on an ImperiumMC server is server policy, not a
+ * client setting (issue #15 item 11).</p>
  *
  * <p>Three enforcement functions while in scope:</p>
  * <ol>
@@ -160,12 +160,15 @@ public final class EnforcementService {
 	// ── Scope ───────────────────────────────────────────────────────────────────
 
 	/**
-	 * True when this connection is an enforced connection: master toggle on, not a memory
-	 * connection, and the remote address matches the allowlist. The decision is computed once
-	 * per connection and cached; off-scope connections cost one map lookup per packet.
+	 * True when this connection is an enforced connection: not a memory connection, and the remote
+	 * address matches the allowlist. The decision is computed once per connection and cached;
+	 * off-scope connections cost one map lookup per packet.
+	 *
+	 * <p>There is no player-facing toggle to widen this: server rules are not user-disableable
+	 * (issue #15 item 11), so scope is exactly the structural conditions above.</p>
 	 */
 	public boolean isConnectionInScope(Connection connection) {
-		if (!EnforcementConfig.enabled.get() || connection == null || connection.isMemoryConnection()) {
+		if (connection == null || connection.isMemoryConnection()) {
 			return false;
 		}
 		Boolean cached;
