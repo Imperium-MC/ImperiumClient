@@ -217,21 +217,32 @@ object CarvedTheme {
 	}
 
 	/**
-	 * The item sprite shown in a card's icon slot for modules that map naturally onto an item
-	 * (fishing rod for auto-fish, map for the minimap, clock for time...). Modules without a solid
-	 * mapping get the empty carved slot instead — no filler glyphs.
+	 * The item sprite shown in a card's icon well. The v3 spec demands EVERY module resolves a
+	 * vanilla item (a gametest fails if any does not), so this never returns null: modules with
+	 * a keyword hit get their natural item, and the rest fall back to a per-category item.
 	 */
 	@JvmStatic
-	fun iconFor(entry: MenuEntry): ItemStack? {
+	fun iconFor(entry: MenuEntry): ItemStack =
+		specificIconFor(entry) ?: categoryDefaultIcon(entry.category())
+
+	/**
+	 * The keyword-matched item for a module, or null when nothing matched — used by the
+	 * gametest to prove the specific mapping stays broad (not everything on the fallback).
+	 */
+	@JvmStatic
+	fun specificIconFor(entry: MenuEntry): ItemStack? {
 		val id = (entry.id() + " " + entry.name()).lowercase(Locale.ROOT)
 		if (contains(id, "autofish", "auto_fish", "auto fish")) return ItemStack(Items.FISHING_ROD)
 		if (contains(id, "minimap")) return ItemStack(Items.FILLED_MAP)
 		if (contains(id, "zoom")) return ItemStack(Items.SPYGLASS)
-		if (contains(id, "time")) return ItemStack(Items.CLOCK)
+		if (contains(id, "irltime", "time")) return ItemStack(Items.CLOCK)
+		if (contains(id, "stopwatch", "watch")) return ItemStack(Items.CLOCK)
+		if (contains(id, "day")) return ItemStack(Items.SUNFLOWER)
 		if (contains(id, "weather", "rain", "snow")) return ItemStack(Items.SNOWBALL)
-		if (contains(id, "nametag")) return ItemStack(Items.NAME_TAG)
+		if (contains(id, "nametag", "title")) return ItemStack(Items.NAME_TAG)
 		if (contains(id, "outline")) return ItemStack(Items.SPECTRAL_ARROW)
-		if (contains(id, "fullbright", "brightness")) return ItemStack(Items.GLOWSTONE)
+		if (contains(id, "fullbright", "brightness", "lightlevel", "light level")) return ItemStack(Items.GLOWSTONE)
+		if (contains(id, "shroomlight")) return ItemStack(Items.SHROOMLIGHT)
 		if (contains(id, "waypoint")) return ItemStack(Items.RECOVERY_COMPASS)
 		if (contains(id, "keystroke")) return ItemStack(Items.STONE_BUTTON)
 		if (contains(id, "compass")) return ItemStack(Items.COMPASS)
@@ -242,12 +253,58 @@ object CarvedTheme {
 		if (contains(id, "food", "hunger")) return ItemStack(Items.COOKED_BEEF)
 		if (contains(id, "health", "heart")) return ItemStack(Items.GOLDEN_APPLE)
 		if (contains(id, "arrow")) return ItemStack(Items.ARROW)
-		if (contains(id, "experience", " xp")) return ItemStack(Items.EXPERIENCE_BOTTLE)
-		if (contains(id, "tnt")) return ItemStack(Items.TNT)
+		if (contains(id, "experience", "levelhead", "xp")) return ItemStack(Items.EXPERIENCE_BOTTLE)
+		if (contains(id, "tnt", "explosion")) return ItemStack(Items.TNT)
 		if (contains(id, "farming", "crop")) return ItemStack(Items.WHEAT)
-		if (contains(id, "inventory")) return ItemStack(Items.HOPPER)
-		if (contains(id, "chat")) return ItemStack(Items.WRITABLE_BOOK)
+		if (contains(id, "inventory", "itemupdate", "item update")) return ItemStack(Items.HOPPER)
+		if (contains(id, "chest")) return ItemStack(Items.CHEST)
+		if (contains(id, "chat", "quick")) return ItemStack(Items.WRITABLE_BOOK)
+		if (contains(id, "fps")) return ItemStack(Items.GLOWSTONE_DUST)
+		if (contains(id, "ping")) return ItemStack(Items.ENDER_PEARL)
+		if (contains(id, "cps")) return ItemStack(Items.SHEARS)
+		if (contains(id, "sprint", "speed")) return ItemStack(Items.SUGAR)
+		if (contains(id, "memory")) return ItemStack(Items.AMETHYST_SHARD)
+		if (contains(id, "obsidian")) return ItemStack(Items.OBSIDIAN)
+		if (contains(id, "player")) return ItemStack(Items.PLAYER_HEAD)
+		if (contains(id, "reach")) return ItemStack(Items.TRIDENT)
+		if (contains(id, "info", "subtitle", "scoreboard", "actionbar")) return ItemStack(Items.OAK_SIGN)
+		if (contains(id, "tps")) return ItemStack(Items.COMPARATOR)
+		if (contains(id, "combo")) return ItemStack(Items.IRON_SWORD)
+		if (contains(id, "hotbar")) return ItemStack(Items.BUNDLE)
+		if (contains(id, "cooldown")) return ItemStack(Items.PACKED_ICE)
+		if (contains(id, "boost")) return ItemStack(Items.RABBIT_FOOT)
+		if (contains(id, "legion")) return ItemStack(Items.SHIELD)
+		if (contains(id, "debug")) return ItemStack(Items.REPEATER)
+		if (contains(id, "iconhud")) return ItemStack(Items.ITEM_FRAME)
+		if (contains(id, "mouse")) return ItemStack(Items.FEATHER)
+		if (contains(id, "media", "nowplaying", "now playing")) return ItemStack(Items.MUSIC_DISC_CAT)
+		if (contains(id, "freelook", "snaplook")) return ItemStack(Items.ENDER_EYE)
+		if (contains(id, "blur")) return ItemStack(Items.GLASS_PANE)
+		if (contains(id, "beam")) return ItemStack(Items.END_ROD)
+		if (contains(id, "particle")) return ItemStack(Items.BLAZE_POWDER)
+		if (contains(id, "macro")) return ItemStack(Items.COMMAND_BLOCK)
+		if (contains(id, "cosmetic")) return ItemStack(Items.LEATHER_HELMET)
+		if (contains(id, "hitbox")) return ItemStack(Items.SHULKER_BOX)
+		if (contains(id, "chunk")) return ItemStack(Items.STRUCTURE_BLOCK)
+		if (contains(id, "nick")) return ItemStack(Items.PLAYER_HEAD)
+		if (contains(id, "bedwars")) return ItemStack(Items.STRAW_BED)
+		if (contains(id, "scroll")) return ItemStack(Items.PAPER)
+		if (contains(id, "performance")) return ItemStack(Items.REDSTONE_TORCH)
+		if (contains(id, "iphud", "ip hud")) return ItemStack(Items.PAPER)
 		return null
+	}
+
+	/** The per-category fallback item: every module resolves one even without a keyword hit. */
+	@JvmStatic
+	fun categoryDefaultIcon(category: MenuCategory): ItemStack = when (category) {
+		MenuCategory.HUD -> ItemStack(Items.REPEATER)
+		MenuCategory.RENDER -> ItemStack(Items.ITEM_FRAME)
+		MenuCategory.CHAT -> ItemStack(Items.WRITABLE_BOOK)
+		MenuCategory.WORLD -> ItemStack(Items.GRASS_BLOCK)
+		MenuCategory.UTILITY -> ItemStack(Items.LEVER)
+		MenuCategory.AUTOMATION -> ItemStack(Items.REDSTONE)
+		MenuCategory.SERVER -> ItemStack(Items.BEACON)
+		MenuCategory.ALL -> ItemStack(Items.BARREL)
 	}
 
 	private fun contains(haystack: String, vararg needles: String): Boolean {

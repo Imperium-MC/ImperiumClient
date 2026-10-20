@@ -31,11 +31,14 @@ import io.github.axolotlclient.AxolotlClient
 import io.github.axolotlclient.AxolotlClientCommon
 import io.github.axolotlclient.AxolotlClientConfig.api.options.Option
 import io.github.axolotlclient.AxolotlClientConfig.api.options.OptionCategory
+import io.github.axolotlclient.AxolotlClientConfig.impl.options.BooleanOption
 import io.github.axolotlclient.AxolotlClientConfig.impl.util.ConfigStyles
 import io.github.axolotlclient.AxolotlClientConfigCommon
 import io.github.axolotlclient.bridge.render.AxoRenderContext
 import io.github.axolotlclient.bridge.util.AxoI18n
 import io.github.axolotlclient.config.screen.ProfilesScreen
+import io.github.axolotlclient.imperium.ServerGating
+import io.github.axolotlclient.imperium.theme.ImperiumTheme as Theme
 import io.github.axolotlclient.modules.hud.HudEditScreen
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.AbstractWidget
@@ -44,18 +47,24 @@ import net.minecraft.client.gui.components.EditBox
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.KeyEvent
 import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.network.chat.Component
 import net.minecraft.util.Mth
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
- * Alpine-style module menu: category sidebar, search, and a grid of module cards. Clicking a card
- * toggles the module; its gear opens the module's settings INLINE — an overlay panel drawn over the
- * card grid, built from the same themed widgets Axolotl's config screens use.
+ * The Imperium module menu, UI v3 (docs/design/README.md): a full-screen shell with a 270px
+ * sidebar (135 GUI px), category segments, search and an enabled-count badge, and a 3-column
+ * grid of module cards in four states (default / hover / enabled / blocked-by-server). Clicking
+ * a card toggles the module; its gear opens the module's settings INLINE — v3 setting rows
+ * (44 CSS px / 22 GUI px, section headers, half-width boolean pairs, a reset icon per row)
+ * built from the same ConfigStyles widgets Axolotl's config screens use.
  *
- * Two themes: CARVED (default) paints the carved imperial identity from [CarvedTheme] —
- * chiseled stone panels, bronze hairlines, engraved capitals and item sprites in the cards; CLASSIC
- * keeps the flat dark-and-gold look the menu originally shipped with.
+ * All v3 sizes are the spec's CSS measurements halved (the mockups are 1920x1080 CSS px =
+ * GUI px at 1080p / GUI scale 2), so item icons land on their native 16px sprite.
+ *
+ * The older CARVED (chiseled stone, [CarvedTheme]) and CLASSIC (flat dark-and-gold) themes
+ * keep their original centered-panel rendering as fallbacks.
  */
 class ImperiumMenuScreen(private val parent: Screen?) :
 	Screen(Component.translatable("imperium.menu.title")) {
@@ -87,9 +96,29 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 	private lateinit var profilesButton: Button
 	private lateinit var allSettingsButton: Button
 
-	// The inline settings panel. While open, the card grid is not drawn and the search box /
-	// footer buttons are parked (removed from the widget tree) so nothing steals input or peeks
-	// out from under the panel; closing restores them and saves the config.
+	// v3 adaptive metrics (recomputed in init: the sidebar compresses on short windows and the
+	// segment chips wrap when the content column cannot hold them in one row).
+	private var navItemH = V3_NAV_H
+	private var navGap = V3_NAV_GAP
+	private var navTop = 0
+	private var footerCompact = false
+	private var navScroll = 0.0
+	private var segmentBands = 1
+
+	/** x/y of each segment chip, indexed by [MenuCategory] ordinal. */
+	private var segmentPos = arrayOfNulls<IntArray>(0)
+
+	// v3 motion state: the sliding nav pill and per-card hover fades.
+	private var pillFromY = 0f
+	private var pillY = 0f
+	private var pillStartMs = 0L
+	private var pillInit = false
+	private val hoverT = HashMap<String, Float>()
+	private var lastFrameMs = 0L
+
+	// The inline settings panel. While open, the card grid is not drawn and the search box
+	// is parked (removed from the widget tree) so nothing steals input or peeks out from
+	// under the panel; closing restores it and saves the config.
 	private var settingsEntry: MenuEntry? = null
 	private val settingsRows = ArrayList<SettingsRow>()
 	private var settingsScroll = 0.0
@@ -107,6 +136,39 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 		panelX = (width - panelW) / 2
 		panelY = (height - panelH) / 2
 
+		if (v3()) {
+			layoutV3Sidebar()
+			layoutV3Segments()
+			search = EditBox(
+				font, searchX() + V3_SEARCH_ICON_W + 4, searchY() + 4,
+				V3_SEARCH_W - V3_SEARCH_ICON_W - 12, V3_SEARCH_H - 8,
+				Component.translatable("imperium.menu.search")
+			)
+			search.setHint(Component.translatable("imperium.menu.search"))
+			search.setBordered(false)
+			search.setTextColor(Theme.TEXT)
+			search.setValue(query)
+			search.setResponder { value: String ->
+				query = value
+				scroll = 0.0
+				refilter()
+			}
+			if (settingsEntry == null) {
+				addRenderableWidget(search)
+				// Typing should search straight away.
+				setInitialFocus(search)
+			} else {
+				// Window resized while the settings panel is open: rebuild its widgets at the
+				// new layout but keep the panel (and the scroll position) open.
+				buildSettingsRows(settingsEntry!!.settings())
+				addSettingsWidgets()
+				clampSettingsScroll()
+				layoutSettingsWidgets()
+			}
+			refilter()
+			return
+		}
+
 		search = EditBox(font, panelX + panelW - 138, panelY + 7, 130, 16, Component.translatable("imperium.menu.search"))
 		search.setHint(Component.translatable("imperium.menu.search"))
 		search.setValue(query)
@@ -119,31 +181,24 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 		val buttonX = panelX + SIDEBAR_W + GAP
 		editHudButton = Button.builder(
 			Component.translatable("imperium.menu.edit_hud"),
-			{ _: net.minecraft.client.gui.components.Button -> minecraft!!.gui.setScreen(HudEditScreen(this)) }
+			{ _: Button -> minecraft!!.gui.setScreen(HudEditScreen(this)) }
 		).bounds(buttonX, buttonY, 80, 20).build()
 		profilesButton = Button.builder(
 			Component.translatable("imperium.menu.profiles"),
-			{ _: net.minecraft.client.gui.components.Button -> minecraft!!.gui.setScreen(ProfilesScreen(this)) }
+			{ _: Button -> minecraft!!.gui.setScreen(ProfilesScreen(this)) }
 		).bounds(buttonX + 84, buttonY, 80, 20).build()
 		allSettingsButton = Button.builder(
 			Component.translatable("imperium.menu.all_settings"),
-			{ _: net.minecraft.client.gui.components.Button ->
-				minecraft!!.gui.setScreen(
-					ConfigStyles.createScreen(this, AxolotlClientCommon.getInstance().configManager.root)
-				)
-			}
+			{ _: Button -> minecraft!!.gui.setScreen(ConfigStyles.createScreen(this, AxolotlClientCommon.getInstance().configManager.root)) }
 		).bounds(buttonX + 168, buttonY, 90, 20).build()
 
 		if (settingsEntry == null) {
 			addRenderableWidget(search)
-			// Typing should search straight away.
 			setInitialFocus(search)
 			addRenderableWidget(editHudButton)
 			addRenderableWidget(profilesButton)
 			addRenderableWidget(allSettingsButton)
 		} else {
-			// Window resized while the settings panel is open: rebuild its widgets at the new
-			// layout but keep the panel (and the scroll position) open.
 			buildSettingsRows(settingsEntry!!.settings())
 			addSettingsWidgets()
 			clampSettingsScroll()
@@ -154,67 +209,210 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 	}
 
 	private fun refilter() {
-		visible = allEntries.stream()
+		visible = allEntries
 			.filter { e: MenuEntry -> category == MenuCategory.ALL || e.category() == category }
 			.filter { e: MenuEntry -> e.matches(query) }
-			.toList()
+			.sortedWith(compareByDescending<MenuEntry> { pinnedIds.contains(it.id()) }.thenBy { it.name().lowercase(Locale.ROOT) })
 		scroll = Mth.clamp(scroll, 0.0, maxScroll())
 	}
 
-	// layout
+	private fun v3(): Boolean =
+		AxolotlClient.config().menuTheme.get() == AxolotlClientConfigCommon.MenuTheme.IMPERIUM
 
-	private fun contentX(): Int = panelX + SIDEBAR_W + GAP
+	private fun reduceMotion(): Boolean = AxolotlClient.config().menuReduceMotion.get()
 
-	private fun contentY(): Int = panelY + HEADER_H + GAP
+	// ── v3 geometry ──────────────────────────────────────────────────────────────────────────
 
-	private fun contentW(): Int = panelW - SIDEBAR_W - GAP * 2
+	/** Chooses the sidebar's density: full spec sizes, or compressed when the window is short. */
+	private fun layoutV3Sidebar() {
+		navTop = V3_PAD + V3_HEADER_H + V3_NAV_TOP
+		val navCount = MenuCategory.entries.size
+		footerCompact = height < 460
+		val footerBlock = if (footerCompact) V3_PILL_COMPACT else 3 * V3_PILL_H + 2 * V3_PILL_GAP
+		val available = height - navTop - footerBlock - V3_PILL_TOP - V3_PAD
+		var itemH = V3_NAV_H
+		var gap = V3_NAV_GAP
+		if (navCount * itemH + (navCount - 1) * gap > available) {
+			gap = 2
+			itemH = Mth.clamp((available - (navCount - 1) * gap) / navCount, 16, V3_NAV_H)
+		}
+		navItemH = itemH
+		navGap = gap
+		navScroll = 0.0
+	}
 
-	private fun contentH(): Int = panelH - HEADER_H - FOOTER_H - GAP
+	/** Packs the category chips into centred rows that fit the content column. */
+	private fun layoutV3Segments() {
+		val labels = segmentLabels()
+		val widths = labels.map { font.width(it) + V3_SEG_PAD * 2 }
+		val maxRowW = contentW()
+		val pos = arrayOfNulls<IntArray>(labels.size)
+		var row = 0
+		var rowStart = 0
+		var i = 1
+		while (i <= labels.size) {
+			val rowW = (rowStart until i).sumOf { widths[it] } + (i - rowStart - 1) * V3_SEG_GAP
+			if (i == labels.size || rowW + widths[i] + V3_SEG_GAP > maxRowW) {
+				// centre this row [rowStart, i)
+				val used = (rowStart until i).sumOf { widths[it] } + (i - rowStart - 1) * V3_SEG_GAP
+				var x = V3_SIDEBAR_W + (maxRowW - used) / 2
+				for (j in rowStart until i) {
+					pos[j] = intArrayOf(x, bandY() + row * (V3_SEG_H + V3_SEG_GAP))
+					x += widths[j] + V3_SEG_GAP
+				}
+				row++
+				rowStart = i
+			}
+			i++
+		}
+		segmentPos = pos
+		segmentBands = row
+	}
 
-	private fun columns(): Int = max(2, (contentW() + GAP) / (120 + GAP))
+	private fun segmentLabels(): List<String> =
+		MenuCategory.entries.map { c: MenuCategory -> Component.translatable(c.translationKey()).string }
 
-	private fun cardW(): Int = (contentW() - GAP * (columns() - 1)) / columns()
+	private fun searchX(): Int = width - V3_CONTENT_PAD - V3_SEARCH_W
 
-	private fun cardX(index: Int): Int = contentX() + (index % columns()) * (cardW() + GAP)
+	private fun searchY(): Int = V3_HEADER_Y + 2
 
-	private fun cardY(index: Int): Int = contentY() + (index / columns()) * (CARD_H + GAP) - scroll.toInt()
+	/** First chip row's y; the settings back pill shares this line. */
+	private fun bandY(): Int = V3_CONTENT_Y + V3_CONTENT_PAD_TOP
+
+	private fun contentX(): Int = if (v3()) V3_SIDEBAR_W + V3_CONTENT_PAD else panelX + SIDEBAR_W + GAP
+
+	private fun contentY(): Int = if (v3()) V3_CONTENT_Y else panelY + HEADER_H + GAP
+
+	private fun contentW(): Int =
+		if (v3()) width - V3_SIDEBAR_W - V3_CONTENT_PAD * 2 else panelW - SIDEBAR_W - GAP * 2
+
+	/** The cards/rows list starts below the segment chips (or the back pill line). */
+	private fun listTopInset(): Int = V3_CONTENT_PAD_TOP + segmentBands * (V3_SEG_H + V3_SEG_GAP) + 6
+
+	private fun contentH(): Int =
+		if (v3()) height - contentY() - listTopInset() - V3_LIST_BOTTOM_PAD
+		else panelH - HEADER_H - FOOTER_H - GAP
+
+	private fun columns(): Int {
+		if (!v3()) {
+			return max(2, (contentW() + GAP) / (120 + GAP))
+		}
+		return if (contentW() >= 3 * V3_MIN_CARD_W + 2 * V3_CARD_GAP) 3 else 2
+	}
+
+	private fun cardH(): Int = if (v3()) V3_CARD_H else CARD_H
+
+	private fun cardGap(): Int = if (v3()) V3_CARD_GAP else GAP
+
+	private fun cardW(): Int = (contentW() - cardGap() * (columns() - 1)) / columns()
+
+	private fun cardX(index: Int): Int = contentX() + (index % columns()) * (cardW() + cardGap())
+
+	private fun cardY(index: Int): Int = contentY() + listTopInset() + (index / columns()) * (cardH() + cardGap()) - scroll.toInt()
 
 	private fun maxScroll(): Double {
 		val rows = (visible.size + columns() - 1) / columns()
-		return max(0.0, rows * (CARD_H + GAP) - GAP - contentH().toDouble())
+		return max(0.0, rows * (cardH() + cardGap()) - cardGap() - contentH().toDouble())
 	}
 
 	private fun inContent(x: Double, y: Double): Boolean =
 		x >= contentX() && x < contentX() + contentW() && y >= contentY() && y < contentY() + contentH()
 
-	@VisibleForTesting
-	fun visibleEntries(): List<MenuEntry> = visible
+	// v3 card internals (relative to the card's top-left).
 
-	/** Centre of the card body (away from the gear), in GUI coordinates. */
-	@VisibleForTesting
-	fun cardBodyCenter(index: Int): IntArray = intArrayOf(cardX(index) + cardW() / 3, cardY(index) + CARD_H / 2)
+	private fun wellX(x: Int): Int = x + 8
 
-	/** Centre of the card's settings gear, in GUI coordinates. */
-	@VisibleForTesting
-	fun cardGearCenter(index: Int): IntArray =
-		intArrayOf(cardX(index) + cardW() - GEAR_SIZE / 2 - 5, cardY(index) + CARD_H - GEAR_SIZE / 2 - 4)
+	private fun wellY(y: Int): Int = y + (cardH() - V3_WELL) / 2
 
-	/** Centre of a sidebar category row, in GUI coordinates. */
-	@VisibleForTesting
-	fun categoryCenter(target: MenuCategory): IntArray {
+	private fun cardNameRight(x: Int): Int = x + cardW() - 8
+
+	private fun cardTagX(x: Int): Int = x + 8 + V3_WELL + 5
+
+	/** X of an action glyph's left edge, left to right: power, pin, settings. */
+	private fun actionX(x: Int, which: Int): Int = x + cardW() - 8 - (2 - which) * 15 - 10
+
+	private fun actionY(y: Int): Int = y + cardH() - 12
+
+	// v3 nav geometry.
+
+	private fun navIndex(target: MenuCategory): Int {
 		var index = 0
 		for (c in MenuCategory.entries) {
 			if (c == target) break
 			index++
 		}
-		val y = panelY + HEADER_H + 6 + index * ROW_H
-		return intArrayOf(panelX + SIDEBAR_W / 2, y + ROW_H / 2)
+		return index
 	}
+
+	private fun navItemY(index: Int): Int = navTop + index * (navItemH + navGap)
+
+	private fun navClipBottom(): Int = if (footerCompact) height - V3_PAD - V3_PILL_COMPACT - V3_PILL_TOP
+	else height - V3_PAD - (3 * V3_PILL_H + 2 * V3_PILL_GAP) - V3_PILL_TOP
+
+	private fun maxNavScroll(): Double {
+		val navBottom = navTop + MenuCategory.entries.size * navItemH + (MenuCategory.entries.size - 1) * navGap
+		return max(0.0, (navBottom - navClipBottom()).toDouble())
+	}
+
+	@VisibleForTesting
+	fun visibleEntries(): List<MenuEntry> = visible
+
+	/** Centre of the card body (away from the actions), in GUI coordinates. */
+	@VisibleForTesting
+	fun cardBodyCenter(index: Int): IntArray = intArrayOf(cardX(index) + cardW() / 3, cardY(index) + cardH() / 2)
+
+	/** Centre of the card's settings gear, in GUI coordinates. */
+	@VisibleForTesting
+	fun cardGearCenter(index: Int): IntArray =
+		intArrayOf(actionX(cardX(index), 2) + 5, actionY(cardY(index)) + 5)
+
+	/** Centre of the card's power glyph, in GUI coordinates. */
+	@VisibleForTesting
+	fun cardPowerCenter(index: Int): IntArray =
+		intArrayOf(actionX(cardX(index), 0) + 5, actionY(cardY(index)) + 5)
+
+	/** Centre of the card's pin glyph, in GUI coordinates. */
+	@VisibleForTesting
+	fun cardPinCenter(index: Int): IntArray =
+		intArrayOf(actionX(cardX(index), 1) + 4, actionY(cardY(index)) + 3)
+
+	/** True when the card renders in the blocked-by-server state ([ServerGating] denies it). */
+	@VisibleForTesting
+	fun isCardBlocked(index: Int): Boolean =
+		index >= 0 && index < visible.size && isBlocked(visible[index])
+
+	/** Centre of a sidebar category row, in GUI coordinates. */
+	@VisibleForTesting
+	fun categoryCenter(target: MenuCategory): IntArray {
+		if (!v3()) {
+			val index = navIndex(target)
+			val y = panelY + HEADER_H + 6 + index * ROW_H
+			return intArrayOf(panelX + SIDEBAR_W / 2, y + ROW_H / 2)
+		}
+		val y = navItemY(navIndex(target)) - navScroll.toInt()
+		return intArrayOf(V3_SIDEBAR_W / 2, y + navItemH / 2)
+	}
+
+	/** Centre of a category segment chip, in GUI coordinates (v3 only). */
+	@VisibleForTesting
+	fun segmentCenter(target: MenuCategory): IntArray {
+		val pos = segmentPos[target.ordinal] ?: intArrayOf(contentX(), bandY())
+		return intArrayOf(pos[0] + V3_SEG_PAD, pos[1] + V3_SEG_H / 2)
+	}
+
+	// gating
+
+	private fun isBlocked(entry: MenuEntry): Boolean {
+		val gateId = GATE_IDS[entry.id()] ?: return false
+		return ServerGating.tier(gateId) == ServerGating.Tier.LOCKED
+	}
+
+	private fun enabledCount(): Int = allEntries.count { it.enabled() }
 
 	// inline settings panel
 
 	/** Top of the settings panel's scrollable row band. */
-	private fun settingsScrollTop(): Int = contentY() + SETTINGS_TITLE_H
+	private fun settingsScrollTop(): Int = contentY() + listTopInset()
 
 	private fun settingsScrollBottom(): Int = contentY() + contentH()
 
@@ -223,10 +421,19 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 	private fun settingsContentHeight(): Int {
 		var y = 0
 		for (row in settingsRows) {
-			y += if (row.header != null) SETTINGS_HEADER_H else SETTINGS_ROW_H
+			y += rowAdvance(row)
 		}
 		return y
 	}
+
+	/** Vertical space a row occupies: paired rows share a band with their partner. */
+	private fun rowAdvance(row: SettingsRow): Int = when {
+		row.header != null -> settingsHeaderH()
+		row.paired -> 0
+		else -> SETTINGS_ROW_H
+	}
+
+	private fun settingsHeaderH(): Int = if (v3()) V3_SETTINGS_HEADER_H else SETTINGS_HEADER_H
 
 	private fun maxSettingsScroll(): Double =
 		max(0.0, (settingsContentHeight() - (settingsScrollBottom() - settingsScrollTop())).toDouble())
@@ -242,6 +449,13 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 	private fun overSettingsBack(x: Double, y: Double): Boolean =
 		x >= settingsBackX() && x < settingsBackX() + SETTINGS_BACK_W && y >= settingsBackY() && y < settingsBackY() + SETTINGS_BACK_H
 
+	/** Left x and width of the row's pill: full width, or one half of a boolean pair. */
+	private fun rowRect(row: SettingsRow): IntArray =
+		if (row.pairRight) intArrayOf(contentX() + halfRowW() + V3_PAIR_GAP, halfRowW())
+		else intArrayOf(contentX(), if (row.paired) halfRowW() else contentW())
+
+	private fun halfRowW(): Int = (contentW() - V3_PAIR_GAP) / 2
+
 	/**
 	 * Opens the given visible card's settings inline, over the card grid. The library widgets set
 	 * the options as soon as they are used; the config is saved when the panel closes.
@@ -253,12 +467,9 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 		if (settingsEntry != null) {
 			stripSettingsWidgets()
 		} else {
-			// Park the search box and footer buttons: while the panel is open nothing else may
-			// take input or render outside the scroll band's scissor.
+			// Park the search box: while the panel is open nothing else may take input or
+			// render outside the scroll band's scissor.
 			removeWidget(search)
-			removeWidget(editHudButton)
-			removeWidget(profilesButton)
-			removeWidget(allSettingsButton)
 		}
 		// A previously focused option widget is about to be discarded.
 		clearFocus()
@@ -277,9 +488,6 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 		settingsEntry = null
 		settingsScroll = 0.0
 		addRenderableWidget(search)
-		addRenderableWidget(editHudButton)
-		addRenderableWidget(profilesButton)
-		addRenderableWidget(allSettingsButton)
 		setInitialFocus(search)
 		AxolotlClientCommon.getInstance().saveConfig()
 	}
@@ -293,10 +501,12 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 
 	/** Number of option widgets that are live children of this screen. */
 	@VisibleForTesting
-	fun settingsWidgetCount(): Int =
-		settingsRows.count { row: SettingsRow -> row.widget != null && children().contains(row.widget) }
+	fun settingsWidgetCount(): Int = settingsRows.count { row: SettingsRow ->
+		val widget = row.widget
+		widget != null && children().contains(widget)
+	}
 
-	/** Centre of the panel's back button, in GUI coordinates. */
+	/** Centre of the panel's back button, in GUI coordinates (legacy themes). */
 	@VisibleForTesting
 	fun settingsBackCenter(): IntArray = intArrayOf(settingsBackX() + SETTINGS_BACK_W / 2, settingsBackY() + SETTINGS_BACK_H / 2)
 
@@ -317,16 +527,28 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 	private fun buildSettingsRows(category: OptionCategory) {
 		settingsRows.clear()
 		appendSettingsRows(category, 0)
+		if (v3()) {
+			// Mark half-width pairs: two consecutive boolean options share one 44px band.
+			var i = 0
+			while (i < settingsRows.size) {
+				val row = settingsRows[i]
+				if (row.option != null && row.option is BooleanOption && i + 1 < settingsRows.size &&
+					settingsRows[i + 1].header == null && settingsRows[i + 1].option is BooleanOption
+				) {
+					row.paired = true
+					settingsRows[i + 1].pairRight = true
+					i += 2
+				} else {
+					i++
+				}
+			}
+		}
 	}
 
 	private fun appendSettingsRows(category: OptionCategory, indent: Int) {
 		for (option in category.options) {
-			settingsRows.add(
-				SettingsRow(
-					null, option,
-					ConfigStyles.createWidget(0, 0, SETTINGS_WIDGET_W, SETTINGS_WIDGET_H, option), indent
-				)
-			)
+			val width = if (v3() && option is BooleanOption) V3_CHECK_W else SETTINGS_WIDGET_W
+			settingsRows.add(SettingsRow(null, option, ConfigStyles.createWidget(0, 0, width, SETTINGS_WIDGET_H, option), indent))
 		}
 		for (sub in category.subCategories) {
 			settingsRows.add(SettingsRow(AxoI18n.translate(sub.name), null, null, indent))
@@ -336,13 +558,13 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 
 	private fun addSettingsWidgets() {
 		for (row in settingsRows) {
-			if (row.widget != null) addRenderableWidget(row.widget)
+			row.widget?.let { addRenderableWidget(it) }
 		}
 	}
 
 	private fun stripSettingsWidgets() {
 		for (row in settingsRows) {
-			if (row.widget != null) removeWidget(row.widget)
+			row.widget?.let { removeWidget(it) }
 		}
 		settingsRows.clear()
 	}
@@ -353,21 +575,37 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 		val bottom = settingsScrollBottom()
 		var y = 0
 		for (row in settingsRows) {
-			val rowH = if (row.header != null) SETTINGS_HEADER_H else SETTINGS_ROW_H
 			val widget = row.widget
 			if (widget != null) {
 				val wy = top + y - settingsScroll.toInt()
-				widget.setX(settingsWidgetX())
+				val rightEdge = if (v3()) rowRect(row)[0] + rowRect(row)[1] - V3_RESET_W - 7 else settingsWidgetX() + SETTINGS_WIDGET_W
+				widget.setX(rightEdge - widget.width)
 				widget.setY(wy + (SETTINGS_ROW_H - SETTINGS_WIDGET_H) / 2)
-				widget.visible = wy + rowH > top && wy < bottom
+				widget.visible = wy + SETTINGS_ROW_H > top && wy < bottom
 			}
-			y += rowH
+			y += rowAdvance(row)
 		}
+	}
+
+	/** Resets one option to its default and swaps in a fresh widget that shows the new value. */
+	private fun resetOption(row: SettingsRow) {
+		val option = row.option ?: return
+		option.setDefault()
+		val widget = row.widget ?: return
+		removeWidget(widget)
+		val width = if (v3() && option is BooleanOption) V3_CHECK_W else SETTINGS_WIDGET_W
+		row.widget = ConfigStyles.createWidget(0, 0, width, SETTINGS_WIDGET_H, option)
+		row.widget?.let { addRenderableWidget(it) }
+		layoutSettingsWidgets()
 	}
 
 	// rendering
 
 	override fun extractBackground(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
+		if (v3()) {
+			extractBackgroundV3(graphics)
+			return
+		}
 		super.extractBackground(graphics, mouseX, mouseY, delta)
 		if (carved()) {
 			CarvedTheme.carvedPanel(graphics, panelX, panelY, panelW, panelH)
@@ -390,7 +628,111 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 		}
 	}
 
+	/**
+	 * The v3 shell's background stratum: everything that must sit UNDER the option widgets
+	 * (card bodies, row pills, the search pill). In-game the vanilla transparent gradient is
+	 * skipped in favour of the spec's own surface dim, so the world shows through exactly as
+	 * the CSS mockup's `.dim` intends; over other screens the vanilla background stays under it.
+	 */
+	private fun extractBackgroundV3(graphics: GuiGraphicsExtractor) {
+		if (!isInGameUi) {
+			super.extractBackground(graphics, 0, 0, 0f)
+		}
+		graphics.fill(0, 0, width, height, Theme.SURFACE)
+
+		// sidebar layer and its 1px component border
+		graphics.fill(0, 0, V3_SIDEBAR_W, height, Theme.LAYER)
+		graphics.fill(V3_SIDEBAR_W, 0, V3_SIDEBAR_W + 1, height, Theme.COMPONENT)
+
+		// search pill under the (borderless) EditBox
+		Theme.roundRect(graphics, searchX(), searchY(), V3_SEARCH_W, V3_SEARCH_H, Theme.COMPONENT_BG, V3_SEARCH_H / 2f)
+		Theme.roundOutline(graphics, searchX(), searchY(), V3_SEARCH_W, V3_SEARCH_H, Theme.COMPONENT, V3_SEARCH_H / 2f)
+
+		if (settingsEntry != null) {
+			extractSettingsRowsBackgroundV3(graphics)
+		} else {
+			extractCardsBackgroundV3(graphics)
+		}
+	}
+
+	/** Card bodies (state colours, hover fade, scale) in the background stratum. */
+	private fun extractCardsBackgroundV3(graphics: GuiGraphicsExtractor) {
+		if (visible.isEmpty()) return
+		graphics.enableScissor(contentX(), contentY(), contentX() + contentW(), contentY() + contentH())
+		for (i in visible.indices) {
+			val entry = visible[i]
+			val x = cardX(i)
+			val y = cardY(i)
+			if (y + cardH() < contentY() || y > contentY() + contentH()) continue
+			val t = hoverFade(entry.id())
+			val scale = hoverScale(t)
+			val pose = graphics.pose()
+			pose.pushMatrix()
+			pose.translate((x + cardW() / 2).toFloat(), (y + cardH() / 2).toFloat())
+			pose.scale(scale, scale)
+			pose.translate(-(x + cardW() / 2).toFloat(), -(y + cardH() / 2).toFloat())
+			val blocked = isBlocked(entry)
+			val on = entry.enabled() && !blocked
+			val body: Int
+			val border: Int
+			when {
+				blocked -> {
+					body = Theme.CARD_BLOCKED_BG
+					border = Theme.CARD_BLOCKED_BORDER
+				}
+				on -> {
+					body = lerpColor(Theme.CARD_ON_BG, Theme.CARD_HOVER_BG, t * 0.5f)
+					border = lerpColor(Theme.CARD_ON_BORDER, Theme.ACCENT_SOFT, t)
+				}
+				else -> {
+					body = lerpColor(Theme.CARD_BG, Theme.CARD_HOVER_BG, t)
+					border = lerpColor(Theme.CARD_BORDER, Theme.ACCENT_SOFT, t)
+				}
+			}
+			Theme.roundRect(graphics, x, y, cardW(), cardH(), body, V3_CARD_R)
+			Theme.roundOutline(graphics, x, y, cardW(), cardH(), border, V3_CARD_R)
+			val well = when {
+				blocked -> Theme.ICON_WELL_BLOCKED
+				on -> Theme.ICON_WELL_ON
+				else -> Theme.ICON_WELL
+			}
+			Theme.roundRect(graphics, wellX(x), wellY(y), V3_WELL, V3_WELL, well, V3_WELL_R)
+			pose.popMatrix()
+		}
+		graphics.disableScissor()
+	}
+
+	/** v3 setting-row chrome under the widgets: row pills, search-hit halos. */
+	private fun extractSettingsRowsBackgroundV3(graphics: GuiGraphicsExtractor) {
+		val top = settingsScrollTop()
+		val bottom = settingsScrollBottom()
+		graphics.enableScissor(contentX(), top, contentX() + contentW(), bottom)
+		var y = top - settingsScroll.toInt()
+		for (row in settingsRows) {
+			if (row.header != null) {
+				y += settingsHeaderH()
+				continue
+			}
+			val rect = rowRect(row)
+			if (isRowSearchHit(row)) {
+				// search-hit halo: a secondary ring just outside the row
+				Theme.roundRect(graphics, rect[0] - 1, y - 1, rect[1] + 2, SETTINGS_ROW_H + 2, Theme.ROW_FOUND_HALO, V3_ROW_R + 1f)
+			}
+			Theme.roundRect(graphics, rect[0], y, rect[1], SETTINGS_ROW_H, Theme.ROW_BG, V3_ROW_R)
+			Theme.roundOutline(
+				graphics, rect[0], y, rect[1], SETTINGS_ROW_H,
+				if (isRowSearchHit(row)) Theme.ACCENT_HALF else Theme.CARD_BORDER, V3_ROW_R
+			)
+			y += rowAdvance(row)
+		}
+		graphics.disableScissor()
+	}
+
 	override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
+		if (v3()) {
+			extractRenderStateV3(graphics, mouseX, mouseY, delta)
+			return
+		}
 		if (settingsEntry != null) {
 			// The option widgets are real children, so they render (and hover) inside this pass:
 			// scissor them to the row band so no row bleeds over the panel's title or footer.
@@ -480,23 +822,23 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 		for (i in visible.indices) {
 			val x = cardX(i)
 			val y = cardY(i)
-			if (y + CARD_H < contentY() || y > contentY() + contentH()) continue
+			if (y + cardH() < contentY() || y > contentY() + contentH()) continue
 			val entry = visible[i]
 			val hovered = inContent(mouseX.toDouble(), mouseY.toDouble()) &&
-				mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + CARD_H
+				mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + cardH()
 			val enabled = entry.enabled()
 			if (carved) {
-				CarvedTheme.raisedTile(graphics, x, y, w, CARD_H, hovered, enabled)
+				CarvedTheme.raisedTile(graphics, x, y, w, cardH(), hovered, enabled)
 				drawCarvedCardContent(graphics, entry, x, y, w, hovered, enabled)
 			} else {
-				ctx.`br$fillRectRound`(x, y, w, CARD_H, if (hovered) cardHover else card, 4f)
+				ctx.`br$fillRectRound`(x, y, w, cardH(), if (hovered) cardHover else card, 4f)
 				if (enabled) {
-					ctx.`br$outlineRectRound`(x, y, w, CARD_H, gold, 4f)
+					ctx.`br$outlineRectRound`(x, y, w, cardH(), gold, 4f)
 				}
 				graphics.text(font, font.plainSubstrByWidth(entry.name(), w - 12), x + 6, y + 7, textColor, false)
 				if (entry.hasToggle()) {
 					val tx = x + 6
-					val ty = y + CARD_H - 15
+					val ty = y + cardH() - 15
 					ctx.`br$fillRectRound`(tx, ty, 22, 10, if (enabled) gold else toggleOff, 5f)
 					ctx.`br$fillRectRound`(if (enabled) tx + 13 else tx + 1, ty + 1, 8, 8, 0xFFFFFFFF.toInt(), 4f)
 					graphics.text(
@@ -507,7 +849,7 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 			}
 
 			val gx = x + w - GEAR_SIZE - 5
-			val gy = y + CARD_H - GEAR_SIZE - 4
+			val gy = y + cardH() - GEAR_SIZE - 4
 			val gearHovered = hovered && mouseX >= gx && mouseX < gx + GEAR_SIZE && mouseY >= gy && mouseY < gy + GEAR_SIZE
 			graphics.text(
 				font, "⚙", gx + 2, gy + 2,
@@ -531,17 +873,14 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 	}
 
 	/**
-	 * Carved card interior: item sprite (or an empty carved slot) in a fixed left column, the
-	 * module name beside it, and the bronze/marble toggle under the name.
+	 * Carved card interior: item sprite in a fixed left column, the module name beside it, and
+	 * the bronze/marble toggle under the name.
 	 */
 	private fun drawCarvedCardContent(graphics: GuiGraphicsExtractor, entry: MenuEntry, x: Int, y: Int, w: Int, hovered: Boolean, enabled: Boolean) {
 		val iconX = x + 5
 		val iconY = y + 5
 		CarvedTheme.carvedSlot(graphics, iconX, iconY, ICON_SIZE)
-		val icon = CarvedTheme.iconFor(entry)
-		if (icon != null) {
-			graphics.fakeItem(icon, iconX, iconY)
-		}
+		graphics.fakeItem(CarvedTheme.iconFor(entry), iconX, iconY)
 
 		val textX = iconX + ICON_SIZE + 4
 		val nameColor = if (enabled) cardNameOn else cardNameOff
@@ -552,7 +891,7 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 
 		if (entry.hasToggle()) {
 			val tx = textX - 1
-			val ty = y + CARD_H - 15
+			val ty = y + cardH() - 15
 			CarvedTheme.carvedToggle(graphics, tx, ty, enabled)
 			graphics.text(
 				font, Component.translatable(if (enabled) "options.on" else "options.off"), tx + 27, ty + 1,
@@ -562,10 +901,9 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 	}
 
 	/**
-	 * The inline settings panel: module name and a back button in a title band, then one row per
-	 * option (translated label left, themed widget right) with sub-categories as indented groups
-	 * under a small engraved header. The widgets themselves render as the screen's children, already
-	 * scissored to the row band; this draws everything around and between them.
+	 * The legacy inline settings panel: module name and a back button in a title band, then one
+	 * row per option (translated label left, themed widget right) with sub-categories as indented
+	 * groups under a small engraved header.
 	 */
 	private fun extractSettingsPanel(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
 		val ctx = graphics as AxoRenderContext
@@ -642,11 +980,371 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 		}
 	}
 
+	// ── v3 rendering ─────────────────────────────────────────────────────────────────────────
+
+	private fun extractRenderStateV3(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
+		advanceHoverFades(mouseX, mouseY)
+		// A theme switch mid-session may have created the legacy footer buttons; park them.
+		if (::editHudButton.isInitialized) {
+			editHudButton.visible = false
+			profilesButton.visible = false
+			allSettingsButton.visible = false
+		}
+		if (settingsEntry != null) {
+			graphics.enableScissor(contentX(), settingsScrollTop(), contentX() + contentW(), settingsScrollBottom())
+		}
+		super.extractRenderState(graphics, mouseX, mouseY, delta)
+		if (settingsEntry != null) {
+			graphics.disableScissor()
+		}
+
+		extractSidebarV3(graphics, mouseX, mouseY)
+		extractHeaderV3(graphics)
+		if (settingsEntry != null) {
+			extractSettingsPanelV3(graphics, mouseX, mouseY)
+		} else {
+			extractSegmentsV3(graphics, mouseX, mouseY)
+			extractCardsV3(graphics, mouseX, mouseY)
+		}
+	}
+
+	private fun extractSidebarV3(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
+		// header: emblem and the two-line wordmark
+		graphics.blit(RenderPipelines.GUI_TEXTURED, Theme.EMBLEM, V3_PAD, V3_PAD, 0f, 0f, V3_HEADER_H, V3_HEADER_H, 128, 128, 128, 128)
+		Theme.trackedCaps(graphics, font, "IMPERIUM", V3_PAD + V3_HEADER_H + 6, V3_PAD + 4, Theme.TEXT_ACCENT)
+		Theme.trackedCaps(graphics, font, "CLIENT", V3_PAD + V3_HEADER_H + 6, V3_PAD + 15, Theme.TEXT_SECONDARY)
+
+		val selectedIndex = navIndex(category)
+		val targetY = navItemY(selectedIndex) - navScroll.toInt()
+		if (!pillInit) {
+			pillFromY = targetY.toFloat()
+			pillY = targetY.toFloat()
+			pillStartMs = now()
+			pillInit = true
+		}
+		val t = if (reduceMotion()) 1f else Mth.clamp((now() - pillStartMs) / V3_PILL_MS, 0f, 1f)
+		pillY = pillFromY + (targetY - pillFromY) * easeOut(t)
+
+		// nav items (clipped when a very short window compresses them toward the footer)
+		graphics.enableScissor(0, navTop - 2, V3_SIDEBAR_W, navClipBottom() + 2)
+		// the sliding pill: soft glow ring, primary fill, secondary border
+		val pillX = V3_PAD
+		val pillW = V3_SIDEBAR_W - V3_PAD * 2
+		Theme.roundRect(graphics, pillX - 2, pillY.toInt() - 1, pillW + 4, navItemH + 2, Theme.SECONDARY, (navItemH + 2) / 2f)
+		Theme.roundRect(graphics, pillX, pillY.toInt(), pillW, navItemH, Theme.PRIMARY, navItemH / 2f)
+		Theme.roundOutline(graphics, pillX, pillY.toInt(), pillW, navItemH, Theme.SECONDARY, navItemH / 2f)
+		for (i in MenuCategory.entries.indices) {
+			val c = MenuCategory.entries[i]
+			val y = navItemY(i) - navScroll.toInt()
+			if (y + navItemH < navTop - 2 || y > navClipBottom() + 2) continue
+			val selected = i == selectedIndex
+			val hovered = mouseX < V3_SIDEBAR_W && mouseY >= y && mouseY < y + navItemH
+			val glyph = glyphFor(c)
+			val iconX = V3_PAD + 10
+			val iconY = y + (navItemH - Theme.glyphHeight(glyph)) / 2
+			Theme.drawGlyph(graphics, glyph, iconX, iconY, if (selected) Theme.TEXT else Theme.TEXT_SECONDARY)
+			val label = Component.translatable(c.translationKey()).string
+			val labelX = iconX + 13
+			val labelY = y + (navItemH - font.lineHeight + 1) / 2
+			graphics.text(
+				font, font.plainSubstrByWidth(label, V3_SIDEBAR_W - V3_PAD - labelX - 4), labelX, labelY,
+				if (selected || hovered) Theme.TEXT else Theme.TEXT_SECONDARY, false
+			)
+		}
+		graphics.disableScissor()
+
+		// footer pills: edit hud / profiles / all settings
+		val actions = arrayOf(
+			Component.translatable("imperium.menu.edit_hud").string to Theme.GLYPH_HUD,
+			Component.translatable("imperium.menu.profiles").string to Theme.GLYPH_PERSON,
+			Component.translatable("imperium.menu.all_settings").string to Theme.GLYPH_GEAR
+		)
+		if (footerCompact) {
+			val y = height - V3_PAD - V3_PILL_COMPACT
+			var x = V3_PAD
+			for ((_, glyph) in actions) {
+				val hovered = mouseX >= x && mouseX < x + V3_PILL_COMPACT && mouseY >= y && mouseY < y + V3_PILL_COMPACT
+				Theme.roundRect(graphics, x, y, V3_PILL_COMPACT, V3_PILL_COMPACT, if (hovered) Theme.PRIMARY_HOVER else Theme.LAYER, V3_PILL_COMPACT / 2f)
+				Theme.roundOutline(graphics, x, y, V3_PILL_COMPACT, V3_PILL_COMPACT, if (hovered) Theme.ACCENT_SOFT else Theme.COMPONENT, V3_PILL_COMPACT / 2f)
+				Theme.drawGlyph(graphics, glyph, x + (V3_PILL_COMPACT - glyph[0].length) / 2, y + (V3_PILL_COMPACT - glyph.size) / 2, if (hovered) Theme.TEXT else Theme.TEXT_SECONDARY)
+				x += V3_PILL_COMPACT + V3_SEG_GAP
+			}
+		} else {
+			val w = V3_SIDEBAR_W - V3_PAD * 2
+			var y = height - V3_PAD - 3 * V3_PILL_H - 2 * V3_PILL_GAP
+			for ((label, glyph) in actions) {
+				val hovered = mouseX >= V3_PAD && mouseX < V3_PAD + w && mouseY >= y && mouseY < y + V3_PILL_H
+				Theme.roundRect(graphics, V3_PAD, y, w, V3_PILL_H, if (hovered) Theme.PRIMARY_HOVER else Theme.LAYER, V3_PILL_H / 2f)
+				Theme.roundOutline(graphics, V3_PAD, y, w, V3_PILL_H, if (hovered) Theme.ACCENT_SOFT else Theme.COMPONENT, V3_PILL_H / 2f)
+				Theme.drawGlyph(graphics, glyph, V3_PAD + 8, y + (V3_PILL_H - glyph.size) / 2, if (hovered) Theme.TEXT else Theme.TEXT_SECONDARY)
+				graphics.text(font, label, V3_PAD + 22, y + (V3_PILL_H - font.lineHeight + 1) / 2, if (hovered) Theme.TEXT else Theme.TEXT_SECONDARY, false)
+				y += V3_PILL_H + V3_PILL_GAP
+			}
+		}
+	}
+
+	private fun extractHeaderV3(graphics: GuiGraphicsExtractor) {
+		val title: String
+		val description: String
+		if (settingsEntry != null) {
+			title = settingsEntry!!.name()
+			description = Component.translatable(settingsEntry!!.category().translationKey()).string
+		} else {
+			title = Component.translatable("imperium.menu.header.title").string
+			description = Component.translatable("imperium.menu.header.description").string
+		}
+		graphics.text(font, title, V3_SIDEBAR_W + V3_CONTENT_PAD, V3_HEADER_Y, Theme.TEXT, false)
+		graphics.text(font, description, V3_SIDEBAR_W + V3_CONTENT_PAD, V3_HEADER_Y + 11, Theme.TEXT_SECONDARY, false)
+
+		if (settingsEntry == null) {
+			// search affordance over the pill + the enabled-count badge
+			Theme.drawGlyph(graphics, Theme.GLYPH_SEARCH, searchX() + 7, searchY() + 4, Theme.TEXT_TERTIARY)
+			val text = Component.translatable("imperium.menu.enabled_count", enabledCount()).string
+			val w = font.width(text) + 22
+			val x = searchX() - 6 - w
+			Theme.roundRect(graphics, x, V3_HEADER_Y + 3, w, V3_BADGE_H, Theme.SECONDARY, V3_BADGE_H / 2f)
+			Theme.roundOutline(graphics, x, V3_HEADER_Y + 3, w, V3_BADGE_H, Theme.ACCENT_SOFT, V3_BADGE_H / 2f)
+			Theme.drawGlyph(graphics, Theme.GLYPH_BOLT, x + 6, V3_HEADER_Y + 3 + (V3_BADGE_H - Theme.GLYPH_BOLT.size) / 2, Theme.TEXT_ACCENT)
+			graphics.text(font, text, x + 14, V3_HEADER_Y + 3 + (V3_BADGE_H - font.lineHeight + 1) / 2, Theme.TEXT_ACCENT, false)
+		}
+	}
+
+	private fun extractSegmentsV3(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
+		val labels = segmentLabels()
+		for (i in MenuCategory.entries.indices) {
+			val c = MenuCategory.entries[i]
+			val selected = c == category
+			val pos = segmentPos[i] ?: continue
+			val x = pos[0]
+			val y = pos[1]
+			val w = font.width(labels[i]) + V3_SEG_PAD * 2
+			val hovered = !selected && mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + V3_SEG_H
+			if (selected) {
+				Theme.roundRect(graphics, x, y, w, V3_SEG_H, Theme.PRIMARY, V3_SEG_H / 2f)
+				Theme.roundOutline(graphics, x + 1, y + 1, w - 2, V3_SEG_H - 2, Theme.ACCENT_SOFT, (V3_SEG_H - 2) / 2f)
+			} else if (hovered) {
+				Theme.roundRect(graphics, x, y, w, V3_SEG_H, Theme.PRIMARY_HOVER, V3_SEG_H / 2f)
+			}
+			graphics.text(
+				font, labels[i], x + V3_SEG_PAD, y + (V3_SEG_H - font.lineHeight + 1) / 2,
+				if (selected) Theme.TEXT else Theme.TEXT_SECONDARY, false
+			)
+		}
+	}
+
+	private fun extractCardsV3(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
+		if (visible.isEmpty()) {
+			graphics.centeredText(
+				font, Component.translatable("imperium.menu.no_results"),
+				contentX() + contentW() / 2, contentY() + listTopInset() + contentH() / 2 - 4, Theme.TEXT_TERTIARY
+			)
+			return
+		}
+		graphics.enableScissor(contentX(), contentY(), contentX() + contentW(), contentY() + contentH())
+		for (i in visible.indices) {
+			val entry = visible[i]
+			val x = cardX(i)
+			val y = cardY(i)
+			if (y + cardH() < contentY() || y > contentY() + contentH()) continue
+			val t = hoverFade(entry.id())
+			val scale = hoverScale(t)
+			val pose = graphics.pose()
+			pose.pushMatrix()
+			pose.translate((x + cardW() / 2).toFloat(), (y + cardH() / 2).toFloat())
+			pose.scale(scale, scale)
+			pose.translate(-(x + cardW() / 2).toFloat(), -(y + cardH() / 2).toFloat())
+
+			// vanilla item icon at its native 16px inside the well
+			graphics.fakeItem(CarvedTheme.iconFor(entry), wellX(x) + 3, wellY(y) + 3)
+
+			val blocked = isBlocked(entry)
+			val on = entry.enabled() && !blocked
+			val hovered = inContent(mouseX.toDouble(), mouseY.toDouble()) &&
+				mouseX >= x && mouseX < x + cardW() && mouseY >= y && mouseY < y + cardH()
+
+			// name, top-right
+			val nameColor = if (on || hovered || t > 0.5f) Theme.TEXT else Theme.TEXT_TERTIARY
+			val name = font.plainSubstrByWidth(entry.name(), cardNameRight(x) - cardTagX(x))
+			graphics.text(font, name, cardNameRight(x) - font.width(name), y + 6, nameColor, false)
+
+			// reason / tag line, bottom-left
+			val pinned = pinnedIds.contains(entry.id())
+			val tag: String? = when {
+				blocked -> Component.translatable("imperium.menu.blocked").string
+				pinned -> Component.translatable("imperium.menu.pin").string
+				else -> null
+			}
+			if (tag != null) {
+				graphics.text(
+					font, font.plainSubstrByWidth(tag, cardW() - (cardTagX(x) - x) - 3 * 15 - 4),
+					cardTagX(x), y + cardH() - 13, if (blocked) Theme.BLOCKED_TAG else Theme.TEXT_DISABLED, false
+				)
+			}
+
+			// action glyphs, bottom-right: power / pin / settings
+			val powerColor = when {
+				blocked -> Theme.ERROR
+				on -> Theme.TEXT_ACCENT
+				else -> Theme.TEXT_DISABLED
+			}
+			Theme.drawGlyph(graphics, Theme.GLYPH_POWER, actionX(x, 0), actionY(y), powerColor)
+			Theme.drawGlyph(graphics, Theme.GLYPH_PIN, actionX(x, 1), actionY(y), if (pinned) Theme.TEXT_ACCENT else Theme.TEXT_DISABLED)
+			val gearHovered = hovered && mouseX >= actionX(x, 2) && mouseX < actionX(x, 2) + 10
+			Theme.drawGlyph(
+				graphics, Theme.GLYPH_GEAR, actionX(x, 2), actionY(y),
+				if (gearHovered) Theme.TEXT_ACCENT else Theme.TEXT_DISABLED
+			)
+			if (blocked) {
+				// state is never colour-alone: a block mark beside the power glyph
+				Theme.drawGlyph(graphics, Theme.GLYPH_BLOCK, actionX(x, 0) - 12, actionY(y), Theme.ERROR)
+			}
+			pose.popMatrix()
+		}
+		graphics.disableScissor()
+
+		val max = maxScroll()
+		if (max > 0) {
+			val trackX = contentX() + contentW() - 2
+			val thumbH = max(16, (contentH() * (contentH() / (contentH() + max))).toInt())
+			val thumbY = contentY() + ((contentH() - thumbH) * (scroll / max)).toInt()
+			Theme.roundRect(graphics, trackX, thumbY, 2, thumbH, Theme.ACCENT_HALF, 1f)
+		}
+	}
+
+	/** The v3 settings panel chrome: back pill, section headers, labels, reset icons. */
+	private fun extractSettingsPanelV3(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
+		// back pill on the segment line
+		val bx = contentX()
+		val by = bandY() - 2
+		val bw = 44
+		val bh = V3_SEG_H + 2
+		val backHovered = mouseX >= bx && mouseX < bx + bw && mouseY >= by && mouseY < by + bh
+		Theme.roundRect(graphics, bx, by, bw, bh, if (backHovered) Theme.PRIMARY_HOVER else Theme.LAYER, bh / 2f)
+		Theme.roundOutline(graphics, bx, by, bw, bh, if (backHovered) Theme.ACCENT_SOFT else Theme.COMPONENT, bh / 2f)
+		graphics.text(
+			font, "< " + Component.translatable("imperium.menu.settings_back").string, bx + 8,
+			by + (bh - font.lineHeight) / 2, if (backHovered) Theme.TEXT else Theme.TEXT_SECONDARY, false
+		)
+
+		val top = settingsScrollTop()
+		val bottom = settingsScrollBottom()
+		graphics.enableScissor(contentX(), top, contentX() + contentW(), bottom)
+		var y = top - settingsScroll.toInt()
+		for (row in settingsRows) {
+			if (row.header != null) {
+				// section header: 14x2 accent dash + label
+				graphics.fill(contentX() + 2, y + 4, contentX() + 16, y + 6, Theme.TEXT_ACCENT)
+				graphics.text(font, row.header.uppercase(Locale.ROOT), contentX() + 21, y + 1, Theme.TEXT_SECONDARY, false)
+				y += settingsHeaderH()
+				continue
+			}
+			val rect = rowRect(row)
+			val hovered = mouseX >= rect[0] && mouseX < rect[0] + rect[1] && mouseY >= y && mouseY < y + SETTINGS_ROW_H
+			if (hovered) {
+				Theme.roundRect(graphics, rect[0], y, rect[1], SETTINGS_ROW_H, Theme.ROW_HOVER_BG, V3_ROW_R)
+				Theme.roundOutline(graphics, rect[0], y, rect[1], SETTINGS_ROW_H, Theme.ACCENT_SOFT, V3_ROW_R)
+			}
+			val labelX = rect[0] + 8 + row.indent * SETTINGS_INDENT
+			val resetX = rect[0] + rect[1] - V3_RESET_W - 7
+			val widgetLeft = row.widget?.x ?: (resetX - 1)
+			val label = font.plainSubstrByWidth(AxoI18n.translate(row.option!!.name), max(8, widgetLeft - labelX - 4))
+			graphics.text(
+				font, label, labelX, y + (SETTINGS_ROW_H - font.lineHeight + 1) / 2,
+				if (hovered) Theme.TEXT else Theme.TEXT_SECONDARY, false
+			)
+			// reset icon at the row end
+			val resetHovered = mouseX >= resetX && mouseX < resetX + 9 && mouseY >= y && mouseY < y + SETTINGS_ROW_H
+			Theme.drawGlyph(
+				graphics, Theme.GLYPH_RESET, resetX, y + (SETTINGS_ROW_H - 9) / 2,
+				if (resetHovered) Theme.TEXT_ACCENT else Theme.TEXT_DISABLED
+			)
+			y += rowAdvance(row)
+		}
+		graphics.disableScissor()
+
+		val max = maxSettingsScroll()
+		if (max > 0) {
+			val trackX = contentX() + contentW() - 2
+			val bandH = bottom - top
+			val thumbH = max(16, (bandH * (bandH / (bandH + max))).toInt())
+			val thumbY = top + ((bandH - thumbH) * (settingsScroll / max)).toInt()
+			Theme.roundRect(graphics, trackX, thumbY, 2, thumbH, Theme.ACCENT_HALF, 1f)
+		}
+	}
+
+	private fun isRowSearchHit(row: SettingsRow): Boolean {
+		if (query.isBlank() || row.option == null) return false
+		val label = AxoI18n.translate(row.option!!.name).lowercase(Locale.ROOT)
+		return label.contains(query.lowercase(Locale.ROOT).trim())
+	}
+
+	// hover fades: 200ms ease-out toward the hovered state; the scale finishes in 100ms (t*2).
+
+	private fun hoverFade(id: String): Float = hoverT[id] ?: 0f
+
+	private fun hoverScale(t: Float): Float = if (reduceMotion()) 1f else 1f + 0.03f * easeOut(min(1f, t * 2))
+
+	private fun advanceHoverFades(mouseX: Int, mouseY: Int) {
+		val now = now()
+		val dt = if (lastFrameMs == 0L) 0f else Mth.clamp((now - lastFrameMs) / 1000f, 0f, 0.1f)
+		lastFrameMs = now
+		if (reduceMotion()) {
+			return
+		}
+		if (settingsEntry == null && visible.isNotEmpty()) {
+			for (i in visible.indices) {
+				val entry = visible[i]
+				val x = cardX(i)
+				val y = cardY(i)
+				if (y + cardH() < contentY() || y > contentY() + contentH()) continue
+				val hovered = inContent(mouseX.toDouble(), mouseY.toDouble()) &&
+					mouseX >= x && mouseX < x + cardW() && mouseY >= y && mouseY < y + cardH()
+				val t = hoverT[entry.id()] ?: 0f
+				val target = if (hovered) 1f else 0f
+				val next = if (t < target) min(target, t + dt / 0.2f) else max(target, t - dt / 0.2f)
+				if (next <= 0f) hoverT.remove(entry.id()) else hoverT[entry.id()] = next
+			}
+		}
+	}
+
+	private fun now(): Long = System.currentTimeMillis()
+
+	private fun easeOut(t: Float): Float = 1f - (1f - t) * (1f - t)
+
+	private fun lerpColor(from: Int, to: Int, t: Float): Int {
+		if (t <= 0f) return from
+		if (t >= 1f) return to
+		val fa = (from ushr 24) and 0xFF
+		val fr = (from ushr 16) and 0xFF
+		val fg = (from ushr 8) and 0xFF
+		val fb = from and 0xFF
+		val ta = (to ushr 24) and 0xFF
+		val tr = (to ushr 16) and 0xFF
+		val tg = (to ushr 8) and 0xFF
+		val tb = to and 0xFF
+		return ((fa + (ta - fa) * t).toInt() shl 24) or ((fr + (tr - fr) * t).toInt() shl 16) or
+			((fg + (tg - fg) * t).toInt() shl 8) or (fb + (tb - fb) * t).toInt()
+	}
+
+	private fun glyphFor(c: MenuCategory): Array<String> = when (c) {
+		MenuCategory.ALL -> Theme.GLYPH_ALL
+		MenuCategory.HUD -> Theme.GLYPH_HUD
+		MenuCategory.RENDER -> Theme.GLYPH_RENDER
+		MenuCategory.CHAT -> Theme.GLYPH_CHAT
+		MenuCategory.WORLD -> Theme.GLYPH_WORLD
+		MenuCategory.UTILITY -> Theme.GLYPH_UTILITY
+		MenuCategory.AUTOMATION -> Theme.GLYPH_AUTOMATION
+		MenuCategory.SERVER -> Theme.GLYPH_SERVER
+	}
+
 	// input
 
 	override fun mouseClicked(event: MouseButtonEvent, doubleClick: Boolean): Boolean {
 		val mx = event.x()
 		val my = event.y()
+		if (v3()) {
+			return mouseClickedV3(event, mx.toInt(), my.toInt())
+		}
 		if (settingsEntry != null) {
 			// the back button wins over any row scrolled under it
 			if (overSettingsBack(mx, my)) {
@@ -671,14 +1369,13 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 		}
 
 		if (settingsEntry != null || !inContent(mx, my)) return false
-		val w = cardW()
 		for (i in visible.indices) {
 			val x = cardX(i)
 			val cy = cardY(i)
-			if (mx < x || mx >= x + w || my < cy || my >= cy + CARD_H) continue
+			if (mx < x || mx >= x + cardW() || my < cy || my >= cy + cardH()) continue
 			val entry = visible[i]
-			val gx = x + w - GEAR_SIZE - 5
-			val gy = cy + CARD_H - GEAR_SIZE - 4
+			val gx = x + cardW() - GEAR_SIZE - 5
+			val gy = cy + cardH() - GEAR_SIZE - 4
 			val onGear = mx >= gx && mx < gx + GEAR_SIZE && my >= gy && my < gy + GEAR_SIZE
 			if (event.button() == InputConstants.MOUSE_BUTTON_RIGHT || onGear || !entry.hasToggle()) {
 				openSettings(i)
@@ -690,6 +1387,168 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 		return false
 	}
 
+	private fun mouseClickedV3(event: MouseButtonEvent, mx: Int, my: Int): Boolean {
+		if (settingsEntry != null) {
+			// the back pill wins over any row scrolled under it
+			if (overBackPillV3(mx, my)) {
+				closeSettingsPanel()
+				return true
+			}
+			if (my >= settingsScrollTop() && my < settingsScrollBottom()) {
+				val hit = resetHitV3(mx, my)
+				if (hit != null) {
+					resetOption(hit)
+					return true
+				}
+				if (super.mouseClicked(event, false)) return true
+			}
+		} else if (super.mouseClicked(event, false)) return true
+
+		// sidebar nav items
+		for (i in MenuCategory.entries.indices) {
+			val y = navItemY(i) - navScroll.toInt()
+			if (mx < V3_SIDEBAR_W && my >= y && my < y + navItemH) {
+				if (settingsEntry != null) closeSettingsPanel()
+				selectCategory(MenuCategory.entries[i])
+				return true
+			}
+		}
+
+		// footer action pills
+		if (mx < V3_SIDEBAR_W && mx >= V3_PAD) {
+			if (footerCompact) {
+				val y = height - V3_PAD - V3_PILL_COMPACT
+				if (my >= y && my < y + V3_PILL_COMPACT && mx < V3_PAD + 3 * V3_PILL_COMPACT + 2 * V3_SEG_GAP) {
+					when ((mx - V3_PAD) / (V3_PILL_COMPACT + V3_SEG_GAP)) {
+						0 -> {
+							minecraft!!.gui.setScreen(HudEditScreen(this))
+							return true
+						}
+						1 -> {
+							minecraft!!.gui.setScreen(ProfilesScreen(this))
+							return true
+						}
+						2 -> {
+							minecraft!!.gui.setScreen(ConfigStyles.createScreen(this, AxolotlClientCommon.getInstance().configManager.root))
+							return true
+						}
+					}
+				}
+			} else {
+				var y = height - V3_PAD - 3 * V3_PILL_H - 2 * V3_PILL_GAP
+				for (i in 0 until 3) {
+					if (my >= y && my < y + V3_PILL_H) {
+						when (i) {
+							0 -> minecraft!!.gui.setScreen(HudEditScreen(this))
+							1 -> minecraft!!.gui.setScreen(ProfilesScreen(this))
+							2 -> minecraft!!.gui.setScreen(ConfigStyles.createScreen(this, AxolotlClientCommon.getInstance().configManager.root))
+						}
+						return true
+					}
+					y += V3_PILL_H + V3_PILL_GAP
+				}
+			}
+		}
+
+		// category segments
+		if (settingsEntry == null) {
+			val labels = segmentLabels()
+			for (i in MenuCategory.entries.indices) {
+				val pos = segmentPos[i] ?: continue
+				val w = font.width(labels[i]) + V3_SEG_PAD * 2
+				if (my >= pos[1] && my < pos[1] + V3_SEG_H && mx >= pos[0] && mx < pos[0] + w) {
+					selectCategory(MenuCategory.entries[i])
+					return true
+				}
+			}
+		}
+
+		if (settingsEntry != null || !inContent(mx.toDouble(), my.toDouble())) return false
+		for (i in visible.indices) {
+			val x = cardX(i)
+			val cy = cardY(i)
+			if (mx < x || mx >= x + cardW() || my < cy || my >= cy + cardH()) continue
+			val entry = visible[i]
+			if (event.button() == InputConstants.MOUSE_BUTTON_RIGHT || !entry.hasToggle()) {
+				openSettings(i)
+				return true
+			}
+			// action glyphs: power toggles, pin pins, gear opens settings
+			if (my >= actionY(cy) - 2 && my < actionY(cy) + 12) {
+				if (mx >= actionX(x, 2) - 2 && mx < actionX(x, 2) + 12) {
+					openSettings(i)
+					return true
+				}
+				if (mx >= actionX(x, 1) - 2 && mx < actionX(x, 1) + 12) {
+					togglePin(entry)
+					return true
+				}
+				if (mx >= actionX(x, 0) - 2 && mx < actionX(x, 0) + 12) {
+					if (!isBlocked(entry)) entry.toggle()
+					return true
+				}
+			}
+			if (!isBlocked(entry)) entry.toggle()
+			return true
+		}
+		return false
+	}
+
+	private fun selectCategory(c: MenuCategory) {
+		pillFromY = pillY
+		pillStartMs = now()
+		category = c
+		lastCategory = c
+		scroll = 0.0
+		refilter()
+	}
+
+	private fun togglePin(entry: MenuEntry) {
+		if (!pinnedIds.add(entry.id())) {
+			pinnedIds.remove(entry.id())
+		}
+		refilter()
+	}
+
+	private fun overBackPillV3(mx: Int, my: Int): Boolean {
+		val bx = contentX()
+		val by = bandY() - 2
+		return mx >= bx && mx < bx + 44 && my >= by && my < by + V3_SEG_H + 2
+	}
+
+	private fun resetHitV3(mx: Int, my: Int): SettingsRow? {
+		var y = settingsScrollTop() - settingsScroll.toInt()
+		for (row in settingsRows) {
+			if (row.header != null) {
+				y += settingsHeaderH()
+				continue
+			}
+			if (row.option != null && my >= y && my < y + SETTINGS_ROW_H) {
+				val rect = rowRect(row)
+				val resetX = rect[0] + rect[1] - V3_RESET_W - 7
+				if (mx >= resetX && mx < resetX + 9) {
+					return if (row.paired && mx >= rect[0] + rect[1]) {
+						nextOptionRow(row) ?: row
+					} else {
+						row
+					}
+				}
+				if (!row.paired && !row.pairRight) {
+					break
+				}
+			}
+			y += rowAdvance(row)
+		}
+		return null
+	}
+
+	private fun nextOptionRow(row: SettingsRow): SettingsRow? {
+		val index = settingsRows.indexOf(row)
+		if (index < 0 || index + 1 >= settingsRows.size) return null
+		val next = settingsRows[index + 1]
+		return if (next.option != null) next else null
+	}
+
 	override fun mouseScrolled(mouseX: Double, mouseY: Double, scrollX: Double, scrollY: Double): Boolean {
 		if (settingsEntry != null) {
 			if (mouseX >= contentX() && mouseX < contentX() + contentW() && mouseY >= settingsScrollTop() && mouseY < settingsScrollBottom()) {
@@ -699,8 +1558,12 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 			}
 			return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY)
 		}
+		if (v3() && mouseX >= 0 && mouseX < V3_SIDEBAR_W && maxNavScroll() > 0) {
+			navScroll = Mth.clamp(navScroll - scrollY * navItemH / 2, 0.0, maxNavScroll())
+			return true
+		}
 		if (inContent(mouseX, mouseY)) {
-			scroll = Mth.clamp(scroll - scrollY * (CARD_H + GAP) / 2, 0.0, maxScroll())
+			scroll = Mth.clamp(scroll - scrollY * (cardH() + cardGap()) / 2, 0.0, maxScroll())
 			return true
 		}
 		return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY)
@@ -725,9 +1588,20 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 	private class SettingsRow(
 		@JvmField val header: String?,
 		@JvmField val option: Option<*>?,
-		@JvmField val widget: AbstractWidget?,
+		widget: AbstractWidget?,
 		@JvmField val indent: Int
-	)
+	) {
+		@JvmField
+		var widget: AbstractWidget? = widget
+
+		/** v3: first of a half-width boolean pair (shares a band with the next row). */
+		@JvmField
+		var paired = false
+
+		/** v3: second of a half-width boolean pair. */
+		@JvmField
+		var pairRight = false
+	}
 
 	companion object {
 		private const val HEADER_H = 30
@@ -749,7 +1623,58 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 		private const val SETTINGS_BACK_W = 46
 		private const val SETTINGS_BACK_H = 14
 
+		// v3 shell metrics: the spec's CSS sizes halved (mockups are 1920x1080 = GUI px at scale 2).
+		private const val V3_SIDEBAR_W = 135        // 270 px sidebar
+		private const val V3_PAD = 15               // 30 px sidebar padding
+		private const val V3_HEADER_H = 28          // sidebar header block
+		private const val V3_NAV_TOP = 12
+		private const val V3_NAV_H = 24             // 48 px nav items, radius 26 -> 13
+		private const val V3_NAV_GAP = 4
+		private const val V3_PILL_H = 16            // 32 px footer pills
+		private const val V3_PILL_GAP = 5
+		private const val V3_PILL_TOP = 6
+		private const val V3_PILL_COMPACT = 14
+		private const val V3_CONTENT_PAD = 22       // 44 px content padding
+		private const val V3_CONTENT_PAD_TOP = 4
+		private const val V3_HEADER_Y = 15          // content header at 314/30 -> +22/+15
+		private const val V3_CONTENT_Y = 50         // content from y 100
+		private const val V3_SEG_H = 18             // 36 px category segments, radius 18 -> 9
+		private const val V3_SEG_PAD = 8
+		private const val V3_SEG_GAP = 2
+		private const val V3_CARD_H = 39            // 78 px cards, radius 22 -> 11
+		private const val V3_CARD_R = 11f
+		private const val V3_CARD_GAP = 8           // 16 px grid gap
+		private const val V3_MIN_CARD_W = 80
+		private const val V3_WELL = 23              // 46 px icon well, radius 14 -> 7
+		private const val V3_WELL_R = 7f
+		private const val V3_SEARCH_W = 150         // 300 px search pill, height 36 -> 18
+		private const val V3_SEARCH_H = 18
+		private const val V3_SEARCH_ICON_W = 9
+		private const val V3_BADGE_H = 16
+		private const val V3_ROW_R = 6f             // 44 px rows, radius 12 -> 6
+		private const val V3_SETTINGS_HEADER_H = 10 // 28x2 accent dash + 14 px label
+		private const val V3_PAIR_GAP = 6
+		private const val V3_CHECK_W = 36
+		private const val V3_RESET_W = 9
+		private const val V3_LIST_BOTTOM_PAD = 7
+		private const val V3_PILL_MS = 125f         // nav indicator slide
+
+		/** Menu entry ids of the server-gated modules, mapped to their protocol gate ids. */
+		private val GATE_IDS = mapOf(
+			"autofish" to ServerGating.AUTO_FISH,
+			"autoclick" to ServerGating.AUTO_CLICK,
+			"autowalk" to ServerGating.AUTO_WALK,
+			"autoeat" to ServerGating.AUTO_EAT,
+			"autotool" to ServerGating.AUTO_TOOL,
+			"autoarmor" to ServerGating.AUTO_ARMOR,
+			"autoreconnect" to ServerGating.AUTO_RECONNECT,
+			"quickphrases" to ServerGating.QUICK_PHRASES
+		)
+
 		private var lastCategory = MenuCategory.ALL
+
+		/** Pinned module ids (session-scoped): pinned cards sort first and show the pin glyph. */
+		private val pinnedIds = HashSet<String>()
 
 		private fun carved(): Boolean =
 			AxolotlClient.config().menuTheme.get() == AxolotlClientConfigCommon.MenuTheme.CARVED

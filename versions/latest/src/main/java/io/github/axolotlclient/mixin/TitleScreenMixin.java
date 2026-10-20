@@ -30,6 +30,7 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
 import com.mojang.realmsclient.gui.screens.RealmsNotificationsScreen;
 import io.github.axolotlclient.imperium.menu.ImperiumMenuScreen;
+import io.github.axolotlclient.imperium.menu.ImperiumTitleScreen;
 import io.github.axolotlclient.AxolotlClient;
 import io.github.axolotlclient.AxolotlClientConfigCommon;
 import io.github.axolotlclient.api.API;
@@ -116,6 +117,23 @@ public abstract class TitleScreenMixin extends Screen {
 					.bounds(width - 90, buttonY, 80, 20).build());
 			}
 		}));
+	}
+
+	@Inject(method = "init", at = @At("HEAD"), cancellable = true)
+	private void imperiumclient$v3TitleShell(CallbackInfo ci) {
+		// UI v3: every vanilla TitleScreen becomes the Imperium shell (docs/design/README.md).
+		// The one-shot flag lets the shell's "vanilla menu" icon circle show the original layout.
+		if ((Object) this instanceof ImperiumTitleScreen) {
+			return;
+		}
+		if (ImperiumTitleScreen.getShowVanillaMenu()) {
+			ImperiumTitleScreen.setShowVanillaMenu(false);
+			return;
+		}
+		ci.cancel();
+		if (this.minecraft != null) {
+			this.minecraft.gui.setScreen(new ImperiumTitleScreen());
+		}
 	}
 
 	@Inject(method = "realmsNotificationsEnabled", at = @At("HEAD"), cancellable = true)
