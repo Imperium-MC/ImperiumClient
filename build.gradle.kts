@@ -9,6 +9,8 @@ plugins {
 	id("net.fabricmc.fabric-loom-remap") version "1.17.+" apply false
 	id("net.fabricmc.fabric-loom") version "1.17.+" apply false
 	id("ploceus") version "1.17.+" apply false
+	id("org.jetbrains.kotlin.jvm") version "2.4.21" apply false
+	id("org.jetbrains.kotlin.plugin.lombok") version "2.4.21" apply false
 }
 
 version = "${project.version}"
@@ -71,6 +73,7 @@ subprojects {
 	license {
 		rule(rootProject.file("HEADER"))
 		include("**/*.java")
+		include("**/*.kt")
 	}
 
 	tasks.register("collectBuilds") {

@@ -1,8 +1,16 @@
 @file:Suppress("UnstableApiUsage")
 
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
 	id("net.fabricmc.fabric-loom")
+	id("org.jetbrains.kotlin.jvm")
+	id("org.jetbrains.kotlin.plugin.lombok")
 }
+
+// Must match the Kotlin version of fabric-language-kotlin (see the modImplementation
+// dependency below), and the JVM target must match the Java 25 toolchain of this project.
+val fabricLanguageKotlin = "1.14.2+kotlin.2.4.21"
 
 val minecraftVersion = "26.3"
 val minecraftFriendly = "26.3"
@@ -53,6 +61,10 @@ dependencies {
 
 	implementation("net.fabricmc.fabric-api:fabric-api:$fapi")
 
+	// Kotlin language adapter: provides the "kotlin" entrypoint adapter and the Kotlin
+	// runtime on the client (declared in fabric.mod.json depends, NOT jar-in-jar).
+	implementation("net.fabricmc:fabric-language-kotlin:$fabricLanguageKotlin")
+
 	implementation("io.github.axolotlclient:AxolotlClient-config:${project.property("config")}+$minecraftFriendly")
 	include("io.github.axolotlclient:AxolotlClient-config:${project.property("config")}+$minecraftFriendly")
 	implementation(include("io.github.axolotlclient:AxolotlClient-config-rounded:${project.property("config")}+$minecraftFriendly")!!)
@@ -91,6 +103,13 @@ tasks.withType(JavaCompile::class).configureEach {
 java {
 	sourceCompatibility = JavaVersion.VERSION_25
 	targetCompatibility = JavaVersion.VERSION_25
+}
+
+kotlin {
+	// Match the Java 25 toolchain used by this project (see java {} above).
+	compilerOptions {
+		jvmTarget.set(JvmTarget.JVM_25)
+	}
 }
 
 tasks.runClient {
