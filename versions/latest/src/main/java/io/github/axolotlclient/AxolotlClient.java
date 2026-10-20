@@ -112,6 +112,8 @@ public class AxolotlClient extends AxolotlClientCommon implements ClientModIniti
 		io.github.axolotlclient.imperium.enforcement.EnforcementService.instance().init();
 		// Light-level overlay (Photon parity): budgeted per-tick column sampler.
 		io.github.axolotlclient.util.LightLevelOverlay.init();
+		// chunk_borders: own per-frame gizmo window so the lines render in normal frames.
+		io.github.axolotlclient.util.ChunkBorders.register();
 		getLogger().debug("Debug Output enabled, Logs will be quite verbose!");
 		getLogger().info("AxolotlClient Initialized");
 	}
