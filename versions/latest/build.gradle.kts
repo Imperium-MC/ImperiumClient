@@ -41,6 +41,12 @@ loom {
 			vmArg("-Xmx1600m")
 			runDir("build/run/clientGameTest")
 			source(sourceSets.getByName("test"))
+			// Headless CI subset (see ImperiumGametestSubsets in the test source set):
+			// -Pimperium.fastGametests keeps only the logic/protocol tests, for GitHub's
+			// GPU-less runners where the render-heavy tests cannot finish under software GL.
+			if (project.hasProperty("imperium.fastGametests")) {
+				vmArg("-Dimperiumclient.gametest.subset=ci")
+			}
 		}
 	}
 	decompilers {

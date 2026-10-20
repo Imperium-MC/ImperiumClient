@@ -48,6 +48,7 @@ public class WorldEditCuiGameTest implements FabricClientGameTest {
 
 	@Override
 	public void runTest(ClientGameTestContext context) {
+		if (ImperiumGametestSubsets.ci()) return; // headless "ci" subset: this suite is render-heavy, see ImperiumGametestSubsets
 		codecDecodesBareUtf8AndConsumesEverything();
 		codecEncodesWithoutFraming();
 		handshakeEncodesToVersionLine();

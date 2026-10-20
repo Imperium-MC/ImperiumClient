@@ -24,10 +24,17 @@ package io.github.axolotlclient;
 
 import io.github.axolotlclient.bridge.internal.BridgeValidationPostprocessor;
 import net.fabricmc.api.ClientModInitializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AxolotlClientTest implements ClientModInitializer {
+	private static final Logger logger = LoggerFactory.getLogger("axolotlclient-test");
+
 	@Override
 	public void onInitializeClient() {
 		BridgeValidationPostprocessor.validate();
+		// The gametest bootstrap: make the active suite subset visible in the run log
+		// (ImperiumGametestSubsets explains how the ci subset is selected).
+		logger.info("Client gametests: subset '{}'", ImperiumGametestSubsets.describe());
 	}
 }

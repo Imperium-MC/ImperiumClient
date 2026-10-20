@@ -56,6 +56,7 @@ public class LocalEnforcementGameTest implements FabricClientGameTest {
 
 	@Override
 	public void runTest(ClientGameTestContext context) {
+		if (ImperiumGametestSubsets.ci()) return; // headless "ci" subset: this suite is render-heavy, see ImperiumGametestSubsets
 		scopeAddressMatching();
 		channelAllowlist();
 		registerListFiltering();

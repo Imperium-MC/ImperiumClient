@@ -44,7 +44,8 @@
       "io.github.axolotlclient.WorldSpaceRenderingGameTest",
       "io.github.axolotlclient.HudBlurGameTest",
       "io.github.axolotlclient.TitlesGameTest",
-      "io.github.axolotlclient.ImperiumChannelsGameTest"
+      "io.github.axolotlclient.ImperiumChannelsGameTest",
+      "io.github.axolotlclient.TranslationsParityGameTest"
     ]
   },
   "depends": {
