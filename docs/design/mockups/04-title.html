@@ -1,0 +1,71 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Title screen</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Cinzel:wght@700;800&display=block" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,0&display=block" rel="stylesheet">
+<link rel="stylesheet" href="imperium-ui.css">
+<style>
+  #account { position: absolute; left: 20px; top: 20px; display: flex; align-items: center; gap: 10px; padding: 8px 15px; border-radius: 30px; }
+  #account img { width: 36px; height: 36px; border-radius: 8px; }
+  #account b { display: block; font-size: 14px; font-weight: 700; height: 17px; }
+  #account span { display: block; font-size: 11px; color: var(--color-overlay-text-secondary); }
+  #account .ms { font-size: 16px; opacity: .6; margin-left: 6px; }
+
+  #top-right { position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; }
+  .slot { width: 40px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .tr { width: 40px; height: 40px; border-radius: 20px; display: grid; place-items: center; }
+  .tr .ms { font-size: 24px; }
+  .tr img { width: 26px; height: 26px; border-radius: 50%; }
+  .tr.hover { transform: scale(1.1); }
+  .tr-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; white-space: nowrap; padding: 6px; border-radius: 5px; color: var(--color-overlay-text-secondary); }
+
+  #main { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+  #logo { width: 250px; height: 250px; filter: drop-shadow(0 6px 18px rgba(0,0,0,.45)); }
+  #title { font-family: Cinzel, serif; font-weight: 800; font-size: 40px; letter-spacing: .02em; height: 50px; text-shadow: 0 4px 12px var(--color-overlay-shadow); }
+  .buttons { display: flex; flex-direction: column; gap: 12px; width: 400px; }
+  .mb { height: 50px; border-radius: 12px; border-width: 3px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,.4); }
+  .mb.hover { box-shadow: 0 0 40px var(--color-overlay-glow); transform: scale(1.033); }
+  .mb.play { justify-content: space-between; padding: 0 18px 0 20px; border-color: rgba(195,154,88,.55); }
+  .mb.play img { width: 24px; height: 24px; margin-right: 10px; }
+  .mb.play .l { display: flex; align-items: center; }
+  .online { display: flex; align-items: center; gap: 7px; font-size: 13.5px; font-weight: 600; color: var(--color-overlay-text-secondary); }
+  .online i { width: 8px; height: 8px; border-radius: 50%; background: var(--color-success); }
+  .pair { display: flex; gap: 10px; } .pair .mb { flex: 1; }
+
+  #notes { position: absolute; right: 8px; bottom: 8px; display: flex; flex-direction: column; gap: 8px; }
+  #footer { position: absolute; left: 0; right: 0; bottom: 0; height: 40px; padding: 0 10px; display: flex; align-items: center; justify-content: space-between; font-size: 14px; color: var(--color-overlay-text-secondary); text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+</style></head>
+<body>
+
+<div id="account" class="ov">
+  <img class="mc" src="mc/steve_head.png" alt="">
+  <div><b>ImperiumMC</b><span>Microsoft</span></div>
+  <span class="ms">unfold_more</span>
+</div>
+
+<div id="top-right">
+  <div class="slot"><div class="tr ov hover"><span class="ms">extension</span></div><div class="tr-label ov">Modules</div></div>
+  <div class="slot"><div class="tr ov"><img src="emblem.png" alt=""></div></div>
+  <div class="slot"><div class="tr ov"><span class="ms">public</span></div></div>
+  <div class="slot"><div class="tr ov"><span class="ms">shopping_cart</span></div></div>
+  <div class="slot"><div class="tr ov"><svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M19.3 5.3A16.6 16.6 0 0 0 15.2 4l-.5 1a15.4 15.4 0 0 0-5.4 0l-.5-1a16.6 16.6 0 0 0-4.1 1.3C2.1 9.2 1.4 13 1.7 16.7a16.7 16.7 0 0 0 5 2.6l1.1-1.7a10.8 10.8 0 0 1-1.7-.8l.4-.3a11.9 11.9 0 0 0 11 0l.4.3c-.5.3-1.1.6-1.7.8l1.1 1.7a16.6 16.6 0 0 0 5-2.6c.4-4.3-.6-8-3-11.4zM8.6 14.4c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2zm6.8 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2z"/></svg></div></div>
+  <div class="slot"><div class="tr ov"><span class="ms">swap_horiz</span></div></div>
+</div>
+
+<div id="main">
+  <img id="logo" src="emblem-512.png" alt="">
+  <div id="title">IMPERIUM CLIENT</div>
+  <div class="buttons">
+    <div class="mb ov play"><span class="l"><img class="mc" src="mc/iron_sword.png" alt="">Play ImperiumMC</span><span class="online"><i></i>214 online</span></div>
+    <div class="mb ov hover">Singleplayer</div>
+    <div class="mb ov">Multiplayer</div>
+    <div class="pair"><div class="mb ov">Options...</div><div class="mb ov">Quit Game</div></div>
+  </div>
+</div>
+
+<div id="notes">
+  <div class="note panel"><div class="head"><span class="ms">info</span>Launch Handler</div><p>Game loaded in 15.9s, of which Imperium Client contributed 2.4s.</p><div class="track"><b style="width:38%"></b></div></div>
+  <div class="note panel success"><div class="head"><span class="ms">check_circle</span>ImperiumMC</div><p>Connected. Season II: The Fall of the Republic is live.</p><div class="track"><b style="width:70%"></b></div></div>
+</div>
+
+<div id="footer"><span>Imperium Client 0.2.0-beta.5 (mc26.3)</span></div><div style="position:absolute;left:0;right:0;bottom:12px;text-align:center;font-size:13px;color:rgba(255,255,255,.62);text-shadow:0 1px 2px rgba(0,0,0,.6)">Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.</div>
+</body></html>

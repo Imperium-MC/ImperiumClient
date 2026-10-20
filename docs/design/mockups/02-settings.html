@@ -1,0 +1,74 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Module settings</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Cinzel:wght@700;800&display=block" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,0&display=block" rel="stylesheet">
+<link rel="stylesheet" href="imperium-ui.css">
+<style>
+  #content-header { flex-direction: row; align-items: center; justify-content: flex-start; gap: 14px; }
+  .back { width: 40px; height: 40px; border-radius: 20px; display: grid; place-items: center; background: var(--color-component-bg); border: 1px solid var(--color-component); }
+  .hd { display: flex; flex-direction: column; gap: 6px; }
+  .split { display: grid; grid-template-columns: 1fr 460px; gap: 24px; }
+  .preview { height: 260px; border-radius: 14px; overflow: hidden; position: relative; background: url(mc/title-bg.jpg) 30% 60% / 1100px; border: 1px solid var(--color-component); }
+  .preview .hud { position: absolute; left: 14px; top: 14px; padding: 6px 8px; background: rgba(0,0,0,.42); display: flex; flex-direction: column; gap: 4px; }
+  .preview .tag { position: absolute; right: 10px; bottom: 10px; padding: 4px 10px; border-radius: 8px; font-size: 13px; font-weight: 600; }
+  .aside { display: flex; flex-direction: column; gap: 12px; }
+  .aside h4 { font-size: 15px; font-weight: 700; }
+  .aside p { font-size: 14px; line-height: 1.4; color: var(--color-text-secondary); }
+  .profile { padding: 14px 16px; border-radius: 14px; background: rgba(21,17,12,.38); border: 1px solid rgba(154,132,102,.14); display: flex; flex-direction: column; gap: 6px; }
+</style></head>
+<body>
+<div class="dim"></div>
+<div id="sidebar">
+  <div id="sidebar-header"><img src="emblem-512.png" alt=""><b>IMPERIUM<br>CLIENT</b></div>
+  <div id="nav">
+    <div class="nav sel"><span class="ms">extension</span>Modules</div>
+    <div class="nav"><span class="ms">dashboard_customize</span>Edit HUD</div>
+    <div class="nav"><span class="ms">location_on</span>Waypoints</div>
+    <div class="nav"><span class="ms">keyboard</span>Macros</div>
+    <div class="nav"><span class="ms">person</span>Profiles</div>
+    <div class="nav"><span class="ms">checkroom</span>Cosmetics</div>
+    <div class="nav"><span class="ms">shield</span>Legion</div>
+    <div class="nav"><span class="ms">settings</span>Settings</div>
+  </div>
+  <div id="sidebar-footer">
+    <div class="pill"><span class="ms">public</span>imperiummc.net</div>
+    <div class="pill"><span class="ms">close</span>Close</div>
+  </div>
+</div>
+
+<div id="content-header"><div class="back"><span class="ms">arrow_back</span></div><div class="hd"><h2>Coordinates</h2><p>Shows where you are, the biome and which way you're facing.</p></div></div>
+<div class="controls"><div class="search"><span class="ms">search</span>biome</div></div>
+
+<div id="content">
+  <div class="split">
+    <div class="rows">
+      <div class="preview"><div class="hud"><span data-mc="X 1244  Y 64  Z -322" data-color="#ffffff" data-scale="2" data-shadow></span><span data-mc="North-East  Autumn Forest" data-color="#c8c8c8" data-scale="2" data-shadow></span></div><div class="tag panel">Live preview</div></div>
+
+      <div class="section"><i></i>Display</div>
+      <div class="pair">
+        <div class="row found"><span class="label">Show biome</span><div class="check on"><span class="ms">check</span></div><span class="ms reset">restart_alt</span></div>
+        <div class="row"><span class="label">Show facing</span><div class="check on"><span class="ms">check</span></div><span class="ms reset">restart_alt</span></div>
+      </div>
+      <div class="row"><span class="label">Decimal places</span><div class="stepper"><div class="arr"><span class="ms">chevron_left</span></div><div class="val">0</div><div class="arr"><span class="ms">chevron_right</span></div></div><span class="ms reset">restart_alt</span></div>
+      <div class="row hover"><span class="label">Scale</span><span class="value">1.0x</span><div class="slider"><b style="width:33%"></b><i style="left:calc(33% - 7px)"></i></div><span class="ms reset">restart_alt</span></div>
+
+      <div class="section"><i></i>Style</div>
+      <div class="row"><span class="label">Text colour</span><span class="value" style="width:auto">#FFFFFF</span><div class="swatch" style="background:#fff"></div><span class="ms reset">restart_alt</span></div>
+      <div class="pair">
+        <div class="row"><span class="label">Background</span><div class="check on"><span class="ms">check</span></div><span class="ms reset">restart_alt</span></div>
+        <div class="row"><span class="label">Text shadow</span><div class="check"></div><span class="ms reset">restart_alt</span></div>
+      </div>
+
+      <div class="section"><i></i>Controls</div>
+      <div class="row"><span class="label">Toggle keybind</span><div class="keybind">None</div><span class="ms reset">restart_alt</span></div>
+    </div>
+
+    <div class="aside">
+      <div class="profile"><h4>Saved to PvP profile</h4><p>Changes apply to the profile that's active now. Switch profiles from the sidebar.</p></div>
+      <div class="profile"><h4>1 setting matches "biome"</h4><p>Search looks through every module's settings, not just names.</p></div>
+      <div style="display:flex;gap:10px"><span class="btn ghost">Reset module</span><span class="btn hover">Done</span></div>
+    </div>
+  </div>
+</div>
+<script src="mcfont.js"></script>
+</body></html>

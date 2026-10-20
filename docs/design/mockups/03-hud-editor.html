@@ -1,0 +1,72 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>HUD editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Cinzel:wght@700;800&display=block" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,0&display=block" rel="stylesheet">
+<link rel="stylesheet" href="imperium-ui.css">
+<style>
+  body::before { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,.28); }
+  .el { position: absolute; z-index: 2; background: rgba(0,0,0,.42); padding: 6px 8px; display: flex; flex-direction: column; gap: 5px; border-radius: 2px; }
+  .el.idle { outline: 1.5px dashed rgba(255,255,255,.35); outline-offset: 3px; }
+  .el.sel { outline: 2px solid var(--imp-accent); outline-offset: 3px; box-shadow: 0 0 0 6px rgba(195,154,88,.18); }
+  .guide { position: absolute; z-index: 1; background: var(--imp-accent-hot); opacity: .8; }
+  .handle { position: absolute; z-index: 3; width: 10px; height: 10px; border-radius: 3px; background: var(--imp-accent-hot); border: 1.5px solid #1a130a; }
+  #snap-hint { position: absolute; z-index: 4; left: 50%; top: 22px; transform: translateX(-50%); padding: 5px 12px; font-size: 16px; font-weight: 600; border-radius: 8px; }
+  #snap-hint b { color: var(--color-text-accent); }
+  .menu { position: absolute; z-index: 5; width: 230px; padding: 6px; }
+  .menu .it { height: 36px; display: flex; align-items: center; gap: 10px; padding: 0 10px; border-radius: 8px; font-size: 14.5px; font-weight: 600; color: var(--color-text-secondary); }
+  .menu .it .ms { font-size: 19px; }
+  .menu .it.on { background: var(--color-primary); color: var(--color-text); }
+  .menu .it .k { margin-left: auto; font-size: 12.5px; color: var(--color-text-disabled); }
+  .menu .rule { height: 1px; background: rgba(255,255,255,.1); margin: 5px 4px; }
+  .anchor { margin-left: auto; display: grid; grid-template-columns: repeat(3, 10px); gap: 3px; }
+  .anchor i { width: 10px; height: 10px; border-radius: 3px; background: rgba(255,255,255,.14); }
+  .anchor i.on { background: var(--imp-accent); }
+  #help-btn { position: absolute; z-index: 4; right: 24px; bottom: 24px; width: 48px; height: 48px; border-radius: 24px; display: grid; place-items: center; }
+  #help { position: absolute; z-index: 4; right: 24px; bottom: 84px; padding: 16px 20px; display: flex; flex-direction: column; gap: 6px; }
+  #help h4 { font-size: 18px; font-weight: 600; padding-bottom: 6px; }
+  #help .r { display: flex; gap: 14px; font-size: 15px; }
+  #help .r b { width: 128px; color: var(--color-text-accent); font-weight: 600; }
+  #help .r span { color: var(--color-text-secondary); }
+  #bar { position: absolute; z-index: 4; left: 24px; bottom: 24px; display: flex; gap: 10px; }
+  #bar .ov { height: 44px; padding: 0 16px; border-radius: 22px; display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; }
+  #bar .ov .ms { font-size: 20px; }
+  .hotbar { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); width: 364px; height: 44px; background: rgba(0,0,0,.4); box-shadow: 0 0 0 2px rgba(0,0,0,.6); }
+</style></head>
+<body>
+<div id="snap-hint" class="panel">Snapped to the <b>centre line</b> · hold Alt to place freely</div>
+
+<div class="el idle" style="left:14px;top:14px"><span data-mc="78 FPS" data-color="#ffffff" data-scale="2" data-shadow></span></div>
+<div class="el idle" style="left:14px;top:54px"><span data-mc="X 1244  Y 64  Z -322" data-color="#ffffff" data-scale="2" data-shadow></span><span data-mc="North-East  Autumn Forest" data-color="#c8c8c8" data-scale="2" data-shadow></span></div>
+<div class="el idle" style="right:14px;top:14px;flex-direction:row;align-items:center;gap:8px"><img class="mc" src="mc/ender_pearl.png" style="width:32px;height:32px"><span data-mc="4.2s" data-color="#ffffff" data-scale="2" data-shadow></span></div>
+
+<div class="guide" style="left:959px;top:0;bottom:0;width:2px"></div>
+<div class="el sel" style="left:860px;top:300px">
+  <span data-mc="Speed II        1:23" data-color="#7cfc7c" data-scale="2" data-shadow></span>
+  <span data-mc="Fire Resistance 6:40" data-color="#ffb55a" data-scale="2" data-shadow></span>
+  <span data-mc="Night Vision     --:--" data-color="#b9a8ff" data-scale="2" data-shadow></span>
+</div>
+<span class="handle" style="left:852px;top:292px"></span><span class="handle" style="left:1058px;top:292px"></span>
+<span class="handle" style="left:852px;top:378px"></span><span class="handle" style="left:1058px;top:378px"></span>
+
+<div class="menu panel" style="left:1084px;top:300px">
+  <div class="it on"><span class="ms">settings</span>Settings<span class="k">Right-click</span></div>
+  <div class="it"><span class="ms">restart_alt</span>Reset position</div>
+  <div class="it"><span class="ms">visibility_off</span>Hide<span class="k">Del</span></div>
+  <div class="rule"></div>
+  <div class="it"><span class="ms">anchor</span>Anchor<span class="anchor"><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+</div>
+
+<div id="bar"><div class="ov hover"><span class="ms">grid_4x4</span>Snapping on</div><div class="ov"><span class="ms">undo</span>Undo</div><div class="ov"><span class="ms">extension</span>Modules</div><div class="ov"><span class="ms">check</span>Done</div></div>
+
+<div id="help" class="panel">
+  <h4>HUD editor</h4>
+  <div class="r"><b>Drag</b><span>Move an element</span></div>
+  <div class="r"><b>Arrow keys</b><span>Nudge 1 px, Shift for 10 px</span></div>
+  <div class="r"><b>Alt</b><span>Place without snapping</span></div>
+  <div class="r"><b>Right-click</b><span>Settings, reset, anchor</span></div>
+  <div class="r"><b>Ctrl+Z / Ctrl+Y</b><span>Undo and redo</span></div>
+</div>
+<div id="help-btn" class="ov"><span class="ms">help</span></div>
+<div class="hotbar"></div>
+<script src="mcfont.js"></script>
+</body></html>
