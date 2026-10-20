@@ -762,6 +762,7 @@
 	"playerstats.bedwars.summary": "» Wins %s - Losses %s (%s) | Winstreak: %s",
 	"playerstats.bedwars.summary_short": "» Win Loss Ratio: %s/%s (%s)",
 	"playerstats.error.api_disabled": "API is not enabled!",
+	"playerstats.error.api_unauthenticated": "The API key is not authenticated!",
 	"playerstats.error.unknown_player": "Unknown Player!",
 	"api.error.unauthenticated": "API is not authenticated!",
 	"playerstats.error.query_failed": "Failed to fetch stats!",
