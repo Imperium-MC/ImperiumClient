@@ -1,52 +1,53 @@
 <!doctype html>
 <html><head><meta charset="utf-8"><title>Title screen</title><link rel="stylesheet" href="imperium.css">
 <style>
-  body { background: url(panorama.jpg) center 40% / cover; }
-  body::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(12,11,10,.92) 0%, rgba(12,11,10,.7) 32%, rgba(12,11,10,.15) 62%, rgba(12,11,10,.45) 100%), linear-gradient(0deg, rgba(12,11,10,.7), transparent 30%); }
-  .col { position: absolute; left: 72px; top: 150px; width: 300px; z-index: 2; display: flex; flex-direction: column; gap: 10px; }
-  .logo { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
-  .logo img { width: 76px; height: 76px; filter: drop-shadow(0 8px 18px rgba(0,0,0,.6)); }
-  .logo h1 { font-family: 'Cinzel', serif; font-size: 34px; letter-spacing: .1em; color: var(--gold); line-height: 1; text-shadow: 0 4px 18px rgba(0,0,0,.6); }
-  .logo p { font-size: 10.5px; letter-spacing: .32em; color: var(--muted); font-weight: 600; margin-top: 6px; }
-  .mb { height: 42px; border-radius: 9px; display: flex; align-items: center; gap: 12px; padding: 0 16px; font-weight: 600; font-size: 13.5px; color: var(--text); background: rgba(20,19,17,.72); border: 1px solid var(--hair); backdrop-filter: blur(6px); }
-  .mb svg { width: 17px; height: 17px; color: var(--gold); }
-  .mb.primary { height: 50px; background: linear-gradient(180deg, #dab578, #cea464 55%, #b8904e); color: #17110a; border: 0; box-shadow: 0 10px 28px -10px rgba(168,130,63,.85); font-size: 14.5px; }
-  .mb.primary svg { color: #17110a; }
-  .mb.primary .sub { margin-left: auto; font-size: 11px; font-weight: 600; color: rgba(23,17,10,.7); display: flex; align-items: center; gap: 6px; }
-  .mb.primary .sub i { width: 7px; height: 7px; border-radius: 50%; background: #2f7d32; box-shadow: 0 0 6px #46a758; }
-  .mb.hover { border-color: var(--hair-strong); background: rgba(36,33,28,.85); }
-  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .acct { position: absolute; left: 20px; top: 18px; z-index: 2; display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 6px; border-radius: 10px; background: rgba(20,19,17,.78); border: 1px solid var(--hair); }
-  .acct .head { width: 28px; height: 28px; border-radius: 6px; background: linear-gradient(135deg, #6b4f33, #3c2a1b); border: 1px solid var(--hair-strong); }
-  .acct b { display: block; font-size: 12.5px; } .acct span { font-size: 10.5px; color: var(--muted); }
-  .tr { position: absolute; right: 20px; top: 18px; z-index: 2; display: flex; gap: 8px; }
-  .news { position: absolute; right: 40px; bottom: 54px; width: 330px; z-index: 2; border-radius: 12px; background: rgba(20,19,17,.82); border: 1px solid var(--hair); backdrop-filter: blur(8px); padding: 14px 16px; }
-  .news .it { padding: 9px 0; border-top: 1px solid var(--hair); }
-  .news .it:first-of-type { border-top: 0; }
-  .news .it b { display: block; font-size: 12.5px; color: var(--text); margin-bottom: 2px; }
-  .news .it span { font-size: 11px; color: var(--muted); }
-  .foot2 { position: absolute; left: 20px; right: 20px; bottom: 14px; z-index: 2; display: flex; justify-content: space-between; font-size: 10.5px; color: rgba(236,231,223,.5); }
-  .foot2 a { color: var(--muted); margin-left: 14px; text-decoration: none; }
+  body { background: url(rome-map.jpg) center / cover; image-rendering: pixelated; }
+  body::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(10,9,8,.92) 0, rgba(10,9,8,.78) 30%, rgba(10,9,8,.25) 60%, rgba(10,9,8,.45) 100%), radial-gradient(ellipse at 62% 50%, transparent 40%, rgba(10,9,8,.55) 100%); }
+  .col { position: absolute; left: 70px; top: 120px; width: 380px; z-index: 2; display: flex; flex-direction: column; gap: 12px; }
+  .logo { display: flex; align-items: center; gap: 16px; margin-bottom: 22px; }
+  .logo img { width: 84px; height: 84px; }
+  .logo .mark { font-size: 40px; }
+  .logo .mark small { font-size: 15px; }
+  .mb { height: 46px; display: flex; align-items: center; gap: 12px; padding: 0 16px 0 12px; font-weight: 700; font-size: 16px; }
+  .mb img { width: 32px; height: 32px; image-rendering: pixelated; }
+  .mb.stone { background: rgba(23,21,18,.92); color: var(--marble); box-shadow: inset 0 2px 0 var(--seam-hi), inset 0 -2px 0 #0a0908, 0 0 0 2px #050403; }
+  .mb.hover { background: rgba(33,30,25,.95); box-shadow: inset 0 2px 0 #4a4033, inset 0 -2px 0 #0a0908, 0 0 0 2px var(--bronze); }
+  .mb.play { height: 56px; font-size: 18px; }
+  .mb .on { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; color: #3a2a12; text-shadow: none; }
+  .mb .on i { width: 8px; height: 8px; background: #2f7d32; box-shadow: 0 0 0 2px #1a3d1b; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .acct { position: absolute; left: 20px; top: 18px; z-index: 2; display: flex; align-items: center; gap: 10px; padding: 6px 14px 6px 6px; }
+  .acct .head { width: 32px; height: 32px; image-rendering: pixelated; background:
+    linear-gradient(#3b2a1a 0 25%, transparent 25%), linear-gradient(90deg, transparent 25%, #f0c8a0 25% 75%, transparent 75%), #c69d76; box-shadow: 0 0 0 2px #050403; }
+  .acct b { display: block; font-size: 14.5px; } .acct span { font-size: 13px; color: var(--text-3); }
+  .news { position: absolute; right: 40px; bottom: 56px; width: 360px; z-index: 2; padding: 14px 16px 6px; }
+  .news h4 { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .news h4::after { content: ''; flex: 1; height: 2px; background: var(--seam); }
+  .news .it { padding: 9px 0; border-bottom: 2px solid #1c1915; }
+  .news .it:last-child { border-bottom: 0; }
+  .news .it b { display: block; font-size: 14.5px; }
+  .news .it span { font-size: 13.5px; color: var(--text-2); }
+  .foot { position: absolute; left: 20px; right: 20px; bottom: 14px; z-index: 2; display: flex; justify-content: space-between; font-size: 13px; color: rgba(242,237,228,.7); }
+  .foot a { margin-left: 18px; color: var(--text-2); }
 </style></head>
 <body>
-<div class="acct"><span class="head"></span><div><b>ImperiumMC</b><span>Microsoft account ▾</span></div></div>
-<div class="tr"><div class="iconbtn" style="background:rgba(20,19,17,.78);border-color:var(--hair)" data-i="news"></div><div class="iconbtn" style="background:rgba(20,19,17,.78);border-color:var(--hair)" data-i="grid"></div></div>
+<div class="acct stone frame"><span class="head"></span><div><b>ImperiumMC</b><span>Microsoft account · switch</span></div></div>
 
 <div class="col">
-  <div class="logo"><img src="emblem.png" alt=""><div><h1>IMPERIUM</h1><p>ROMA AETERNA</p></div></div>
-  <div class="mb primary"><span data-i="play"></span>Play ImperiumMC<span class="sub"><i></i>214 online</span></div>
-  <div class="mb hover"><span data-i="user"></span>Singleplayer</div>
-  <div class="mb"><span data-i="globe"></span>Multiplayer</div>
-  <div class="row2"><div class="mb"><span data-i="sliders"></span>Settings</div><div class="mb"><span data-i="grid"></span>Mods</div></div>
-  <div class="mb" style="color:var(--muted)"><span data-i="power" style="color:var(--muted)"></span>Quit</div>
+  <div class="logo"><img src="emblem.png" alt=""><div class="mark">IMPERIUM<small>Roma Aeterna</small></div></div>
+  <div class="mb plate play"><img src="mc/iron_sword.png">Play ImperiumMC<span class="on"><i></i><span data-mc="214 online" data-color="#3a2a12" data-scale="2"></span></span></div>
+  <div class="mb stone hover"><img src="mc/map.png">Singleplayer</div>
+  <div class="mb stone"><img src="mc/compass_16.png">Multiplayer</div>
+  <div class="pair"><div class="mb stone"><img src="mc/comparator.png">Settings</div><div class="mb stone"><img src="mc/book.png">Mods</div></div>
+  <div class="mb stone" style="color:var(--text-2)"><span data-g="close" style="margin:0 7px" data-color="#a3937a"></span>Quit</div>
 </div>
 
-<div class="news">
-  <div class="eyebrow" style="margin-bottom:6px">News from the forum</div>
-  <div class="it"><b>Season 2: The Fall of the Republic</b><span>New mines, the Senate questline and Legion wars.</span></div>
-  <div class="it"><b>Weekend Colosseum tournament</b><span>Saturday 18:00 UTC · rewards in Aureus.</span></div>
-  <div class="it"><b>Imperium Client 0.2 released</b><span>New module menu, HUD editor and waypoints.</span></div>
+<div class="news stone frame">
+  <h4>From the forum</h4>
+  <div class="it"><b>Season II: The Fall of the Republic</b><span>New mines, the Senate questline and legion wars.</span></div>
+  <div class="it"><b>Colosseum tournament, Saturday</b><span>18:00 UTC. Prizes paid in Aureus.</span></div>
+  <div class="it"><b>Imperium Client 0.2</b><span>Module menu, HUD editor and waypoints.</span></div>
 </div>
-<div class="foot2"><span>Imperium Client 0.1.0 · Minecraft 26.3 · Not affiliated with Mojang</span><span><a>imperiummc.net</a><a>Discord</a><a>Store</a></span></div>
-<script src="icons.js"></script>
+<div class="foot"><span>Map: the ImperiumMC world · Imperium Client 0.1.0 · Minecraft 26.3 · Not affiliated with Mojang</span><span><a>imperiummc.net</a><a>Discord</a><a>Store</a></span></div>
+<script src="glyphs.js"></script><script src="mcfont.js"></script>
 </body></html>

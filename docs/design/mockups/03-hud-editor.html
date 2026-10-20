@@ -1,75 +1,66 @@
 <!doctype html>
 <html><head><meta charset="utf-8"><title>HUD editor</title><link rel="stylesheet" href="imperium.css">
 <style>
-  body { background:
-    linear-gradient(180deg, #7fa7cf 0%, #a9c6e0 40%, #6d8a5c 41%, #57713f 70%, #3e4c33 100%); }
-  body::after { content: ''; position: absolute; inset: 0; background: rgba(12,11,10,.28); }
-  .hud { position: absolute; z-index: 2; background: rgba(12,11,10,.62); border-radius: 6px; padding: 5px 9px; font-weight: 700; font-size: 13px; color: var(--marble); text-shadow: 0 1px 0 rgba(0,0,0,.6); border: 1px solid rgba(206,164,100,.28); }
-  .hud.ghost { outline: 1px dashed rgba(236,231,223,.35); outline-offset: 3px; }
-  .hud.sel { outline: 1.5px solid var(--gold); outline-offset: 3px; box-shadow: 0 0 0 9999px rgba(0,0,0,0); }
-  .hud .k { color: var(--muted); font-weight: 600; }
-  .handle { position: absolute; width: 8px; height: 8px; background: var(--marble); border: 2px solid var(--gold); border-radius: 2px; z-index: 3; }
-  .nametag { position: absolute; z-index: 3; background: var(--gold); color: #17110a; font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
-  .guide { position: absolute; z-index: 1; background: var(--blood-light); opacity: .85; }
-  .bar { position: absolute; left: 50%; top: 14px; transform: translateX(-50%); z-index: 4; display: flex; gap: 4px; padding: 5px; border-radius: 10px; background: rgba(20,19,17,.95); border: 1px solid var(--hair-strong); box-shadow: 0 14px 34px -14px rgba(0,0,0,.8); }
-  .bar .b { height: 30px; padding: 0 11px; border-radius: 7px; display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: #d6ccbd; }
-  .bar .b.on { background: rgba(206,164,100,.16); color: var(--gold-light); }
-  .bar .b svg { width: 15px; height: 15px; }
-  .bar .sep { width: 1px; background: var(--hair); margin: 4px 2px; }
-  .menu { position: absolute; z-index: 5; width: 190px; padding: 5px; border-radius: 10px; background: rgba(20,19,17,.98); border: 1px solid var(--hair-strong); box-shadow: 0 18px 40px -14px rgba(0,0,0,.85); }
-  .menu .it { height: 30px; display: flex; align-items: center; gap: 9px; padding: 0 9px; border-radius: 6px; font-size: 12px; color: #d6ccbd; }
-  .menu .it svg { width: 14px; height: 14px; color: var(--muted); }
-  .menu .it.hover { background: rgba(206,164,100,.12); color: var(--gold-light); }
-  .menu .it .sc { margin-left: auto; font-size: 10.5px; color: var(--dim); }
-  .menu .div { height: 1px; background: var(--hair); margin: 4px 2px; }
-  .anchor { display: grid; grid-template-columns: repeat(3, 10px); gap: 3px; margin-left: auto; }
-  .anchor i { width: 10px; height: 10px; border-radius: 2px; border: 1px solid var(--hair-strong); }
-  .anchor i.on { background: var(--gold); border-color: var(--gold); }
-  .hotbar { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); width: 364px; height: 44px; background: rgba(0,0,0,.45); border: 2px solid rgba(0,0,0,.5); z-index: 1; }
+  body { background: linear-gradient(180deg, #7fa7cf 0%, #a9c6e0 43%, #6d8a5c 44%, #57713f 70%, #3e4c33 100%); }
+  body::before { content: ''; position: absolute; inset: 0; background: rgba(8,7,6,.22); }
+  .el { position: absolute; z-index: 2; background: rgba(0,0,0,.42); padding: 4px 6px; display: flex; flex-direction: column; gap: 4px; }
+  .el.ghost { outline: 2px dashed rgba(242,237,228,.4); outline-offset: 2px; }
+  .el.sel { outline: 2px solid var(--bronze); outline-offset: 2px; }
+  .h { position: absolute; z-index: 3; width: 10px; height: 10px; }
+  .tag { position: absolute; z-index: 3; padding: 3px 8px; font-size: 13px; }
+  .guide { position: absolute; z-index: 1; background: var(--bronze-hi); }
+  .bar { position: absolute; left: 50%; top: 14px; transform: translateX(-50%); z-index: 4; display: flex; gap: 6px; padding: 6px; }
+  .bar .btn { height: 34px; }
+  .menu { position: absolute; z-index: 5; width: 210px; padding: 6px; }
+  .menu .it { height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 8px; font-weight: 600; font-size: 14px; color: var(--text-2); }
+  .menu .it.on { background: var(--basalt-3); color: var(--marble); }
+  .menu .it .sc { margin-left: auto; }
+  .menu .rule { height: 2px; background: var(--seam); margin: 4px 0; }
+  .anchor { display: grid; grid-template-columns: repeat(3, 10px); gap: 2px; margin-left: auto; }
+  .anchor i { width: 10px; height: 10px; background: #0a0908; box-shadow: inset 0 0 0 2px var(--seam-hi); }
+  .anchor i.on { background: var(--bronze); box-shadow: none; }
+  .hotbar { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); width: 364px; height: 44px; z-index: 1; background: rgba(0,0,0,.4); box-shadow: 0 0 0 2px rgba(0,0,0,.6); }
 </style></head>
 <body>
-<div class="bar">
-  <span class="b on"><span data-i="magnet"></span>Snapping</span>
-  <span class="b"><span data-i="grid"></span>Grid</span>
-  <span class="sep"></span>
-  <span class="b"><span data-i="undo"></span>Undo</span>
-  <span class="b"><span data-i="reset"></span>Reset all</span>
-  <span class="sep"></span>
-  <span class="b"><span data-i="sliders"></span>Modules</span>
-  <span class="b" style="background:var(--gold);color:#17110a"><span data-i="check"></span>Done</span>
+<div class="bar stone frame">
+  <span class="btn plate"><span data-g="check"></span>Snapping</span>
+  <span class="btn stone">Grid</span>
+  <span class="btn stone">Undo <span data-mc="Ctrl+Z" data-color="#a3937a" data-scale="2"></span></span>
+  <span class="btn stone">Reset all</span>
+  <span class="btn stone">Modules</span>
+  <span class="btn plate">Done</span>
 </div>
 
-<div class="hud" style="left:16px;top:16px">78 <span class="k">FPS</span></div>
-<div class="hud ghost" style="left:16px;top:52px">12 <span class="k">|</span> 4 <span class="k">CPS</span></div>
-<div class="hud" style="left:16px;top:88px;line-height:1.6">
-  <div><span class="k">X</span> 1244 <span class="k">Y</span> 64 <span class="k">Z</span> -322</div>
-  <div><span class="k">Facing</span> North-East <span class="k">Biome</span> Plains</div>
+<div class="el" style="left:14px;top:14px"><span data-mc="78 FPS" data-color="#ffffff" data-scale="2" data-shadow></span></div>
+<div class="el ghost" style="left:14px;top:50px"><span data-mc="12 | 4 CPS" data-color="#ffffff" data-scale="2" data-shadow></span></div>
+<div class="el" style="left:14px;top:86px">
+  <span data-mc="X 1244  Y 64  Z -322" data-color="#ffffff" data-scale="2" data-shadow></span>
+  <span data-mc="North-East  Plains" data-color="#c8c8c8" data-scale="2" data-shadow></span>
 </div>
 
-<div class="guide" style="left:520px;top:0;bottom:0;width:1px"></div>
-<div class="guide" style="left:0;right:0;top:196px;height:1px"></div>
-<div class="nametag" style="left:520px;top:166px">Potion Status · drag, Alt to stop snapping</div>
-<div class="hud sel" style="left:520px;top:196px;width:178px;line-height:1.7">
-  <div style="color:#8fd18f">Speed II <span class="k" style="float:right">1:23</span></div>
-  <div style="color:#f2a54a">Fire Resistance <span class="k" style="float:right">6:40</span></div>
-  <div style="color:#c9b7ff">Night Vision <span class="k" style="float:right">**:**</span></div>
+<div class="guide" style="left:536px;top:0;bottom:0;width:2px"></div>
+<div class="guide" style="left:0;right:0;top:214px;height:2px"></div>
+<div class="tag plate" style="left:536px;top:182px">Potion Status · hold Alt to stop snapping</div>
+<div class="el sel" style="left:536px;top:214px">
+  <span><span data-mc="Speed II        1:23" data-color="#7cfc7c" data-scale="2" data-shadow></span></span>
+  <span><span data-mc="Fire Resistance 6:40" data-color="#ffb55a" data-scale="2" data-shadow></span></span>
+  <span><span data-mc="Night Vision     --:--" data-color="#b9a8ff" data-scale="2" data-shadow></span></span>
 </div>
-<span class="handle" style="left:513px;top:189px"></span><span class="handle" style="left:701px;top:189px"></span>
-<span class="handle" style="left:513px;top:275px"></span><span class="handle" style="left:701px;top:275px"></span>
+<span class="h plate" style="left:528px;top:206px"></span><span class="h plate" style="left:754px;top:206px"></span>
+<span class="h plate" style="left:528px;top:290px"></span><span class="h plate" style="left:754px;top:290px"></span>
 
-<div class="menu" style="left:712px;top:208px">
-  <div class="it hover"><span data-i="gear"></span>Settings<span class="sc">Right-click</span></div>
-  <div class="it"><span data-i="reset"></span>Reset position</div>
-  <div class="it"><span data-i="eye"></span>Hide<span class="sc">Del</span></div>
-  <div class="div"></div>
+<div class="menu stone frame" style="left:780px;top:224px">
+  <div class="it on"><span data-g="gear"></span>Settings<span class="sc"><span data-mc="RMB" data-color="#a3937a" data-scale="2"></span></span></div>
+  <div class="it"><span data-g="reset"></span>Reset position</div>
+  <div class="it"><span data-g="close"></span>Hide<span class="sc"><span data-mc="Del" data-color="#a3937a" data-scale="2"></span></span></div>
+  <div class="rule"></div>
   <div class="it">Anchor<span class="anchor"><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
 </div>
 
-<div class="hud" style="right:16px;top:16px;display:flex;gap:10px;align-items:center">
-  <span style="width:22px;height:22px;border-radius:50%;border:3px solid var(--gold);border-right-color:rgba(206,164,100,.2)"></span>
-  <span>Ender Pearl <span class="k">4.2s</span></span>
+<div class="el" style="right:14px;top:14px;flex-direction:row;align-items:center;gap:8px">
+  <img src="mc/ender_pearl.png" style="width:32px;height:32px;image-rendering:pixelated"><span data-mc="4.2s" data-color="#ffffff" data-scale="2" data-shadow></span>
 </div>
 <div class="hotbar"></div>
-<div class="caption" style="z-index:5;color:rgba(236,231,223,.8)">HUD editor over the live game · arrows nudge 1 px, Shift 10 px · Ctrl+Z undo</div>
-<script src="icons.js"></script>
+<div class="caption" style="color:rgba(242,237,228,.85)">HUD editor over the game · arrows move 1 px, Shift 10 px · right-click for options</div>
+<script src="glyphs.js"></script><script src="mcfont.js"></script>
 </body></html>

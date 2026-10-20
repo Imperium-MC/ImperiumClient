@@ -1,60 +1,59 @@
 <!doctype html>
 <html><head><meta charset="utf-8"><title>Imperium menu</title><link rel="stylesheet" href="imperium.css"></head>
 <body class="world">
-<div class="panel">
-  <div class="header">
+<div class="panel frame">
+  <div class="header stone">
     <img src="emblem.png" alt="">
-    <div class="brand display">IMPERIUM<small>CLIENT · 0.1.0</small></div>
+    <div class="mark">IMPERIUM<small>Client 0.1.0 · Roma Aeterna</small></div>
     <div class="spacer"></div>
-    <div class="search"><span data-i="search"></span>Search modules…<span style="margin-left:auto;font-size:10.5px;color:var(--dim);border:1px solid var(--hair);border-radius:4px;padding:1px 5px">Ctrl F</span></div>
-    <div class="iconbtn" data-i="x"></div>
+    <div class="search sunken"><span data-g="search"></span>Search modules and settings<span class="hit"><span data-mc="Ctrl+F" data-color="#a3937a" data-scale="2"></span></span></div>
+    <div class="close" data-g="close" data-color="#cdbfa6"></div>
   </div>
 
-  <div class="sidebar">
-    <div class="eyebrow" style="padding:4px 10px 6px">Client</div>
-    <div class="nav active"><span data-i="grid"></span>Modules<span class="count">71</span></div>
-    <div class="nav"><span data-i="layout"></span>HUD Editor</div>
-    <div class="nav"><span data-i="pin"></span>Waypoints<span class="count">6</span></div>
-    <div class="nav"><span data-i="keyboard"></span>Macros</div>
-    <div class="nav"><span data-i="layers"></span>Profiles</div>
-    <div class="navsep"></div>
-    <div class="eyebrow" style="padding:4px 10px 6px">ImperiumMC</div>
-    <div class="nav"><span data-i="sparkle"></span>Cosmetics</div>
-    <div class="nav"><span data-i="users"></span>Legion</div>
-    <div class="navsep"></div>
-    <div class="nav"><span data-i="sliders"></span>Settings</div>
-    <div class="profile"><span class="dot"></span><div><b>PvP</b><br><span>auto on imperiummc.net</span></div></div>
+  <div class="sidebar stone">
+    <div class="nav plate on"><img src="mc/book.png">Modules<span class="n"><span data-mc="71" data-color="#1a130a" data-scale="2"></span></span></div>
+    <div class="nav"><img src="mc/painting.png">HUD Editor</div>
+    <div class="nav"><img src="mc/recovery_compass_16.png">Waypoints<span class="n"><span data-mc="6" data-color="#a3937a" data-scale="2"></span></span></div>
+    <div class="nav"><img src="mc/writable_book.png">Macros</div>
+    <div class="nav"><img src="mc/armor_stand.png">Profiles</div>
+    <div class="navrule"></div>
+    <div class="nav"><img src="mc/totem_of_undying.png">Cosmetics</div>
+    <div class="nav"><img src="mc/golden_helmet.png">Legion</div>
+    <div class="navrule"></div>
+    <div class="nav"><img src="mc/comparator.png">Settings</div>
+    <div class="profile sunken"><b>PvP profile</b><span>Switches on for imperiummc.net</span></div>
   </div>
 
-  <div class="content">
-    <div class="toolbar">
-      <span class="chip on">All <i>71</i></span>
-      <span class="chip">Enabled <i>18</i></span>
-      <span class="chip">HUD <i>31</i></span>
-      <span class="chip">Render <i>14</i></span>
-      <span class="chip">Chat <i>4</i></span>
-      <span class="chip">World <i>6</i></span>
-      <span class="chip">Utility <i>12</i></span>
-      <span class="chip">Server <i>4</i></span>
+  <div class="content stone">
+    <div class="tabs">
+      <span class="tab on">All <span data-mc="71" data-color="#cdbfa6" data-scale="2"></span></span>
+      <span class="tab">Enabled <span data-mc="18" data-color="#a3937a" data-scale="2"></span></span>
+      <span class="tab">HUD</span><span class="tab">Render</span><span class="tab">Chat</span><span class="tab">World</span><span class="tab">Utility</span><span class="tab">Server</span>
     </div>
-    <div class="grid">
-      <div class="card enabled"><div class="top"><span class="ico" data-i="gauge"></span><span class="name">FPS</span></div><div class="desc">Frames per second, with optional 1% lows.</div><div class="foot"><span class="toggle on"></span><span class="gear" data-i="gear"></span></div></div>
-      <div class="card enabled hover"><div class="top"><span class="ico" data-i="mouse"></span><span class="name">CPS</span></div><div class="desc">Clicks per second for left and right mouse.</div><div class="foot"><span class="toggle on"></span><span class="gear" data-i="gear"></span></div></div>
-      <div class="card"><div class="top"><span class="ico" data-i="keyboard"></span><span class="name">Keystrokes</span></div><div class="desc">Movement, mouse and jump keys on screen.</div><div class="foot"><span class="toggle"></span><span class="gear" data-i="gear"></span></div></div>
-      <div class="card enabled"><div class="top"><span class="ico" data-i="compass"></span><span class="name">Compass</span></div><div class="desc">Heading strip with waypoint markers.</div><div class="foot"><span class="toggle on"></span><span class="gear" data-i="gear"></span></div></div>
-      <div class="card"><span class="badge new">New</span><div class="top"><span class="ico" data-i="clock"></span><span class="name">Cooldowns</span></div><div class="desc">Pearl, shield and server cooldowns as rings.</div><div class="foot"><span class="toggle"></span><span class="gear" data-i="gear"></span></div></div>
-      <div class="card enabled"><div class="top"><span class="ico" data-i="tab"></span><span class="name">Tab Editor</span></div><div class="desc">Numeric ping and highlight yourself and your legion.</div><div class="foot"><span class="toggle on"></span><span class="gear" data-i="gear"></span></div></div>
-      <div class="card"><div class="top"><span class="ico" data-i="zoom"></span><span class="name">Zoom</span></div><div class="desc">Smooth zoom with scroll to adjust.</div><div class="foot"><span class="toggle"></span><span class="gear" data-i="gear"></span></div></div>
-      <div class="card enabled"><div class="top"><span class="ico" data-i="sun"></span><span class="name">Fullbright</span></div><div class="desc">Full brightness everywhere. Toggle with a key.</div><div class="foot"><span class="toggle on"></span><span class="gear" data-i="gear"></span></div></div>
-      <div class="card locked"><span class="badge lock">Server</span><div class="top"><span class="ico" data-i="lock"></span><span class="name">Auto Fish</span></div><div class="desc">Not enabled on this server.</div><div class="foot"><span class="toggle"></span><span class="gear" data-i="gear"></span></div></div>
-      <div class="card"><div class="top"><span class="ico" data-i="pin"></span><span class="name">Waypoints</span></div><div class="desc">Markers in the world, on the compass and minimap.</div><div class="foot"><span class="toggle"></span><span class="gear" data-i="gear"></span></div></div>
-      <div class="card enabled"><div class="top"><span class="ico" data-i="hash"></span><span class="name">Scoreboard</span></div><div class="desc">Move it, hide the red numbers, keep server lines safe.</div><div class="foot"><span class="toggle on"></span><span class="gear" data-i="gear"></span></div></div>
-      <div class="card enabled"><div class="top"><span class="ico" data-i="chat"></span><span class="name">Chat Settings</span></div><div class="desc">Timestamps, compact chat, smooth scrolling and name pings.</div><div class="foot"><span class="toggle on"></span><span class="gear" data-i="gear"></span></div></div>
+    <div class="ledger">
+      <div class="group">On screen <span class="k">31</span></div>
+      <div class="mod"><span class="slot sunken"><img src="mc/redstone.png"></span><div class="t"><b>FPS</b><span>Frames per second, with 1% lows</span></div><span class="lever sunken on"></span></div>
+      <div class="mod"><span class="slot sunken"><img src="mc/clock_00.png"></span><div class="t"><b>Cooldowns</b><span>Pearl, shield and combat tag timers</span></div><span class="lever sunken"></span></div>
+      <div class="mod"><span class="slot sunken"><img src="mc/compass_16.png"></span><div class="t"><b>Compass</b><span>Heading strip with your waypoints</span></div><span class="lever sunken on"></span></div>
+      <div class="mod"><span class="slot sunken"><img src="mc/name_tag.png"></span><div class="t"><b>Tab Editor</b><span>Numeric ping, highlight your legion</span></div><span class="lever sunken on"></span></div>
+      <div class="mod"><span class="slot sunken"><img src="mc/oak_sign.png"></span><div class="t"><b>Scoreboard</b><span>Move it and hide the red numbers</span></div><span class="lever sunken on"></span></div>
+      <div class="mod"><span class="slot sunken"><img src="mc/potion.png"></span><div class="t"><b>Potion Status</b><span>Effects with time left, blinks at 10 s</span></div><span class="lever sunken"></span></div>
+
+      <div class="group">View and camera <span class="k">14</span></div>
+      <div class="mod"><span class="slot sunken"><img src="mc/spyglass.png"></span><div class="t"><b>Zoom</b><span>Hold to zoom, scroll to adjust</span></div><span class="kb sunken"><span data-mc="C" data-color="#ecd6a6" data-scale="2"></span></span><span class="lever sunken on"></span></div>
+      <div class="mod"><span class="slot sunken"><img src="mc/glowstone_dust.png"></span><div class="t"><b>Fullbright</b><span>See in caves without torches</span></div><span class="kb sunken"><span data-mc="B" data-color="#ecd6a6" data-scale="2"></span></span><span class="lever sunken on"></span></div>
+
+      <div class="group">Server <span class="k">4</span></div>
+      <div class="mod locked"><span class="slot sunken"><img src="mc/fishing_rod.png"></span><div class="t"><b>Auto Fish</b><span>Not enabled on imperiummc.net</span></div><span class="gear" data-g="lock" data-color="#e3a58d"></span></div>
+      <div class="mod hover"><span class="slot sunken"><img src="mc/iron_sword.png"></span><div class="t"><b>Legion Markers</b><span>Show your legion through walls in events</span></div><span class="gear" data-g="gear" data-color="#cdbfa6"></span><span class="lever sunken"></span></div>
+
+      <div class="group">Chat <span class="k">4</span></div>
+      <div class="mod"><span class="slot sunken"><img src="mc/writable_book.png"></span><div class="t"><b>Chat Settings</b><span>Timestamps, compact chat, name pings</span></div><span class="lever sunken on"></span></div>
+      <div class="mod"><span class="slot sunken"><img src="mc/lead.png"></span><div class="t"><b>Peek Chat</b><span>Hold a key to read history in game</span></div><span class="kb sunken"><span data-mc="Z" data-color="#ecd6a6" data-scale="2"></span></span><span class="lever sunken"></span></div>
     </div>
-    <div class="scroll"></div><div class="fade"></div>
   </div>
 </div>
-<div class="tooltip" style="left:640px;top:258px"><b>CPS</b>Counts real presses over a 1 s window. Right-click opens settings.</div>
-<div class="caption">Imperium Client · Modules (Right Shift)</div>
-<script src="icons.js"></script>
+<div class="tip stone frame" style="left:860px;top:534px"><b>Legion Markers</b>Outlines legion members during server events. Only works where the server allows it.</div>
+<div class="caption">Modules · opened with Right Shift</div>
+<script src="glyphs.js"></script><script src="mcfont.js"></script>
 </body></html>

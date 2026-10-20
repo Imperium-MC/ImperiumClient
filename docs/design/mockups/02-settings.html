@@ -1,64 +1,67 @@
 <!doctype html>
 <html><head><meta charset="utf-8"><title>Module settings</title><link rel="stylesheet" href="imperium.css"></head>
 <body class="world">
-<div class="panel">
-  <div class="header">
+<div class="panel frame">
+  <div class="header stone">
     <img src="emblem.png" alt="">
-    <div class="brand display">IMPERIUM<small>CLIENT · 0.1.0</small></div>
+    <div class="mark">IMPERIUM<small>Client 0.1.0 · Roma Aeterna</small></div>
     <div class="spacer"></div>
-    <div class="search active"><span data-i="search"></span>yaw<span style="margin-left:auto;font-size:10.5px;color:var(--muted)">1 setting</span></div>
-    <div class="iconbtn" data-i="x"></div>
+    <div class="search sunken focus"><span data-g="search"></span>yaw<span class="caret"></span><span class="hit">1 setting in Compass</span></div>
+    <div class="close" data-g="close" data-color="#cdbfa6"></div>
   </div>
-  <div class="sidebar">
-    <div class="eyebrow" style="padding:4px 10px 6px">Client</div>
-    <div class="nav active"><span data-i="grid"></span>Modules<span class="count">71</span></div>
-    <div class="nav"><span data-i="layout"></span>HUD Editor</div>
-    <div class="nav"><span data-i="pin"></span>Waypoints<span class="count">6</span></div>
-    <div class="nav"><span data-i="keyboard"></span>Macros</div>
-    <div class="nav"><span data-i="layers"></span>Profiles</div>
-    <div class="navsep"></div>
-    <div class="eyebrow" style="padding:4px 10px 6px">ImperiumMC</div>
-    <div class="nav"><span data-i="sparkle"></span>Cosmetics</div>
-    <div class="nav"><span data-i="users"></span>Legion</div>
-    <div class="navsep"></div>
-    <div class="nav"><span data-i="sliders"></span>Settings</div>
-    <div class="profile"><span class="dot"></span><div><b>PvP</b><br><span>auto on imperiummc.net</span></div></div>
+  <div class="sidebar stone">
+    <div class="nav plate on"><img src="mc/book.png">Modules<span class="n"><span data-mc="71" data-color="#1a130a" data-scale="2"></span></span></div>
+    <div class="nav"><img src="mc/painting.png">HUD Editor</div>
+    <div class="nav"><img src="mc/recovery_compass_16.png">Waypoints<span class="n"><span data-mc="6" data-color="#a3937a" data-scale="2"></span></span></div>
+    <div class="nav"><img src="mc/writable_book.png">Macros</div>
+    <div class="nav"><img src="mc/armor_stand.png">Profiles</div>
+    <div class="navrule"></div>
+    <div class="nav"><img src="mc/totem_of_undying.png">Cosmetics</div>
+    <div class="nav"><img src="mc/golden_helmet.png">Legion</div>
+    <div class="navrule"></div>
+    <div class="nav"><img src="mc/comparator.png">Settings</div>
+    <div class="profile sunken"><b>PvP profile</b><span>Switches on for imperiummc.net</span></div>
   </div>
-  <div class="content">
+  <div class="content stone">
     <div class="subhead">
-      <div class="iconbtn hover" data-i="back"></div>
-      <span data-i="compass" style="width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:rgba(206,164,100,.18);border:1px solid var(--hair);color:var(--gold)"></span>
-      <div><div class="title">Compass</div><div class="crumb">Modules / HUD / Compass</div></div>
+      <span class="btn stone" style="padding:0 10px"><span data-g="back"></span></span>
+      <span class="slot sunken"><img src="mc/compass_16.png"></span>
+      <div><div class="title">Compass</div><div class="path">Modules › On screen</div></div>
       <div class="spacer"></div>
-      <span class="btn btn-ghost"><span data-i="reset"></span>Reset</span>
-      <span class="toggle on" style="margin-left:6px"></span>
+      <span class="btn ghost"><span data-g="reset"></span>Reset to defaults</span>
+      <span class="lever sunken on"></span>
     </div>
-    <div class="preview"><span class="eyebrow lbl">Live preview</span>
-      <div style="width:300px;height:30px;border-radius:6px;background:rgba(12,11,10,.72);border:1px solid rgba(206,164,100,.35);position:relative;display:flex;align-items:center;justify-content:space-around;font-weight:700;font-size:12px;color:var(--marble)">
-        <span style="color:var(--dim)">|</span><span>NW</span><span style="color:var(--dim)">|</span><span style="color:var(--gold)">N</span><span style="color:var(--dim)">|</span><span>NE</span><span style="color:var(--dim)">|</span><span>E</span><span style="color:var(--dim)">|</span>
-        <span style="position:absolute;left:62%;top:-7px;width:8px;height:8px;border-radius:50%;background:#46a758;box-shadow:0 0 6px #46a758"></span>
-        <span style="position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);border:5px solid transparent;border-bottom-color:var(--gold)"></span>
+    <div class="preview sunken"><span class="lbl">Preview</span>
+      <div style="position:relative;padding:6px 14px;background:rgba(0,0,0,.55);display:flex;gap:22px;align-items:center">
+        <span data-mc="NW" data-color="#e0e0e0" data-scale="2" data-shadow></span>
+        <span data-mc="|" data-color="#8a8a8a" data-scale="2"></span>
+        <span data-mc="N" data-color="#ffd27a" data-scale="2" data-shadow></span>
+        <span data-mc="|" data-color="#8a8a8a" data-scale="2"></span>
+        <span data-mc="NE" data-color="#e0e0e0" data-scale="2" data-shadow></span>
+        <span data-mc="|" data-color="#8a8a8a" data-scale="2"></span>
+        <span data-mc="E" data-color="#e0e0e0" data-scale="2" data-shadow></span>
+        <span style="position:absolute;left:60%;top:-8px;width:8px;height:8px;background:#55ff55;box-shadow:0 0 0 2px #0a3d0a"></span>
       </div>
-      <span style="position:absolute;bottom:6px;font-size:10.5px;color:var(--muted)">Yaw 4.6° · Base 124 m</span>
+      <span style="position:absolute;bottom:10px"><span data-mc="Yaw 4.6   Base 124m" data-color="#e0e0e0" data-scale="2" data-shadow></span></span>
     </div>
     <div class="cols">
-      <div class="group"><h6>Display</h6>
-        <div class="row"><div class="l">Show facing arrow</div><span class="toggle on"></span></div>
-        <div class="row hl"><div class="l">Show yaw<small>Degrees under the strip</small></div><span class="toggle on"></span></div>
-        <div class="row"><div class="l">Show waypoints</div><span class="toggle on"></span></div>
-        <div class="row"><div class="l">Waypoint style</div><span class="select">Dot + name</span></div>
-        <div class="row"><div class="l">Width</div><span class="slider"><b style="width:58%"></b><i style="left:58%"></i></span><span class="num">300</span></div>
+      <div class="sec"><h4>Display</h4>
+        <div class="row"><div class="l">Facing arrow</div><span class="lever sunken on"></span></div>
+        <div class="row found"><div class="l">Show yaw<small>Degrees under the strip</small></div><span class="lever sunken on"></span></div>
+        <div class="row"><div class="l">Waypoints on the strip</div><span class="lever sunken on"></span></div>
+        <div class="row"><div class="l">Waypoint style</div><span class="dd sunken">Dot and name<span data-g="back" style="transform:rotate(-90deg)" data-color="#a3937a"></span></span></div>
+        <div class="row"><div class="l">Width</div><span class="track sunken"><b style="width:56%"></b><i class="plate" style="left:58%"></i></span><span class="field sunken"><span data-mc="300" data-color="#ecd6a6" data-scale="2"></span></span></div>
       </div>
-      <div class="group"><h6>Style</h6>
-        <div class="row"><div class="l">Background</div><span class="sw" style="background:rgba(12,11,10,.72)"></span><span class="hex">#B80C0B0A</span></div>
-        <div class="row"><div class="l">Border</div><span class="sw" style="background:#cea464"></span><span class="hex">#CEA464</span></div>
-        <div class="row"><div class="l">Border thickness</div><span class="slider"><b style="width:20%"></b><i style="left:20%"></i></span><span class="num">1 px</span></div>
-        <div class="row"><div class="l">Corner radius</div><span class="slider"><b style="width:30%"></b><i style="left:30%"></i></span><span class="num">6</span></div>
-        <div class="row"><div class="l">Toggle key</div><span class="key">None</span></div>
+      <div class="sec"><h4>Style</h4>
+        <div class="row"><div class="l">Background</div><span class="sw sunken"><i style="background:rgba(0,0,0,.55)"></i></span><span class="field sunken"><span data-mc="#8C000000" data-color="#cdbfa6" data-scale="2"></span></span></div>
+        <div class="row"><div class="l">Border</div><span class="sw sunken"><i style="background:#c39a58"></i></span><span class="field sunken"><span data-mc="#C39A58" data-color="#cdbfa6" data-scale="2"></span></span></div>
+        <div class="row"><div class="l">Border thickness</div><span class="track sunken"><b style="width:18%"></b><i class="plate" style="left:20%"></i></span><span class="field sunken"><span data-mc="1" data-color="#ecd6a6" data-scale="2"></span></span></div>
+        <div class="row"><div class="l">Hide in F3</div><span class="lever sunken on"></span></div>
+        <div class="row"><div class="l">Toggle key</div><span class="field sunken" style="min-width:92px"><span data-mc="None" data-color="#a3937a" data-scale="2"></span></span></div>
       </div>
     </div>
   </div>
 </div>
-<div class="caption">Module settings open inside the menu · live preview · search jumps to the matching setting</div>
-<script src="icons.js"></script>
+<div class="caption">Settings open inside the menu · search jumps to the matching setting</div>
+<script src="glyphs.js"></script><script src="mcfont.js"></script>
 </body></html>

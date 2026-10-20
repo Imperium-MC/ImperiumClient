@@ -1,70 +1,59 @@
 <!doctype html>
 <html><head><meta charset="utf-8"><title>Components</title><link rel="stylesheet" href="imperium.css">
 <style>
-  body { background: var(--black); padding: 26px 30px; }
-  h2 { font-family: 'Cinzel', serif; color: var(--gold); font-size: 20px; letter-spacing: .08em; margin-bottom: 4px; }
-  .lead { color: var(--muted); font-size: 12px; margin-bottom: 16px; }
-  .sheet { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-  .box { border: 1px solid var(--hair); border-radius: 10px; background: var(--onyx); padding: 12px 14px; }
-  .box .eyebrow { margin-bottom: 10px; }
-  .line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
-  .lab { font-size: 10.5px; color: var(--dim); width: 56px; }
-  .btn.hov { filter: brightness(1.08); box-shadow: 0 0 0 1px var(--gold-light) inset; }
-  .btn.dis { opacity: .4; }
-  .btn.foc { outline: 1.5px solid var(--gold); outline-offset: 2px; }
-  .pal { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
-  .pal div { height: 38px; border-radius: 6px; border: 1px solid rgba(255,255,255,.08); display: flex; align-items: flex-end; padding: 3px 5px; font-size: 9px; font-family: ui-monospace, Consolas, monospace; }
-  .dd { position: relative; }
-  .ddm { position: absolute; top: 30px; left: 0; width: 150px; padding: 4px; border-radius: 8px; background: var(--raised); border: 1px solid var(--hair-strong); box-shadow: 0 14px 30px -12px rgba(0,0,0,.8); z-index: 2; }
-  .ddm div { height: 26px; display: flex; align-items: center; padding: 0 8px; border-radius: 5px; font-size: 12px; color: #d6ccbd; }
-  .ddm div.on { background: rgba(206,164,100,.14); color: var(--gold-light); }
-  .picker { display: flex; gap: 8px; }
-  .sv { width: 120px; height: 90px; border-radius: 6px; background: linear-gradient(0deg, #000, transparent), linear-gradient(90deg, #fff, #cea464); position: relative; }
-  .sv i { position: absolute; left: 70%; top: 22%; width: 10px; height: 10px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.5); }
-  .hue { width: 12px; height: 90px; border-radius: 6px; background: linear-gradient(180deg, red, #ff0, lime, cyan, blue, #f0f, red); }
-  .alpha { width: 12px; height: 90px; border-radius: 6px; background: linear-gradient(180deg, #cea464, transparent), repeating-conic-gradient(#555 0 25%, #333 0 50%) 0 0/8px 8px; }
-  .t2 { position: static; width: auto; margin-bottom: 6px; }
-  .toast.err { border-left-color: var(--blood-light); } .toast.err svg { color: var(--blood-light); }
-  .toast.info { border-left-color: var(--muted); } .toast.info svg { color: var(--muted); }
-  .card.err { border-color: rgba(185,54,8,.65); }
+  body { background: var(--basalt); padding: 26px 30px; }
+  .top { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; position: relative; padding-bottom: 14px; }
+  .top::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 10px;
+    background: linear-gradient(var(--bronze-lo), var(--bronze-lo)) 0 0 / 100% 2px no-repeat,
+      repeating-linear-gradient(90deg, var(--bronze-lo) 0 6px, transparent 6px 12px) 0 4px / 100% 6px no-repeat; }
+  .top img { width: 40px; height: 40px; }
+  .top p { color: var(--text-2); font-size: 14px; margin-left: 10px; }
+  .sheet { display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 16px; }
+  .box { padding: 14px 16px; }
+  .box h4 { font-size: 15px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+  .box h4::after { content: ''; flex: 1; height: 2px; background: var(--seam); }
+  .line { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+  .cap { width: 64px; font-size: 13px; color: var(--text-3); font-weight: 600; }
+  .mats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .mats div { height: 46px; padding: 4px 6px; display: flex; align-items: flex-end; font-size: 12px; font-weight: 600; box-shadow: 0 0 0 2px #050403; }
+  .btn.hov { box-shadow: inset 0 2px 0 var(--bronze-hi), inset 0 -2px 0 var(--bronze-lo), 0 0 0 2px var(--bronze-hi); filter: brightness(1.06); }
+  .btn.dis { opacity: .45; }
+  .btn.foc { outline: 2px solid var(--marble); outline-offset: 2px; }
+  .menu { width: 190px; padding: 6px; }
+  .menu div { height: 30px; display: flex; align-items: center; padding: 0 10px; font-weight: 600; font-size: 14px; color: var(--text-2); }
+  .menu div.on { background: var(--basalt-3); color: var(--marble); }
 </style></head>
 <body>
-<h2>IMPERIUM CLIENT · COMPONENTS</h2>
-<div class="lead">One set of components for every screen. Colours, radii and motion come from the ImperiumMC design system (imperium-frontend DESIGN_SYSTEM.md).</div>
+<div class="top"><img src="emblem.png" alt=""><div class="mark">IMPERIUM<small>Components · every client screen uses these and nothing else</small></div></div>
 <div class="sheet">
-  <div class="box"><div class="eyebrow">Palette</div>
-    <div class="pal">
-      <div style="background:#0c0b0a;color:#6b6b5f">black</div><div style="background:#141311;color:#6b6b5f">onyx</div><div style="background:#1d1b17;color:#6b6b5f">charcoal</div>
-      <div style="background:#cea464;color:#17110a">gold</div><div style="background:#e0d1b8;color:#17110a">gold-lt</div><div style="background:#a8823f;color:#17110a">gold-dk</div>
-      <div style="background:#ece7df;color:#17110a">marble</div><div style="background:#a78b62;color:#17110a">muted</div><div style="background:#6b6b5f;color:#ece7df">dim</div>
-      <div style="background:#9a2d0c;color:#ece7df">blood</div><div style="background:#b93608;color:#ece7df">blood-lt</div><div style="background:rgba(206,164,100,.28);color:#ece7df">hairline</div>
+  <div class="box stone frame"><h4>Materials</h4>
+    <div class="mats">
+      <div class="stone" style="color:var(--text-2)">Stone</div><div style="background:var(--basalt);color:var(--text-3)">Basalt</div><div class="sunken" style="color:var(--text-3)">Well</div><div class="plate">Bronze</div>
+      <div style="background:var(--marble);color:var(--ink)">Marble</div><div style="background:var(--text-2);color:var(--ink)">Text 2</div><div style="background:var(--text-3);color:var(--ink)">Text 3</div><div style="background:var(--blood);color:var(--marble)">Blood</div>
     </div>
+    <div style="margin-top:14px" class="line"><span class="slot sunken"><img src="mc/compass_16.png"></span><span class="slot sunken"><img src="mc/ender_pearl.png"></span><span class="slot sunken"><img src="mc/name_tag.png"></span><span style="color:var(--text-2);font-size:13.5px;flex:1">Vanilla item icons in inventory slots, drawn at 2× with no smoothing</span></div>
   </div>
-  <div class="box"><div class="eyebrow">Buttons</div>
-    <div class="line"><span class="lab">primary</span><span class="btn btn-gold">Play</span><span class="btn btn-gold hov">Hover</span><span class="btn btn-gold dis">Disabled</span></div>
-    <div class="line"><span class="lab">outline</span><span class="btn btn-outline">Cancel</span><span class="btn btn-outline foc">Focused</span></div>
-    <div class="line"><span class="lab">danger</span><span class="btn btn-blood">Delete</span><span class="btn btn-ghost">Ghost</span></div>
+  <div class="box stone frame"><h4>Buttons</h4>
+    <div class="line"><span class="cap">Primary</span><span class="btn plate">Play</span><span class="btn plate hov">Hover</span><span class="btn plate dis">Off</span></div>
+    <div class="line"><span class="cap">Normal</span><span class="btn stone">Cancel</span><span class="btn stone foc">Focused</span></div>
+    <div class="line"><span class="cap">Danger</span><span class="btn danger">Delete</span><span class="btn ghost">Text only</span></div>
   </div>
-  <div class="box"><div class="eyebrow">Toggles · slider · number</div>
-    <div class="line"><span class="toggle on"></span><span class="toggle"></span><span class="toggle on" style="opacity:.4"></span><span style="font-size:11px;color:var(--dim)">on · off · disabled</span></div>
-    <div class="line" style="margin-top:12px"><span class="slider" style="width:170px"><b style="width:42%"></b><i style="left:42%"></i></span><span class="num">42 %</span></div>
-    <div class="line"><span class="key">R Shift</span><span class="key warn">C  ⚠ used by Zoom</span></div>
+  <div class="box stone frame"><h4>Inputs</h4>
+    <div class="line"><span class="lever sunken on"></span><span class="lever sunken"></span><span class="lever sunken on" style="opacity:.45"></span><span style="font-size:13px;color:var(--text-3)">on, off, disabled</span></div>
+    <div class="line"><span class="track sunken"><b style="width:40%"></b><i class="plate" style="left:42%"></i></span><span class="field sunken"><span data-mc="42%" data-color="#ecd6a6" data-scale="2"></span></span></div>
+    <div class="line"><span class="field sunken" style="min-width:76px"><span data-mc="R Shift" data-color="#ecd6a6" data-scale="2"></span></span><span class="field sunken" style="min-width:76px;box-shadow:inset 2px 2px 0 #050403, inset -2px -2px 0 var(--seam-hi), 0 0 0 2px var(--blood)"><span data-mc="C" data-color="#f0b49e" data-scale="2"></span></span><span style="font-size:13px;color:#e3a58d">C is used by Zoom</span></div>
   </div>
-  <div class="box" style="height:182px"><div class="eyebrow">Dropdown</div>
-    <div class="dd"><span class="select">Dot + name</span>
-      <div class="ddm"><div>Dot</div><div class="on">Dot + name</div><div>Icon</div><div>Icon + name</div></div></div>
+  <div class="box stone frame"><h4>Dropdown</h4>
+    <div class="dd sunken" style="width:190px">Dot and name<span data-g="back" style="transform:rotate(-90deg)" data-color="#a3937a"></span></div>
+    <div class="menu stone frame" style="margin-top:6px"><div>Dot</div><div class="on">Dot and name</div><div>Icon</div><div>Icon and name</div></div>
   </div>
-  <div class="box"><div class="eyebrow">Colour picker</div>
-    <div class="picker"><div class="sv"><i></i></div><div class="hue"></div><div class="alpha"></div>
-      <div style="display:flex;flex-direction:column;gap:6px"><div class="input" style="height:28px;border:1px solid var(--gold);border-radius:6px;background:var(--onyx);display:flex;align-items:center;padding:0 8px;font-family:ui-monospace,Consolas,monospace;font-size:11px">#FFCEA464</div>
-      <div style="display:flex;gap:4px"><i style="width:16px;height:16px;border-radius:4px;background:#cea464"></i><i style="width:16px;height:16px;border-radius:4px;background:#b93608"></i><i style="width:16px;height:16px;border-radius:4px;background:#ece7df"></i><i style="width:16px;height:16px;border-radius:4px;background:#46a758"></i></div>
-      <span class="chip" style="height:24px">Chroma</span></div></div>
+  <div class="box stone frame"><h4>Tooltip</h4>
+    <div class="tip stone frame" style="position:static"><b>Fullbright</b>Lights everything as if it were noon. Toggle with <span data-mc="B" data-color="#ecd6a6" data-scale="2"></span>.</div>
   </div>
-  <div class="box"><div class="eyebrow">Toasts</div>
-    <div class="toast t2"><span data-i="check"></span><div><div class="t">Zoom enabled</div><div class="s">Toggled with C</div></div></div>
-    <div class="toast t2 err"><span data-i="shield"></span><div><div class="t">Minimap turned off</div><div class="s">It hit an error. See latest.log.</div></div></div>
-    <div class="toast t2 info"><span data-i="lock"></span><div><div class="t">Disabled by this server</div><div class="s">Freelook isn't allowed on imperiummc.net</div></div></div>
+  <div class="box stone frame"><h4>Toasts</h4>
+    <div class="toast stone frame" style="position:static;width:auto;margin-bottom:10px"><span class="slot sunken" style="width:40px;height:40px"><img src="mc/spyglass.png" style="width:32px;height:32px;image-rendering:pixelated"></span><div><b>Zoom on</b><span>Toggled with C</span></div></div>
+    <div class="toast stone frame" style="position:static;width:auto"><span class="slot sunken" style="width:40px;height:40px;color:#e3a58d" data-g="lock" data-color="#e3a58d"></span><div><b>Turned off by the server</b><span>Freelook isn't allowed here</span></div></div>
   </div>
 </div>
-<script src="icons.js"></script>
+<script src="glyphs.js"></script><script src="mcfont.js"></script>
 </body></html>
