@@ -31,6 +31,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.renderpearl.api.textures.GpuTextureView;
 import io.github.axolotlclient.AxolotlClient;
 import io.github.axolotlclient.AxolotlClientConfigCommon;
+import io.github.axolotlclient.modules.blur.HudBlur;
 import io.github.axolotlclient.modules.blur.MotionBlur;
 import io.github.axolotlclient.modules.hud.HudManager;
 import io.github.axolotlclient.modules.hud.gui.hud.vanilla.CrosshairHud;
@@ -63,6 +64,20 @@ public abstract class GameRendererMixin {
 	@Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;applyPostEffects()V"))
 	public void axolotlclient$worldMotionBlur(CallbackInfo ci) {
 		axolotlclient$motionBlur(null);
+	}
+
+	/**
+	 * Blurs the world for HUD backgrounds at the same point the world-only motion blur runs: the
+	 * world is fully rendered but no GUI has been drawn yet (GUI rendering is deferred to
+	 * endFrame), so the blurred copy can never contain HUD pixels.
+	 */
+	@Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;applyPostEffects()V"))
+	public void axolotlclient$hudBlur(CallbackInfo ci) {
+		Profiler.get().push("HUD Blur");
+
+		HudBlur.getInstance().render(resourcePool);
+
+		Profiler.get().pop();
 	}
 
 	@Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/render/GuiRenderer;endFrame()V"))

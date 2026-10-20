@@ -31,6 +31,7 @@ import com.mojang.blaze3d.resource.ResourceHandle;
 import com.mojang.renderpearl.api.buffers.GpuBuffer;
 import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
 import com.mojang.renderpearl.api.commands.CommandEncoder;
+import io.github.axolotlclient.modules.blur.HudBlur;
 import io.github.axolotlclient.modules.blur.MotionBlur;
 import net.minecraft.client.renderer.PostPass;
 import net.minecraft.client.renderer.UniformValue;
@@ -51,7 +52,7 @@ public class PostPassMixin {
 
 	@ModifyArg(method = "<init>", at = @At(value = "INVOKE", target = "Lcom/mojang/renderpearl/api/device/GpuDevice;createBuffer(Ljava/util/function/Supplier;ILjava/nio/ByteBuffer;)Lcom/mojang/renderpearl/api/buffers/GpuBuffer;"), index = 1)
 	private @GpuBuffer.Usage int addWritable(@GpuBuffer.Usage int i, @Local(name = "uniformGroup") Map.Entry<String, List<UniformValue>> entry) {
-		if ("BlurConfig".equals(entry.getKey())) {
+		if ("BlurConfig".equals(entry.getKey()) || "HudBlurConfig".equals(entry.getKey())) {
 			return i | GpuBuffer.USAGE_MAP_WRITE;
 		}
 		return i;
@@ -64,6 +65,13 @@ public class PostPassMixin {
 			try (var mappedView = buf.map(false, true)) {
 				Std140Builder std140Builder = Std140Builder.intoBuffer(mappedView.data());
 				std140Builder.putFloat(MotionBlur.getBlur());
+			}
+		}
+		if (customUniforms.containsKey("HudBlurConfig")) {
+			var buf = customUniforms.get("HudBlurConfig");
+			try (var mappedView = buf.map(false, true)) {
+				Std140Builder std140Builder = Std140Builder.intoBuffer(mappedView.data());
+				std140Builder.putFloat(HudBlur.radius());
 			}
 		}
 	}
