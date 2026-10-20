@@ -9,7 +9,7 @@ Milestones run in order; each ends with a build that works in game.
 | M0 fork baseline | Done |
 | M1 menu + HUD style | Menu shell, search, toggles, HUD style options done. Inline settings panel and background blur left |
 | M2 user's modules | Titles HUD in [PR #1](https://github.com/Imperium-MC/ImperiumClient/pull/1); rest not started |
-| M3 performance | Not started |
+| M3 performance | First slice done: `performance` category with the frame limiter (limiter/background/AFK/long-AFK, replacing Dynamic FPS, deferring to vanilla's inactivity throttle when vanilla is stricter) plus `disable_tnt_flash`, `hide_lightning_bolts`, `hide_hoppers` (items + minecarts) and `hide_distant_entities` + `entity_render_distance`. Open: `hud_frame_limit`, hopper *block* hiding, lazy chunk loading, chest/spawner/enchant-table simplification, cannon-minimal mode, hologram/sign text distance limits |
 | M4 remaining modules | Not started |
 | M5 ImperiumMC integration | Handshake client half in PR #1. Server half shipped in the plugin (`ImperiumClientIntegrationService`) |
 | M6 launcher | Repo [ImperiumLauncher](https://github.com/Imperium-MC/ImperiumLauncher) builds; Microsoft login waits on Mojang API approval |
@@ -67,13 +67,30 @@ factions, EnchantedMC boosts, EnchantedMC fishing (server-gated).
 
 Built on top of Sodium/Lithium, not replacing them:
 
-- HUD rendered at a capped rate (`hud_frame_limit`) and reused between frames.
+- HUD rendered at a capped rate (`hud_frame_limit`) and reused between frames. **Not shipped:** the
+  HUD draws immediately into the per-frame GUI layer, so "keep the previous result" needs an
+  offscreen-texture cache; skipping frames without it makes the HUD blink out. Skipped rather than
+  shipping a frozen/blinking HUD (dynamic elements — CPS, FPS, coordinates — must not visibly
+  freeze). Revisit with a render-target cache in `HudManager`.
 - Frame limiter: none / minimised / unfocused / AFK, with background, AFK and long-AFK FPS caps.
-  Replaces Dynamic FPS, which conflicts with a second limiter.
-- Render-distance limits and hiding for holograms (armor-stand text), mobs, signs (entity and text
-  separately), plus display-name optimisation.
-- Cannon mode: minimal TNT/falling-block rendering, no TNT flash or expansion.
+  Replaces Dynamic FPS, which conflicts with a second limiter. **Shipped** as the `performance`
+  category: `limiter`, `background_fps`, `afk_fps` + `afk_delay`, `long_afk_fps` + `long_afk_delay`.
+  Hooks vanilla's `FramerateLimitTracker` (the same seam a limiter mod uses) so vanilla does the
+  frame pacing; ours only ever lowers the limit, deferring to vanilla's inactivity throttle or the
+  user's max FPS whenever that is stricter, and never applies during world loading or gametest runs.
+- Cheap render-hide toggles. **Shipped:** `disable_tnt_flash` (primed TNT stays visible, only the
+  white blink goes), `hide_lightning_bolts`, `hide_hoppers` (dropped hopper items + hopper
+  minecarts — placed hopper blocks are chunk-meshed in 26.3 with no per-frame renderer, so the
+  block form needs the chunk-compile work below), `hide_distant_entities` + `entity_render_distance`
+  (horizontal distance from the camera; the camera entity and whatever the player rides are exempt).
+  All gate `LevelExtractor.isEntityVisible` / `TntRenderer.submit`, so hidden entities skip render
+  state extraction entirely.
+- Render-distance limits and hiding for holograms (armor-stand text), signs (entity and text
+  separately), plus display-name optimisation. **Open.**
+- Cannon mode: minimal TNT/falling-block rendering, no TNT flash or expansion. **Open** (the flash
+  half exists now via `disable_tnt_flash`; expansion/minimal mode not).
 - Chest/spawner/enchant-table render simplification, lazy chunk loading with an update cap.
+  **Open.**
 
 Each item gets a before/after FPS measurement on the same scene before it's merged.
 
