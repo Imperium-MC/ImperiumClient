@@ -60,6 +60,10 @@ public class PerformanceGameTest implements FabricClientGameTest {
 	public void runTest(ClientGameTestContext context) {
 		testLimiterStateMachine();
 
+		// The world half summons entities and renders frames with the hide toggles on;
+		// the headless "ci" subset keeps only the pure limiter math (see ImperiumGametestSubsets).
+		if (ImperiumGametestSubsets.ci()) return;
+
 		try (TestSingleplayerContext world = context.worldBuilder().create()) {
 			world.getConnection().waitForChunksRender();
 			testLimiterNeverThrottlesGameTests(context);

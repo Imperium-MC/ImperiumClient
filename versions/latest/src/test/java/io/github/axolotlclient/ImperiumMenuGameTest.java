@@ -46,6 +46,7 @@ public class ImperiumMenuGameTest implements FabricClientGameTest {
 
 	@Override
 	public void runTest(ClientGameTestContext context) {
+		if (ImperiumGametestSubsets.ci()) return; // headless "ci" subset: this suite is render-heavy, see ImperiumGametestSubsets
 		// The run directory keeps config between runs; pin the theme so screenshots are deterministic.
 		setTheme(context, MenuTheme.IMPERIUM);
 		// The review's acceptance pins the screenshots to GUI scale 2 (the spec's measurements
