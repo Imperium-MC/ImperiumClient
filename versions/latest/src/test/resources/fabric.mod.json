@@ -1,54 +1,53 @@
 {
-	"schemaVersion": 1,
-	"id": "axolotlclient-test",
-	"version": "1.0.0",
-	"name": "Test Mod",
-	"description": "",
-	"authors": [
-		"moehreag"
-	],
-	"contact": {
-		"sources": "https://codeberg.org/AxolotlClient/AxolotlClient-mod",
-		"issues": "https://codeberg.org/AxolotlClient/AxolotlClient-mod/issues"
-	},
-	"license": "LGPL-3.0",
-	"icon": "assets/axolotlclient/icon.png",
-	"environment": "client",
-	"entrypoints": {
-		"client": [
-			"io.github.axolotlclient.AxolotlClientTest"
-		],
-		"fabric-client-gametest": [
-			"io.github.axolotlclient.EmoteWheelGameTest",
-			"io.github.axolotlclient.MediaStatusGameTest",
-			"io.github.axolotlclient.ChatGameTest",
-		"io.github.axolotlclient.ChatExtrasGameTest",
-			"io.github.axolotlclient.ImperiumMenuGameTest",
-			"io.github.axolotlclient.InventorySearchGameTest",
-			"io.github.axolotlclient.ImperiumProtocolGameTest",
-			"io.github.axolotlclient.GatedModulesGameTest",
-			"io.github.axolotlclient.EnvironmentTogglesGameTest",
-			"io.github.axolotlclient.SessionTiersGameTest",
-			"io.github.axolotlclient.AutoEatGameTest",
-
-			"io.github.axolotlclient.MinimapGameTest",
-			"io.github.axolotlclient.WorldEditCuiGameTest",
-			"io.github.axolotlclient.LegionsToolingGameTest",
-			"io.github.axolotlclient.RenderTweaksGameTest",
-			"io.github.axolotlclient.PerformanceGameTest",
-			"io.github.axolotlclient.MovementEnvelopeGameTest",
-			"io.github.axolotlclient.LocalEnforcementGameTest",
-
-			"io.github.axolotlclient.InventoryTweaksGameTest",
-			"io.github.axolotlclient.HitboxesGameTest",
-			"io.github.axolotlclient.CannonTrajectoryGameTest",
-			"io.github.axolotlclient.FullscreenMapGameTest",
-			"io.github.axolotlclient.WorldSpaceRenderingGameTest",
-			"io.github.axolotlclient.HudBlurGameTest",
-		"io.github.axolotlclient.TitlesGameTest"
-		]
-	},
-	"depends": {
-		"imperiumclient": "*"
-	}
+  "schemaVersion": 1,
+  "id": "axolotlclient-test",
+  "version": "1.0.0",
+  "name": "Test Mod",
+  "description": "",
+  "authors": [
+    "moehreag"
+  ],
+  "contact": {
+    "sources": "https://codeberg.org/AxolotlClient/AxolotlClient-mod",
+    "issues": "https://codeberg.org/AxolotlClient/AxolotlClient-mod/issues"
+  },
+  "license": "LGPL-3.0",
+  "icon": "assets/axolotlclient/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "io.github.axolotlclient.AxolotlClientTest"
+    ],
+    "fabric-client-gametest": [
+      "io.github.axolotlclient.EmoteWheelGameTest",
+      "io.github.axolotlclient.MediaStatusGameTest",
+      "io.github.axolotlclient.ChatGameTest",
+      "io.github.axolotlclient.ChatExtrasGameTest",
+      "io.github.axolotlclient.ImperiumMenuGameTest",
+      "io.github.axolotlclient.InventorySearchGameTest",
+      "io.github.axolotlclient.ImperiumProtocolGameTest",
+      "io.github.axolotlclient.GatedModulesGameTest",
+      "io.github.axolotlclient.EnvironmentTogglesGameTest",
+      "io.github.axolotlclient.SessionTiersGameTest",
+      "io.github.axolotlclient.AutoEatGameTest",
+      "io.github.axolotlclient.MinimapGameTest",
+      "io.github.axolotlclient.WorldEditCuiGameTest",
+      "io.github.axolotlclient.LegionsToolingGameTest",
+      "io.github.axolotlclient.RenderTweaksGameTest",
+      "io.github.axolotlclient.PerformanceGameTest",
+      "io.github.axolotlclient.MovementEnvelopeGameTest",
+      "io.github.axolotlclient.LocalEnforcementGameTest",
+      "io.github.axolotlclient.InventoryTweaksGameTest",
+      "io.github.axolotlclient.HitboxesGameTest",
+      "io.github.axolotlclient.CannonTrajectoryGameTest",
+      "io.github.axolotlclient.FullscreenMapGameTest",
+      "io.github.axolotlclient.WorldSpaceRenderingGameTest",
+      "io.github.axolotlclient.HudBlurGameTest",
+      "io.github.axolotlclient.TitlesGameTest",
+      "io.github.axolotlclient.ImperiumChannelsGameTest"
+    ]
+  },
+  "depends": {
+    "imperiumclient": "*"
+  }
 }

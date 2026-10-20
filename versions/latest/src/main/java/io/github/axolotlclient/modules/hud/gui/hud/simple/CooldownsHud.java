@@ -129,6 +129,18 @@ public class CooldownsHud extends TextHudEntry {
 			height += lineH;
 			out.add(new ActiveCooldown(name, percent, -1));
 		}
+		// Server-pushed feature cooldowns (imperiumclient:cooldowns) render beneath the
+		// hotbar rows: the registry anchors deadlines at packet time and expires lazily.
+		long now = System.currentTimeMillis();
+		for (var server : io.github.axolotlclient.imperium.ServerCooldownsRegistry.active(now)) {
+			float remainingSeconds = server.remainingMs(now) / 1000f;
+			int rowWidth = showItemName.get()
+				? client.font.width(server.name()) + (showSeconds.get() ? 34 : 0)
+				: getContentWidth();
+			width = Math.max(width, rowWidth);
+			height += lineH;
+			out.add(new ActiveCooldown(server.name(), server.remainingFraction(now), remainingSeconds));
+		}
 		if (out.isEmpty()) {
 			if (getContentWidth() != 0 || getContentHeight() != 0) {
 				setContentWidth(0);
