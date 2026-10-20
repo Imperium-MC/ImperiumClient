@@ -119,5 +119,6 @@
 		"imperiumclient.emotes.sent": "Emote sent: %s",
 		"media": "Now-Playing Media",
 		"nowplayinghud": "Now Playing",
+		"imperium.menu.settings_back": "Back",
 		"show_progress_bar": "Show Progress Bar"
 }
