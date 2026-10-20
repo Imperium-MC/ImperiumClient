@@ -26,27 +26,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.github.axolotlclient.AxolotlClientConfig.api.options.OptionCategory;
-import io.github.axolotlclient.AxolotlClientConfig.impl.options.BooleanOption;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.StringOption;
 
 /**
  * Config surface of the local rules enforcement layer (docs/wave4-roadmap.md W4-C). One category,
- * two options:
+ * one option:
  *
  * <ul>
- *   <li>{@code enforcement.enabled} — master toggle, default ON. When off, the interceptor is
- *   completely inert and the client behaves like any other modded client; the server's normal
- *   anticheat applies. That is the honest fallback.</li>
  *   <li>{@code enforcement.server_allowlist} — comma-separated hostname allowlist. The layer is
  *   scoped to servers whose address matches an entry (hostname suffix match on the dot boundary).
  *   Default: exactly {@code imperiummc.net} and {@code play.imperiummc.net}.</li>
  * </ul>
+ *
+ * <p><strong>There is deliberately no master {@code enabled} toggle (issue #15 item 11):</strong>
+ * server rules are server policy, not a per-player switch a client user may turn off. The layer is
+ * on whenever its scope conditions hold (a real network connection to an allowlisted host); memory
+ * connections (singleplayer/LAN) and every other server are out of scope structurally. A stale
+ * {@code enabled} key in an old config file is ignored: the loader only reads keys that match a
+ * registered option.</p>
  */
 public final class EnforcementConfig {
 
 	public static final OptionCategory category = OptionCategory.create("enforcement");
-
-	public static final BooleanOption enabled = new BooleanOption("enabled", true);
 
 	/** Default scope: the ImperiumMC addresses, exactly as the owner spec pins them. */
 	public static final String DEFAULT_ALLOWLIST = "imperiummc.net,play.imperiummc.net";
@@ -54,7 +55,6 @@ public final class EnforcementConfig {
 	public static final StringOption serverAllowlist = new StringOption("server_allowlist", DEFAULT_ALLOWLIST);
 
 	static {
-		category.add(enabled);
 		category.add(serverAllowlist);
 	}
 

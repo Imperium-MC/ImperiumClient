@@ -43,7 +43,9 @@ import io.github.axolotlclient.bridge.util.AxoI18n;
  */
 public final class MenuEntries {
 	// "hud" is covered by HUD entries; "storedOptions" holds internal state, not user settings.
-	private static final Set<String> SKIPPED_ROOTS = Set.of("hud", "storedOptions");
+	// "enforcement" is server policy, not a module: it has no player switchable toggle (issue #15
+	// item 11), so it must not surface as a module card. The allowlist stays under All Settings.
+	private static final Set<String> SKIPPED_ROOTS = Set.of("hud", "storedOptions", "enforcement");
 	// Config categories that are not modules (account/session management) stay out of the module
 	// grid — they have no toggle and read as broken cards. They remain under All Settings.
 	private static final Set<String> SKIPPED_CHILDREN = Set.of("auth");

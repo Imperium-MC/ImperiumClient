@@ -74,23 +74,95 @@ public class LocalEnforcementGameTest implements FabricClientGameTest {
 
 			Connection connection = context.computeOnClient(this::liveConnection);
 			check(connection != null, "client must be connected to the integrated server");
-			boolean masterEnabled = EnforcementConfig.enabled.get();
+			// Even with the allowlist pointed at the local address, a memory connection is
+			// never in scope: singleplayer/LAN enforcement is structurally impossible, and
+			// there is no master toggle left to flip.
+			String allowlist = EnforcementConfig.serverAllowlist.get();
 			try {
-				// Even with the allowlist pointed at the local address, a memory connection is
-				// never in scope: singleplayer/LAN enforcement is structurally impossible.
 				EnforcementConfig.serverAllowlist.set("localhost");
 				check(!EnforcementService.instance().isConnectionInScope(connection),
 					"memory connection (singleplayer) must never be in enforcement scope");
-				EnforcementConfig.enabled.set(false);
-				check(!EnforcementService.instance().isConnectionInScope(connection),
-					"master toggle off must disable scope entirely");
 			} finally {
-				EnforcementConfig.enabled.set(masterEnabled);
-				EnforcementConfig.serverAllowlist.set(EnforcementConfig.DEFAULT_ALLOWLIST);
+				EnforcementConfig.serverAllowlist.set(allowlist);
 			}
 
 			long actions = EnforcementService.instance().enforcedActions();
 			check(actions == 0, "enforcement must never act on an out-of-scope connection (actions=" + actions + ")");
+
+			staleEnabledKeyCannotDisable(context);
+		}
+	}
+
+	/**
+	 * A player must not be able to disable the layer by editing the config file (issue #15 item 11):
+	 * the option is gone from the category, and a stale {@code enabled: false} key in the file is
+	 * ignored by the loader (it only reads keys that match a registered option), leaving the hook
+	 * firing and the scope rule intact.
+	 */
+	private void staleEnabledKeyCannotDisable(ClientGameTestContext context) {
+		check(EnforcementConfig.category.getOptions().stream().noneMatch(o -> "enabled".equals(o.getName())),
+			"EnforcementConfig must not expose an 'enabled' option");
+		try {
+			EnforcementConfig.class.getField("enabled");
+			throw new AssertionError("EnforcementConfig must not have a public 'enabled' field");
+		} catch (NoSuchFieldException expected) {
+			// the toggle is gone entirely, not merely hidden
+		}
+		check(EnforcementConfig.serverAllowlist != null, "the allowlist option stays for deployment scoping");
+
+		try {
+			java.nio.file.Path file = io.github.axolotlclient.AxolotlClientCommon.getInstance().getMainConfigFile();
+			com.google.gson.JsonObject root;
+			if (java.nio.file.Files.exists(file)) {
+				root = com.google.gson.JsonParser.parseString(java.nio.file.Files.readString(file)).getAsJsonObject();
+			} else {
+				java.nio.file.Files.createDirectories(file.getParent());
+				root = new com.google.gson.JsonObject();
+			}
+			// The file layout is {"version": ..., "config": {<categories>}}; the stale key has to
+			// land where the old option used to be read from.
+			if (!root.has("version")) {
+				root.addProperty("version", "11.0.0");
+			}
+			com.google.gson.JsonObject config = root.has("config")
+				? root.getAsJsonObject("config") : new com.google.gson.JsonObject();
+			root.add("config", config);
+			com.google.gson.JsonObject enforcement = config.has("enforcement")
+				? config.getAsJsonObject("enforcement") : new com.google.gson.JsonObject();
+			enforcement.addProperty("enabled", false);
+			enforcement.addProperty("server_allowlist", EnforcementConfig.DEFAULT_ALLOWLIST);
+			config.add("enforcement", enforcement);
+			java.nio.file.Files.writeString(file, root.toString());
+
+			// The real reload path a config screen or /reload equivalent takes.
+			io.github.axolotlclient.AxolotlClientCommon.getInstance().getConfigManager().load();
+
+			check(EnforcementService.instance().wouldBeInScope("play.imperiummc.net", null),
+				"the stale enabled:false key must not disable scope after a config reload");
+			long pulseBefore = EnforcementService.instance().hookPulse();
+			context.waitTicks(20);
+			long pulseAfter = EnforcementService.instance().hookPulse();
+			check(pulseAfter > pulseBefore,
+				"the send hook must keep firing after a config reload with enabled:false in the file (pulse "
+					+ pulseBefore + " -> " + pulseAfter + ")");
+		} catch (java.io.IOException failure) {
+			throw new AssertionError("writing the stale enabled key into the config file failed", failure);
+		} finally {
+			// Leave the run directory without the stale key so later runs start clean.
+			try {
+				java.nio.file.Path file = io.github.axolotlclient.AxolotlClientCommon.getInstance().getMainConfigFile();
+				if (java.nio.file.Files.exists(file)) {
+					com.google.gson.JsonObject root = com.google.gson.JsonParser
+						.parseString(java.nio.file.Files.readString(file)).getAsJsonObject();
+					if (root.has("config") && root.getAsJsonObject("config").has("enforcement")) {
+						root.getAsJsonObject("config").getAsJsonObject("enforcement").remove("enabled");
+						java.nio.file.Files.writeString(file, root.toString());
+					}
+					io.github.axolotlclient.AxolotlClientCommon.getInstance().getConfigManager().load();
+				}
+			} catch (java.io.IOException ignored) {
+				// Cleanup only; a failure here must not mask the real assertions.
+			}
 		}
 	}
 
@@ -116,16 +188,13 @@ public class LocalEnforcementGameTest implements FabricClientGameTest {
 		check(!EnforcementService.isAddressAllowed("imperiummc.net", List.of("example.org")), "custom allowlist excludes others");
 
 		// The service seam with the live (pinned default) config.
-		boolean master = EnforcementConfig.enabled.get();
 		String allowlist = EnforcementConfig.serverAllowlist.get();
 		try {
-			EnforcementConfig.enabled.set(true);
 			EnforcementConfig.serverAllowlist.set(EnforcementConfig.DEFAULT_ALLOWLIST);
 			check(EnforcementService.instance().wouldBeInScope("play.imperiummc.net", null), "socket host alone scopes in");
 			check(EnforcementService.instance().wouldBeInScope(null, "imperiummc.net"), "server-entry ip alone scopes in");
 			check(!EnforcementService.instance().wouldBeInScope("example.org", "example.org"), "both sources out of scope stays out");
 		} finally {
-			EnforcementConfig.enabled.set(master);
 			EnforcementConfig.serverAllowlist.set(allowlist);
 		}
 	}
