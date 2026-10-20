@@ -42,7 +42,8 @@
 			"io.github.axolotlclient.HitboxesGameTest",
 			"io.github.axolotlclient.CannonTrajectoryGameTest",
 			"io.github.axolotlclient.FullscreenMapGameTest",
-			"io.github.axolotlclient.WorldSpaceRenderingGameTest"
+			"io.github.axolotlclient.WorldSpaceRenderingGameTest",
+			"io.github.axolotlclient.HudBlurGameTest"
 		]
 	},
 	"depends": {

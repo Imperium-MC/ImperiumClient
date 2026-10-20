@@ -362,6 +362,20 @@ public interface AxoRenderContext {
 		throw BridgeUtil.noImpl();
 	}
 
+	/**
+	 * Draws the blurred-game-world frame behind a HUD background: the region of the blurred frame
+	 * matching the given (matrix-transformed) screen rectangle. A no-op when the version has no
+	 * blur pass running (or the blur module is off), so callers can always invoke it and keep
+	 * their flat background on top.
+	 *
+	 * @param x      rectangle x in the current matrix space
+	 * @param y      rectangle y in the current matrix space
+	 * @param width  rectangle width in the current matrix space
+	 * @param height rectangle height in the current matrix space
+	 */
+	default void br$hudBlurBackground(float x, float y, float width, float height) {
+	}
+
 	@RequiresImpl
 	default void br$fillRectRoundGradient(int x, int y, int width, int height, int colorTopLeft, int colorBottomLeft, int colorBottomRight, int colorTopRight, float roundingPx) {
 		throw BridgeUtil.noImpl();

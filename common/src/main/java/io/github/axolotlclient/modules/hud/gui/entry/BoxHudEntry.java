@@ -33,6 +33,7 @@ import io.github.axolotlclient.bridge.render.AxoRenderContext;
 import io.github.axolotlclient.modules.hud.util.DrawPosition;
 import io.github.axolotlclient.modules.hud.util.Rectangle;
 import io.github.axolotlclient.util.ClientColors;
+import io.github.axolotlclient.util.MathUtil;
 import lombok.Getter;
 
 /**
@@ -48,6 +49,8 @@ public abstract class BoxHudEntry extends AbstractHudEntry {
 
 	protected BooleanOption background = new BooleanOption("background", true);
 	protected ColorOption backgroundColor = new ColorOption("bgcolor", new Color(0x64000000));
+	protected BooleanOption backgroundBlur = new BooleanOption("background_blur", "hud.background_blur.tooltip", false);
+	protected IntegerOption backgroundBlurRadius = new IntegerOption("background_blur_radius", "hud.background_blur_radius.tooltip", 8, 1, 24);
 
 	protected BooleanOption outline = new BooleanOption("outline", false);
 	protected ColorOption outlineColor = new ColorOption("outlinecolor", ClientColors.WHITE);
@@ -76,6 +79,8 @@ public abstract class BoxHudEntry extends AbstractHudEntry {
 		if (!backgroundAllowed) {
 			background = null;
 			backgroundColor = null;
+			backgroundBlur = null;
+			backgroundBlurRadius = null;
 			outline = null;
 			outlineColor = null;
 			outlineWidth = null;
@@ -90,6 +95,28 @@ public abstract class BoxHudEntry extends AbstractHudEntry {
 		setContentHeight(initialContentHeight);
 	}
 
+	/**
+	 * Whether this entry wants the world behind its background blurred this frame. Null-safe for
+	 * entries constructed without a background ({@code backgroundAllowed == false}, where the
+	 * options are nulled) and for the HUD edit screen's placeholders, which never blur (they draw
+	 * their own translucent placeholder, not this background).
+	 */
+	public boolean wantsBlur() {
+		return backgroundAllowed && background.get() && backgroundBlur.get();
+	}
+
+	/**
+	 * This entry's preferred blur radius, clamped to 1-24 (default 8). The blur chain runs once
+	 * per frame at the strongest radius requested by any entry (and the master option), so a
+	 * radius below that maximum has no visible effect for this entry that frame.
+	 */
+	public int blurRadius() {
+		if (backgroundBlurRadius == null) {
+			return 8;
+		}
+		return MathUtil.clamp(backgroundBlurRadius.get(), 1, 24);
+	}
+
 	@Override
 	public List<Option<?>> getConfigurationOptions() {
 		List<Option<?>> options = super.getConfigurationOptions();
@@ -102,6 +129,8 @@ public abstract class BoxHudEntry extends AbstractHudEntry {
 			options.add(backgroundPadding);
 			options.add(roundBackground);
 			options.add(backgroundRounding);
+			options.add(backgroundBlur);
+			options.add(backgroundBlurRadius);
 		}
 		return options;
 	}
@@ -112,6 +141,11 @@ public abstract class BoxHudEntry extends AbstractHudEntry {
 		scale(ctx);
 		if (backgroundAllowed) {
 			var bounds = getBounds();
+			if (wantsBlur()) {
+				// Blurred world behind the background; the (semi-transparent) background fill
+				// tints on top of it below. Draws nothing when the blur pass did not run.
+				ctx.br$hudBlurBackground(bounds.x(), bounds.y(), bounds.width(), bounds.height());
+			}
 			if (background.get() && backgroundColor.get().getAlpha() > 0) {
 				if (roundBackground.get()) {
 					ctx.br$fillRectRound(bounds, backgroundColor.get(), Math.min(Math.min(getHeight(), getWidth()) / 2f, backgroundRounding.get()));

@@ -28,8 +28,14 @@ import io.github.axolotlclient.bridge.render.AxoFont;
 import io.github.axolotlclient.bridge.render.AxoRenderContext;
 import io.github.axolotlclient.bridge.render.AxoSprite;
 import io.github.axolotlclient.bridge.util.AxoText;
+import io.github.axolotlclient.modules.blur.HudBlur;
 import io.github.axolotlclient.util.DrawUtil;
 import io.github.axolotlclient.util.HorizontalGradientRectangleRenderState;
+import io.github.axolotlclient.util.MathUtil;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.renderpearl.api.textures.FilterMode;
+import com.mojang.renderpearl.api.textures.GpuSampler;
+import com.mojang.renderpearl.api.textures.GpuTextureView;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -40,6 +46,7 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3x2fStack;
+import org.joml.Vector2f;
 import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -91,6 +98,9 @@ public abstract class GuiGraphicsMixin implements AxoRenderContext {
 
 	@Shadow
 	public abstract void centeredText(Font font, String str, int x, int y, int color);
+
+	@Shadow
+	public abstract void blit(GpuTextureView view, GpuSampler sampler, int x, int y, int width, int height, float u1, float v1, float u2, float v2);
 
 	@Unique
 	private @NotNull GuiGraphicsExtractor self() {
@@ -214,6 +224,32 @@ public abstract class GuiGraphicsMixin implements AxoRenderContext {
 	@Override
 	public void br$fillRectGradientVert(int x, int y, int width, int height, int color1, int color2) {
 		fillGradient(x, y, x + width, y + height, color1, color2);
+	}
+
+	@Override
+	public void br$hudBlurBackground(float x, float y, float width, float height) {
+		GpuTextureView view = HudBlur.getBlurredView();
+		if (view == null) {
+			// Blur pass idle (module off or nothing wants it this frame): no blur, the caller's
+			// flat background still draws.
+			return;
+		}
+		// The blur frame covers the whole window in gui-scaled units, so the source rectangle is
+		// the transformed on-screen position of this quad relative to the gui dimensions. The
+		// quad itself is placed in the current matrix space (entry scale/offset included).
+		Vector2f start = pose.transformPosition(x, y, new Vector2f());
+		Vector2f end = pose.transformPosition(x + width, y + height, new Vector2f());
+		float guiWidth = guiWidth();
+		float guiHeight = guiHeight();
+		float u1 = MathUtil.clamp(start.x / guiWidth, 0F, 1F);
+		float v1 = MathUtil.clamp(start.y / guiHeight, 0F, 1F);
+		float u2 = MathUtil.clamp(end.x / guiWidth, 0F, 1F);
+		float v2 = MathUtil.clamp(end.y / guiHeight, 0F, 1F);
+		if (u2 - u1 <= 0F || v2 - v1 <= 0F) {
+			return;
+		}
+		blit(view, RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR),
+			(int) x, (int) y, (int) width, (int) height, u1, v1, u2, v2);
 	}
 
 	@Override

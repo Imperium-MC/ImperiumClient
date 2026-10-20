@@ -7,7 +7,7 @@ Milestones run in order; each ends with a build that works in game.
 | Milestone | State |
 |---|---|
 | M0 fork baseline | Done |
-| M1 menu + HUD style | Menu shell, search, toggles, HUD style options, inline settings panel done. Background blur left |
+| M1 menu + HUD style | Done — menu shell, search, toggles, HUD style options, inline settings panel, background blur |
 | M2 user's modules | Done — all priority modules shipped across waves 2-5 (see [alpine-parity.md](alpine-parity.md)) |
 | M3 performance | Not started |
 | M4 remaining modules | Done — the parity sheet shows zero real gaps (2026-10-18) |
@@ -22,7 +22,6 @@ History note: PR #1 (titles HUD + handshake) landed on `main` together with its 
 
 Pick from the top; each is one PR. Check [dev-notes.md](dev-notes.md) first.
 
-1. Background blur option for HUD elements (`blur_radius`). `MenuBlur` has a blur pass to reuse.
 2. M2 modules, in this order: tab editor, waypoints, inventory search, cooldowns, info HUD, environment
    (weather), chat settings (timestamps, smooth chat, compact chat), toggle sneak/sprint extras, compass
    waypoints, nametag editor, TPS colour tiers.
@@ -43,8 +42,8 @@ Pick from the top; each is one PR. Check [dev-notes.md](dev-notes.md) first.
 **Status:** menu shell done. Right Shift (and the title/pause menu button) opens `ImperiumMenuScreen`:
 category sidebar, search, module cards with toggle and gear, Edit HUD / Profiles / All Settings. Cards are
 built by `MenuEntries` from every HUD entry plus every config category. The gear (or a right-click) opens
-the module's settings inline inside the menu, as an overlay panel over the card grid. Background blur is
-the remaining M1 item.
+the module's settings inline inside the menu, as an overlay panel over the card grid. HUD elements can
+blur the world behind their background (`background_blur`).
 Covered by the `ImperiumMenuGameTest` client gametest (`./gradlew :latest:runClientGameTest`).
 
 

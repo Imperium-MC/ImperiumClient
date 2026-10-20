@@ -60,6 +60,7 @@
 		"PlayerListEntryMixin",
 		"PlayerListHudMixin",
 		"PlayerMixin",
+		"PostChainAccessor",
 		"PostPassMixin",
 		"ScreenMixin",
 		"ScreenshotRecorderMixin",

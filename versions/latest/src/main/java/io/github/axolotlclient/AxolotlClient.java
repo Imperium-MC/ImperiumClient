@@ -55,6 +55,7 @@ public class AxolotlClient extends AxolotlClientCommon implements ClientModIniti
 		registerModule(HudManager.getInstance());
 		registerModule(HypixelMods.getInstance());
 		registerModule(MotionBlur.getInstance());
+		registerModule(io.github.axolotlclient.modules.blur.HudBlur.getInstance());
 		registerModule(ScrollableTooltips.getInstance());
 		registerModule(InventorySearch.getInstance());
 		// Wave 5 inventory tweaks completion: hidden vanilla effect HUD, centered containers,
