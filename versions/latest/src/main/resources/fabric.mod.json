@@ -27,7 +27,10 @@
 	"entrypoints": {
 		"client": [
 			"io.github.axolotlclient.AxolotlClient",
-			"io.github.axolotlclient.imperium.media.ImperiumMediaInit"
+			{
+				"adapter": "kotlin",
+				"value": "io.github.axolotlclient.imperium.media.ImperiumMediaInit"
+			}
 		],
 		"modmenu": [
 			"io.github.axolotlclient.config.modmenu.ModMenuCompat"
@@ -46,6 +49,7 @@
 		"fabricloader": ">=0.18.0",
 		"minecraft": "~26.3-",
 		"fabric-api": "*",
+		"fabric-language-kotlin": ">=1.14.2",
 		"axolotlclientconfig": "*",
 		"axolotlclient-common": "*"
 	},
