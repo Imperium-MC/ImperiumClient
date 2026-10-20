@@ -154,6 +154,36 @@ public abstract class AxolotlClientConfigCommon {
 	}
 
 	/**
+	 * When the built-in frame limiter (performance category, M3) is allowed to cap the
+	 * framerate: never, only while the window is minimized, or whenever the window is
+	 * minimized or unfocused. The AFK caps escalate on top of whichever window state
+	 * applies; the limiter always defers to vanilla's inactivity throttling when vanilla
+	 * is already the stricter of the two (see {@link io.github.axolotlclient.util.FrameLimiter}).
+	 */
+	public enum FrameLimiterMode {
+		OFF,
+		MINIMIZED,
+		UNFOCUSED;
+
+		@Override
+		public String toString() {
+			return "limiter." + super.toString().toLowerCase(Locale.ROOT);
+		}
+
+		/**
+		 * Whether the limiter's window-state condition holds; AFK caps may only apply on
+		 * top of this (OFF gates everything).
+		 */
+		public boolean applies(boolean minimized, boolean focused) {
+			return switch (this) {
+				case OFF -> false;
+				case MINIMIZED -> minimized;
+				case UNFOCUSED -> minimized || !focused;
+			};
+		}
+	}
+
+	/**
 	 * Crop growth stage overlay style: text ("3/8") or a small progress bar near the crosshair.
 	 */
 	public enum FarmingOverlayStyle {
@@ -239,6 +269,21 @@ public abstract class AxolotlClientConfigCommon {
 	public final ColorOption lightOverlaySafeColor = new ColorOption("light_level.safe_color", new Color(0xA000E000));
 	public final ColorOption lightOverlayUnsafeColor = new ColorOption("light_level.unsafe_color", new Color(0xA0FF3000));
 
+	// performance (Alpine parity, M3): ImperiumClient's own frame limiter, replacing Dynamic
+	// FPS, plus cheap render-hide toggles. The limiter defers to vanilla's inactivity
+	// throttling whenever vanilla is already the stricter of the two.
+	public final EnumOption<FrameLimiterMode> frameLimiter = new EnumOption<>("limiter", FrameLimiterMode.class, FrameLimiterMode.OFF);
+	public final IntegerOption backgroundFps = new IntegerOption("background_fps", 30, 1, 60);
+	public final IntegerOption afkFps = new IntegerOption("afk_fps", 15, 1, 60);
+	public final IntegerOption afkDelay = new IntegerOption("afk_delay", 60, 1, 3600);
+	public final IntegerOption longAfkFps = new IntegerOption("long_afk_fps", 5, 1, 60);
+	public final IntegerOption longAfkDelay = new IntegerOption("long_afk_delay", 300, 1, 7200);
+	public final BooleanOption disableTntFlash = new BooleanOption("disable_tnt_flash", false);
+	public final BooleanOption hideLightningBolts = new BooleanOption("hide_lightning_bolts", false);
+	public final BooleanOption hideHoppers = new BooleanOption("hide_hoppers", false);
+	public final BooleanOption hideDistantEntities = new BooleanOption("hide_distant_entities", false);
+	public final IntegerOption entityRenderDistance = new IntegerOption("entity_render_distance", 64, 16, 128);
+
 	public final BooleanOption compactChat = new BooleanOption("compact_chat", false);
 
 	public final BooleanOption chatTimestamps = new BooleanOption("chat_timestamps", false);
@@ -285,6 +330,7 @@ public abstract class AxolotlClientConfigCommon {
 	public final OptionCategory farming = OptionCategory.create("farming");
 	public final OptionCategory chunkBordersCategory = OptionCategory.create("chunkBorders");
 	public final OptionCategory lightOverlayCategory = OptionCategory.create("lightLevelOverlay");
+	public final OptionCategory performance = OptionCategory.create("performance");
 
 	public final BooleanOption creditsBGM = new BooleanOption("creditsBGM", true);
 	public final BooleanOption modifyClientBrand = new BooleanOption("modify_client_brand", true);
@@ -391,6 +437,10 @@ public abstract class AxolotlClientConfigCommon {
 		lightOverlayCategory.add(lightOverlaySafeColor);
 		lightOverlayCategory.add(lightOverlayUnsafeColor);
 		rendering.add(lightOverlayCategory);
+
+		performance.add(frameLimiter, backgroundFps, afkFps, afkDelay, longAfkFps, longAfkDelay);
+		performance.add(disableTntFlash, hideLightningBolts, hideHoppers, hideDistantEntities, entityRenderDistance);
+		config.add(performance);
 
 		hidden.add(creditsBGM, someNiceBackground, modifyClientBrand, noAltIcons);
 

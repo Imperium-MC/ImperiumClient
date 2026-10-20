@@ -35,6 +35,7 @@
 			"io.github.axolotlclient.WorldEditCuiGameTest",
 			"io.github.axolotlclient.LegionsToolingGameTest",
 			"io.github.axolotlclient.RenderTweaksGameTest",
+			"io.github.axolotlclient.PerformanceGameTest",
 			"io.github.axolotlclient.MovementEnvelopeGameTest",
 			"io.github.axolotlclient.LocalEnforcementGameTest",
 
