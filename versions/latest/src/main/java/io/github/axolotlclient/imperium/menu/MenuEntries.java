@@ -44,6 +44,9 @@ import io.github.axolotlclient.bridge.util.AxoI18n;
 public final class MenuEntries {
 	// "hud" is covered by HUD entries; "storedOptions" holds internal state, not user settings.
 	private static final Set<String> SKIPPED_ROOTS = Set.of("hud", "storedOptions");
+	// Config categories that are not modules (account/session management) stay out of the module
+	// grid — they have no toggle and read as broken cards. They remain under All Settings.
+	private static final Set<String> SKIPPED_CHILDREN = Set.of("auth");
 	// HUD entries that read as world-rendering modules in Alpine's menu, not HUD widgets.
 	private static final Map<String, MenuCategory> CATEGORY_OVERRIDES = Map.of("imperiumclient:minimaphud", MenuCategory.RENDER);
 
@@ -70,6 +73,7 @@ public final class MenuEntries {
 				entries.add(fromCategory(top, top.getName()));
 			}
 			for (OptionCategory child : top.getSubCategories()) {
+				if (SKIPPED_CHILDREN.contains(child.getName())) continue;
 				entries.add(fromCategory(child, top.getName() + "/" + child.getName()));
 			}
 		}

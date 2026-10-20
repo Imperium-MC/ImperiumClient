@@ -23,6 +23,7 @@
 package io.github.axolotlclient.util;
 
 import io.github.axolotlclient.AxolotlClient;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.gizmos.GizmoProperties;
@@ -35,9 +36,9 @@ import net.minecraft.world.phys.Vec3;
  * (16x16 column) and, optionally, the containing region (512x512 grid).
  *
  * <p>26.3 has a gizmo layer exactly for this ({@link Gizmos#line} — the same path the
- * vanilla F3+G chunk border debug renderer uses). The lines are emitted at the tail of
- * {@code LevelRenderer.collectPerFrameRenderThreadGizmos()}, while that frame's render-thread
- * gizmo collector is active, and are drawn on top of the world.
+ * vanilla F3+G chunk border debug renderer uses). The lines are emitted into a gizmo
+ * collection window opened from Fabric's {@code LevelRenderEvents.BEFORE_GIZMOS} every
+ * frame the option is on, and are drawn on top of the world.
  */
 public class ChunkBorders {
 
@@ -48,6 +49,24 @@ public class ChunkBorders {
 
 	private static final float CHUNK_LINE_WIDTH = 2.0F;
 	private static final float REGION_LINE_WIDTH = 3.0F;
+
+	/**
+	 * Opens the module's own per-frame gizmo collection window. {@code BEFORE_GIZMOS} fires
+	 * inside {@code LevelRenderer#submitFeatures} on every frame; without our own window the
+	 * lines could only ride a debug gizmo mode (F3+G) or another module's window, neither of
+	 * which is guaranteed in a normal frame.
+	 */
+	public static void register() {
+		LevelRenderEvents.BEFORE_GIZMOS.register(context -> {
+			Minecraft minecraft = Minecraft.getInstance();
+			if (!AxolotlClient.config().chunkBorders.get() || minecraft.level == null || minecraft.player == null) {
+				return;
+			}
+			try (var ignored = context.levelRenderer().collectPerFrameRenderThreadGizmos()) {
+				emit();
+			}
+		});
+	}
 
 	/**
 	 * Chunk base coordinate of a world block coordinate (works for negatives; the two's

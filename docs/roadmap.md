@@ -8,15 +8,15 @@ Milestones run in order; each ends with a build that works in game.
 |---|---|
 | M0 fork baseline | Done |
 | M1 menu + HUD style | Menu shell, search, toggles, HUD style options done. Inline settings panel and background blur left |
-| M2 user's modules | Titles HUD in [PR #1](https://github.com/Imperium-MC/ImperiumClient/pull/1); rest not started |
+| M2 user's modules | Done — all priority modules shipped across waves 2-5 (see [alpine-parity.md](alpine-parity.md)) |
 | M3 performance | Not started |
-| M4 remaining modules | Not started |
-| M5 ImperiumMC integration | Handshake client half in PR #1. Server half shipped in the plugin (`ImperiumClientIntegrationService`) |
-| M6 launcher | Repo [ImperiumLauncher](https://github.com/Imperium-MC/ImperiumLauncher) builds; Microsoft login waits on Mojang API approval |
+| M4 remaining modules | Done — the parity sheet shows zero real gaps (2026-10-18) |
+| M5 ImperiumMC integration | Done — handshake + server-gated features live both sides: client enforcement layer and plugin `ImperiumClientIntegrationService` (v2 tier table + rank perks) |
+| M6 launcher | Done — [ImperiumLauncher](https://github.com/Imperium-MC/ImperiumLauncher) v0.1.0 released: Microsoft login approved, signed Windows installer, auto-updater feed |
 
-PR #1 had two bugs, fixed on branch `review/pr-1`: the handshake used an NBT codec while the plugin sends
-raw UTF-8 (would disconnect players), and the titles HUD dropped colours and was clipped off-screen. Merge
-that branch (or squash it) rather than PR #1 as submitted.
+History note: PR #1 (titles HUD + handshake) landed on `main` together with its two review fixes
+(NBT-codec handshake that would disconnect players, and the clipped titles HUD); branch
+`review/pr-1` is kept for reference only — merge `main`, never that branch.
 
 ## Next tasks
 

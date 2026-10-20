@@ -39,7 +39,6 @@
 		"GuiRendererMixin",
 		"HandledScreenMixin",
 		"HideVanillaEffectsMixin",
-		"HitboxGizmosMixin",
 		"InGameHudMixin",
 		"InGameOverlayRendererMixin",
 		"InventorySearchMixin",

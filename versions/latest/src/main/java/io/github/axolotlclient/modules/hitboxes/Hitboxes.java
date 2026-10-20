@@ -31,6 +31,7 @@ import io.github.axolotlclient.AxolotlClientConfig.impl.options.ColorOption;
 import io.github.axolotlclient.bridge.key.AxoKeybinding;
 import io.github.axolotlclient.bridge.key.AxoKeys;
 import io.github.axolotlclient.modules.AbstractModule;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.gizmos.GizmoProperties;
@@ -50,8 +51,9 @@ import net.minecraft.world.phys.Vec3;
  * configurable colours. 26.3 renders the debug hitboxes as gizmos
  * ({@code EntityHitboxDebugRenderer#showHitboxes}); this module re-emits the same shapes — the
  * interpolated bounding box, the origin point, the eye-height line with its view arrow, the
- * riding seat box and the ender dragon part boxes — from the render-thread gizmo collection the
- * chunk borders already use, so it works without F3 and without vanilla's fixed colours.
+ * riding seat box and the ender dragon part boxes — into a render-thread gizmo collection
+ * window opened from Fabric's {@code LevelRenderEvents.BEFORE_GIZMOS} every frame the module
+ * is enabled, so it works without F3 and without vanilla's fixed colours.
  *
  * <p>Vanilla's own rules are kept: invisible entities are skipped, and the camera entity is
  * skipped while in first person (its box would fill the screen). Emitted gizmos are marked
@@ -79,6 +81,20 @@ public class Hitboxes extends AbstractModule {
 
 	@Override
 	public void init() {
+		// Own gizmo collection window every frame the module is on: the vanilla debug path
+		// (F3+B) is the only caller of LevelRenderer#collectPerFrameRenderThreadGizmos, so
+		// riding its tail meant the hitboxes silently vanished unless some debug gizmo mode
+		// (or another module's window) happened to be active. BEFORE_GIZMOS fires every
+		// frame regardless, and opening our own window there is the same pattern
+		// CannonTrajectory and WorldEditCui use.
+		LevelRenderEvents.BEFORE_GIZMOS.register(context -> {
+			if (!enabled.get() || client.level == null || client.player == null) {
+				return;
+			}
+			try (var ignored = context.levelRenderer().collectPerFrameRenderThreadGizmos()) {
+				emit();
+			}
+		});
 		category.add(enabled, showEyeLine, playerColor, mobColor, itemColor, eyeLineColor);
 		AxolotlClient.config().general.add(category);
 
