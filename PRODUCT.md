@@ -13,13 +13,13 @@ Many play for hours, so the UI has to stay readable on a dimmed game world at an
 ## Product Purpose
 Imperium Client is the server's own Fabric client mod: a complete PvP and quality-of-life feature set (HUD
 modules, zoom, waypoints, chat tools, performance options) with a fast module menu and HUD editor, plus
-ImperiumMC integration (server-gated features, cosmetics, legions). Success: players pick it over Alpine,
-Lunar or Feather because it is quicker, cleaner and feels like part of the server, and new players find every
+ImperiumMC integration (server-gated features, cosmetics, legions). Success: players pick it over other
+clients because it is quicker, cleaner and feels like part of the server, and new players find every
 setting without asking in Discord.
 
 ## Brand Personality
-Clean, confident, imperial. The owner's reference is Alpine Client's menus (owner decision, 2026-10-19):
-the same layout, sizing, motion and polish, carrying ImperiumMC's emblem, name and bronze palette. Copy is
+Clean, confident, imperial. The menus follow the reference layout in `docs/design/README.md` (owner decision, 2026-10-19):
+its layout, sizing, motion and polish, carrying ImperiumMC's emblem, name and bronze palette. Copy is
 plain British English; Latin appears only in the brand mark and the motto "Roma Aeterna", never as filler.
 
 ## Anti-references
@@ -30,7 +30,7 @@ plain British English; Latin appears only in the brand mark and the motto "Roma 
 - Mismatched screens: vanilla grey buttons or old config screens next to the new shell.
 
 ## Design Principles
-1. **Alpine's structure, our identity.** Copy Alpine's layout and proportions faithfully: the title screen,
+1. **Reference structure, our identity.** Follow the reference layout and proportions faithfully: the title screen,
    the sidebar shell, module cards, setting rows, toasts and HUD editor. Change only the brand (emblem,
    wordmark), the palette (bronze on warm dark) and the icons.
 2. **The game stays visible.** Translucent overlay controls with a light blur over the real world or
@@ -38,7 +38,7 @@ plain British English; Latin appears only in the brand mark and the motto "Roma 
 3. **Minecraft-native details.** Vanilla item icons in module tiles, the Minecraft font for HUD text and
    in-world numbers, the vanilla panorama (later an ImperiumMC one) behind the title screen.
 4. **Back to the game fast.** Search first, one click to toggle, settings one level deep.
-5. **One theme system.** Every colour is a token with the same names as Alpine's theme files, so themes can
+5. **One theme system.** Every colour is a token with the names listed in `docs/design/README.md`, so themes can
    be swapped without touching layout.
 
 ## Accessibility & Inclusion
