@@ -7,7 +7,7 @@ Milestones run in order; each ends with a build that works in game.
 | Milestone | State |
 |---|---|
 | M0 fork baseline | Done |
-| M1 menu + HUD style | Menu shell, search, toggles, HUD style options done. Inline settings panel and background blur left |
+| M1 menu + HUD style | Menu shell, search, toggles, HUD style options, inline settings panel done. Background blur left |
 | M2 user's modules | Done — all priority modules shipped across waves 2-5 (see [alpine-parity.md](alpine-parity.md)) |
 | M3 performance | Not started |
 | M4 remaining modules | Done — the parity sheet shows zero real gaps (2026-10-18) |
@@ -22,15 +22,13 @@ History note: PR #1 (titles HUD + handshake) landed on `main` together with its 
 
 Pick from the top; each is one PR. Check [dev-notes.md](dev-notes.md) first.
 
-1. Inline settings panel in the menu: the gear opens the module's settings inside the menu instead of
-   Axolotl's config screen. Spec per module: [module-settings.md](module-settings.md).
-2. Background blur option for HUD elements (`blur_radius`). `MenuBlur` has a blur pass to reuse.
-3. M2 modules, in this order: tab editor, waypoints, inventory search, cooldowns, info HUD, environment
+1. Background blur option for HUD elements (`blur_radius`). `MenuBlur` has a blur pass to reuse.
+2. M2 modules, in this order: tab editor, waypoints, inventory search, cooldowns, info HUD, environment
    (weather), chat settings (timestamps, smooth chat, compact chat), toggle sneak/sprint extras, compass
    waypoints, nametag editor, TPS colour tiers.
-4. Hide config categories that aren't modules (Account Management, Authentication) from the module grid,
+3. Hide config categories that aren't modules (Account Management, Authentication) from the module grid,
    or move them to a separate "Client" section.
-5. Gated modules (auto fish/click) checking `ImperiumClientSession.isAllowed(...)` once PR #1 lands.
+4. Gated modules (auto fish/click) checking `ImperiumClientSession.isAllowed(...)` once PR #1 lands.
 
 
 ## M0: Fork baseline
@@ -44,8 +42,9 @@ Pick from the top; each is one PR. Check [dev-notes.md](dev-notes.md) first.
 
 **Status:** menu shell done. Right Shift (and the title/pause menu button) opens `ImperiumMenuScreen`:
 category sidebar, search, module cards with toggle and gear, Edit HUD / Profiles / All Settings. Cards are
-built by `MenuEntries` from every HUD entry plus every config category. Settings still open Axolotl's
-config screen; an inline Alpine-style settings panel and background blur are the remaining M1 items.
+built by `MenuEntries` from every HUD entry plus every config category. The gear (or a right-click) opens
+the module's settings inline inside the menu, as an overlay panel over the card grid. Background blur is
+the remaining M1 item.
 Covered by the `ImperiumMenuGameTest` client gametest (`./gradlew :latest:runClientGameTest`).
 
 

@@ -92,10 +92,81 @@ public class ImperiumMenuGameTest implements FabricClientGameTest {
 			setTheme(context, MenuTheme.CARVED);
 			context.waitTicks(3);
 
+			// The gear now opens the module's settings INLINE over the card grid, not a new screen.
 			clickGui(context, context.computeOnClient(mc -> menu(mc).cardGearCenter(fpsIndex)));
-			context.waitFor(mc -> !(mc.gui.screen() instanceof ImperiumMenuScreen));
-			context.waitTicks(5);
+			context.waitTicks(3);
+			check(context.computeOnClient(mc -> menu(mc).isSettingsPanelOpen()), "the gear click should open the inline settings panel");
+			int[] fpsPanel = context.computeOnClient(mc -> {
+				var m = menu(mc);
+				return new int[]{m.settingsRowCount(), m.settingsWidgetCount()};
+			});
+			check(fpsPanel[0] > 0, "the FPS settings panel should list options, got " + fpsPanel[0]);
+			check(fpsPanel[1] == fpsPanel[0], "every settings row should be a live widget, got " + fpsPanel[1] + "/" + fpsPanel[0]);
 			context.takeScreenshot("imperium-menu-fps-settings");
+
+			// The first Escape closes the panel; the menu stays open and the grid still toggles.
+			context.getInput().pressKey(InputConstants.KEY_ESCAPE);
+			context.waitTicks(3);
+			check(!context.computeOnClient(mc -> menu(mc).isSettingsPanelOpen()), "ESC should close the settings panel, not the menu");
+			check(context.computeOnClient(mc -> mc.gui.screen() instanceof ImperiumMenuScreen), "the menu should survive ESC closing the panel");
+			context.runOnClient(mc -> fpsHud().setEnabled(false));
+			clickGui(context, context.computeOnClient(mc -> menu(mc).cardBodyCenter(fpsIndex)));
+			context.waitTicks(3);
+			check(context.computeOnClient(mc -> menu(mc).visibleEntries().get(fpsIndex).enabled()),
+				"clicking the FPS card should still toggle it after the panel closed");
+
+			// A long option list scrolls inside the panel and survives a window resize.
+			context.runOnClient(mc -> menu(mc).setSearchQuery("minimap"));
+			context.waitTicks(2);
+			int miniIndex = context.computeOnClient(mc -> indexOfAny(menu(mc), "minimap"));
+			check(miniIndex >= 0, "searching \"minimap\" should show the minimap card");
+			context.runOnClient(mc -> menu(mc).openSettings(miniIndex));
+			context.waitTicks(3);
+			check(context.computeOnClient(mc -> menu(mc).settingsRowCount()) >= 12, "the minimap settings should be a long list");
+			context.takeScreenshot("imperium-menu-settings-minimap");
+			// CLASSIC keeps its own flat panel styling for the settings overlay.
+			setTheme(context, MenuTheme.CLASSIC);
+			context.waitTicks(2);
+			context.takeScreenshot("imperium-menu-settings-classic");
+			setTheme(context, MenuTheme.CARVED);
+			context.waitTicks(2);
+			int[] band = context.computeOnClient(mc -> menu(mc).settingsScrollCenter());
+			double guiScale = context.computeOnClient(mc -> mc.getWindow().getGuiScale());
+			context.getInput().setCursorPos(band[0] * guiScale, band[1] * guiScale);
+			context.getInput().scroll(0, -8);
+			context.waitTicks(3);
+			check(context.computeOnClient(mc -> menu(mc).settingsScrollAmount()) > 0, "the wheel should scroll the settings rows");
+			context.takeScreenshot("imperium-menu-settings-scrolled");
+			// Drive Screen.resize directly: the harness's real window resize drops the player out
+			// of the world in this environment, and the panel rebuild is the behavior under test.
+			int[] guiSize = context.computeOnClient(mc -> new int[]{mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight()});
+			context.runOnClient(mc -> menu(mc).resize(guiSize[0] + 60, guiSize[1] + 40));
+			context.waitTicks(3);
+			check(context.computeOnClient(mc -> menu(mc).isSettingsPanelOpen()), "resizing the window should keep the settings panel open");
+			check(context.computeOnClient(mc -> menu(mc).settingsRowCount()) >= 12, "the resized panel should keep its option rows");
+			check(context.computeOnClient(mc -> menu(mc).settingsWidgetCount()) >= 12, "the resized panel should rebuild its widgets as live children");
+			context.runOnClient(mc -> menu(mc).resize(guiSize[0], guiSize[1]));
+			context.waitTicks(3);
+
+			// Clicking a sidebar category closes the panel and shows that category's grid.
+			clickGui(context, context.computeOnClient(mc -> menu(mc).categoryCenter(MenuCategory.ALL)));
+			context.waitTicks(3);
+			check(!context.computeOnClient(mc -> menu(mc).isSettingsPanelOpen()), "clicking a sidebar category should close the settings panel");
+			context.runOnClient(mc -> menu(mc).setSearchQuery(""));
+			context.waitTicks(2);
+			check(context.computeOnClient(mc -> menu(mc).visibleEntries().size()) > 20, "the full module grid should be back after closing the panel");
+
+			// Escape closes the PANEL first; only a second Escape closes the whole menu.
+			context.runOnClient(mc -> menu(mc).openSettings(0));
+			context.waitTicks(2);
+			check(context.computeOnClient(mc -> menu(mc).isSettingsPanelOpen()), "openSettings should reopen the panel");
+			context.getInput().pressKey(InputConstants.KEY_ESCAPE);
+			context.waitTicks(2);
+			check(!context.computeOnClient(mc -> menu(mc).isSettingsPanelOpen()), "the first ESC should close the panel");
+			check(context.computeOnClient(mc -> mc.gui.screen() instanceof ImperiumMenuScreen), "the first ESC should leave the menu open");
+			context.getInput().pressKey(InputConstants.KEY_ESCAPE);
+			context.waitTicks(2);
+			check(context.computeOnClient(mc -> !(mc.gui.screen() instanceof ImperiumMenuScreen)), "a second ESC should close the menu");
 
 			context.setScreen(() -> null);
 			context.waitTicks(5);
@@ -150,6 +221,16 @@ public class ImperiumMenuGameTest implements FabricClientGameTest {
 		for (int i = 0; i < entries.size(); i++) {
 			MenuEntry e = entries.get(i);
 			if (e.category().name().equals("HUD") && e.name().toLowerCase().contains(query)) return i;
+		}
+		return -1;
+	}
+
+	// Like indexOf, but matches the id too and ignores the category (the minimap lives in RENDER).
+	private static int indexOfAny(ImperiumMenuScreen screen, String query) {
+		var entries = screen.visibleEntries();
+		for (int i = 0; i < entries.size(); i++) {
+			MenuEntry e = entries.get(i);
+			if (e.name().toLowerCase().contains(query) || e.id().toLowerCase().contains(query)) return i;
 		}
 		return -1;
 	}
