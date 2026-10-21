@@ -1,0 +1,14 @@
+{
+	"providers": [
+		{
+			"type": "ttf",
+			"file": "imperiumclient:barlow_semibold.ttf",
+			"size": 11.0,
+			"oversample": 4.0
+		},
+		{
+			"type": "reference",
+			"id": "minecraft:default"
+		}
+	]
+}
