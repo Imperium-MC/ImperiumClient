@@ -26,10 +26,13 @@ import com.mojang.blaze3d.platform.InputConstants
 import io.github.axolotlclient.AxolotlClient
 import io.github.axolotlclient.AxolotlClientConfig.api.AxolotlClientConfig
 import io.github.axolotlclient.AxolotlClientConfigCommon
+import io.github.axolotlclient.imperium.menu.ImperiumMenuScreen
 import io.github.axolotlclient.imperium.theme.ImperiumTheme as Theme
 import io.github.axolotlclient.modules.hud.HudEditScreen
 import io.github.axolotlclient.modules.hud.HudManager
+import io.github.axolotlclient.modules.hud.HudManagerCommon
 import io.github.axolotlclient.modules.hud.gui.component.HudEntry
+import io.github.axolotlclient.modules.hud.gui.layout.AnchorPoint
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.KeyEvent
@@ -53,6 +56,7 @@ class ImperiumHudEditScreen : HudEditScreen {
 
 	/** The element the editor has selected (persists between drags; drives styling + keyboard). */
 	private var selected: HudEntry? = null
+	private var contextMenu: HudEditorContextMenu? = null
 	private val history = HudEditorHistory()
 
 	// Drag bookkeeping: the snapshot taken when a drag starts, committed to history on release.
@@ -65,6 +69,10 @@ class ImperiumHudEditScreen : HudEditScreen {
 
 	override fun init() {
 		super.init()
+		if (v2()) {
+			// A window resize invalidates the menu's cached coordinates.
+			contextMenu = null
+		}
 	}
 
 	override fun addControlButtons() {
@@ -102,6 +110,7 @@ class ImperiumHudEditScreen : HudEditScreen {
 		if (!v2()) return
 		drawSelection(graphics, mouseX, mouseY)
 		drawSnapHint(graphics)
+		contextMenu?.render(graphics, font, mouseX, mouseY)
 	}
 
 	/** 2px bronze outline plus 10px square handles on the corners and edge midpoints. */
@@ -142,9 +151,31 @@ class ImperiumHudEditScreen : HudEditScreen {
 
 	override fun mouseClicked(event: MouseButtonEvent, doubleClick: Boolean): Boolean {
 		if (!v2()) return super.mouseClicked(event, doubleClick)
-		// Clicking an element selects it; clicking empty space clears the selection. Dragging,
-		// resizing and the fallback right-click behaviour stay in the base editor.
-		val under = HudManager.getInstance().getEntryXY(event.x().toInt(), event.y().toInt()).orElse(null)
+		val mx = event.x()
+		val my = event.y()
+		// The context menu consumes every click: an action inside, a dismiss outside.
+		contextMenu?.let { menu ->
+			when (val action = menu.hit(mx, my)) {
+				HudEditorContextMenu.Action.Settings -> openSettingsFor(menu.entry)
+				HudEditorContextMenu.Action.Reset -> resetEntry(menu.entry)
+				HudEditorContextMenu.Action.Hide -> hideEntry(menu.entry)
+				is HudEditorContextMenu.Action.Anchor -> applyAnchor(menu.entry, action.anchor)
+				null -> closeContextMenu()
+			}
+			return true
+		}
+		// Clicking an element selects it; clicking empty space clears the selection. Dragging
+		// and resizing stay in the base editor.
+		val under = HudManager.getInstance().getEntryXY(mx.toInt(), my.toInt()).orElse(null)
+		if (event.button() == InputConstants.MOUSE_BUTTON_RIGHT) {
+			if (under != null) {
+				selected = under
+				contextMenu = HudEditorContextMenu(under, mx.toInt(), my.toInt(), width, height, font)
+			} else {
+				selected = null
+			}
+			return true
+		}
 		selected = under
 		dragEntry = under
 		dragBefore = under?.let { HudEditorHistory.Snapshot.capture(it) }
@@ -168,6 +199,10 @@ class ImperiumHudEditScreen : HudEditScreen {
 
 	override fun keyPressed(event: KeyEvent): Boolean {
 		if (!v2()) return super.keyPressed(event)
+		if (contextMenu != null) {
+			if (event.isEscape) closeContextMenu()
+			return true
+		}
 		if (event.isEscape && selected != null && !isModificationActive()) {
 			selected = null
 			return true
@@ -263,8 +298,9 @@ class ImperiumHudEditScreen : HudEditScreen {
 		saveEntry(entry)
 	}
 
-	/** Disables the element (undoable; the delete key lands here). */
+	/** Disables the element (undoable; the delete key and the Hide action both land here). */
 	private fun hideEntry(entry: HudEntry) {
+		closeContextMenu()
 		val before = HudEditorHistory.Snapshot.capture(entry)
 		entry.setEnabled(false)
 		history.push(entry, before, HudEditorHistory.Snapshot.capture(entry), HudEditorHistory.Kind.HIDE)
@@ -272,6 +308,42 @@ class ImperiumHudEditScreen : HudEditScreen {
 			selected = null
 		}
 		saveEntry(entry)
+	}
+
+	/** Resets bounds to the element's configured defaults: position fraction, scale 1, no links. */
+	private fun resetEntry(entry: HudEntry) {
+		closeContextMenu()
+		val before = HudEditorHistory.Snapshot.capture(entry)
+		entry.clearBoundsDependencies()
+		HudManagerCommon.getInstance().saveHudDependencyLinks()
+		entry.setScale(1f)
+		// Default positions are fractions of the window; storing f * size puts the option back
+		// to its factory value (setX/setY convert pixels to fractions).
+		entry.setPos((entry.defaultX * width).toInt(), (entry.defaultY * height).toInt())
+		history.push(entry, before, HudEditorHistory.Snapshot.capture(entry), HudEditorHistory.Kind.RESET)
+		saveEntry(entry)
+	}
+
+	/** Applies a new anchor point; the option's listener keeps the element visually in place. */
+	private fun applyAnchor(entry: HudEntry, anchor: AnchorPoint) {
+		val before = HudEditorHistory.Snapshot.capture(entry)
+		if (!HudEditorAnchors.apply(entry, anchor)) {
+			return
+		}
+		entry.onBoundsUpdate()
+		history.push(entry, before, HudEditorHistory.Snapshot.capture(entry), HudEditorHistory.Kind.ANCHOR)
+		saveEntry(entry)
+		// The menu stays open so the new anchor can be compared with its neighbours.
+	}
+
+	/** Settings opens the menu's inline settings page for the element (callback hook). */
+	private fun openSettingsFor(entry: HudEntry) {
+		closeContextMenu()
+		minecraft!!.gui.setScreen(ImperiumMenuScreen.openWithHudSettings(this, entry))
+	}
+
+	private fun closeContextMenu() {
+		contextMenu = null
 	}
 
 	private fun saveEntry(entry: HudEntry) {

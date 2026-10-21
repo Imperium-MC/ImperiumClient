@@ -40,6 +40,7 @@ import io.github.axolotlclient.config.screen.ProfilesScreen
 import io.github.axolotlclient.imperium.ServerGating
 import io.github.axolotlclient.imperium.theme.ImperiumTheme as Theme
 import io.github.axolotlclient.modules.hud.HudEditScreen
+import io.github.axolotlclient.modules.hud.gui.component.HudEntry
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.AbstractWidget
 import net.minecraft.client.gui.components.Button
@@ -120,6 +121,10 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 	// is parked (removed from the widget tree) so nothing steals input or peeks out from
 	// under the panel; closing restores it and saves the config.
 	private var settingsEntry: MenuEntry? = null
+
+	// Callback hook for the HUD editor's context menu: the element whose settings the editor
+	// asked to open, consumed by init() right after the entries are built.
+	private var pendingHudEntry: HudEntry? = null
 	private val settingsRows = ArrayList<SettingsRow>()
 	private var settingsScroll = 0.0
 
@@ -166,6 +171,7 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 				layoutSettingsWidgets()
 			}
 			refilter()
+			openPendingHudEntrySettings()
 			return
 		}
 
@@ -206,6 +212,20 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 		}
 
 		refilter()
+		openPendingHudEntrySettings()
+	}
+
+	/**
+	 * Consumes a settings request from the HUD editor's context menu (see
+	 * [openWithHudSettings]): finds the element's card and opens its inline settings panel.
+	 */
+	private fun openPendingHudEntrySettings() {
+		val hud = pendingHudEntry ?: return
+		pendingHudEntry = null
+		val index = visible.indexOfFirst { it.id() == "hud/" + hud.id.toString() }
+		if (index >= 0) {
+			openSettings(index)
+		}
 	}
 
 	private fun refilter() {
@@ -1604,6 +1624,17 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 	}
 
 	companion object {
+		/**
+		 * Callback hook for the HUD editor v2's context menu: builds the menu with [parent] and
+		 * flags [hud]'s settings panel to open as soon as the menu initialises.
+		 */
+		@JvmStatic
+		fun openWithHudSettings(parent: Screen?, hud: HudEntry): ImperiumMenuScreen {
+			val screen = ImperiumMenuScreen(parent)
+			screen.pendingHudEntry = hud
+			return screen
+		}
+
 		private const val HEADER_H = 30
 		private const val FOOTER_H = 28
 		private const val SIDEBAR_W = 92
