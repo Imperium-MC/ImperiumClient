@@ -24,12 +24,12 @@ package io.github.axolotlclient.config.modmenu;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
-import io.github.axolotlclient.modules.hud.HudEditScreen;
+import io.github.axolotlclient.imperium.hud.ImperiumHudEditScreen;
 
 public class ModMenuCompat implements ModMenuApi {
 
 	@Override
 	public ConfigScreenFactory<?> getModConfigScreenFactory() {
-		return (HudEditScreen::new);
+		return (ImperiumHudEditScreen::new);
 	}
 }
