@@ -35,6 +35,7 @@ import io.github.axolotlclient.modules.blur.HudBlur;
 import io.github.axolotlclient.modules.blur.MotionBlur;
 import io.github.axolotlclient.modules.hud.HudManager;
 import io.github.axolotlclient.modules.hud.gui.hud.vanilla.CrosshairHud;
+import io.github.axolotlclient.util.FrameTimeSampler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.DebugCrosshairRenderer;
 import net.minecraft.client.renderer.GameRenderer;
@@ -78,6 +79,15 @@ public abstract class GameRendererMixin {
 		HudBlur.getInstance().render(resourcePool);
 
 		Profiler.get().pop();
+	}
+
+	/**
+	 * Once per rendered frame (after the world, before the GUI): the M3 benchmarks read the
+	 * frame time here. No-op unless a sampler is installed (see FrameTimeSampler).
+	 */
+	@Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;applyPostEffects()V"))
+	public void axolotlclient$frameSampler(CallbackInfo ci) {
+		FrameTimeSampler.sample();
 	}
 
 	@Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/render/GuiRenderer;endFrame()V"))
