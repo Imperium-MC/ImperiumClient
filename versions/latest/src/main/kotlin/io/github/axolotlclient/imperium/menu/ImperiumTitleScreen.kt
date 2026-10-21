@@ -33,6 +33,7 @@ import java.util.UUID
 import io.github.axolotlclient.AxolotlClient
 import io.github.axolotlclient.AxolotlClientCommon
 import io.github.axolotlclient.AxolotlClientConfig.impl.util.ConfigStyles
+import io.github.axolotlclient.imperium.theme.ImperiumFonts
 import io.github.axolotlclient.imperium.theme.ImperiumTheme as Theme
 import io.github.axolotlclient.modules.auth.Auth
 import io.github.axolotlclient.util.ThreadExecuter
@@ -64,6 +65,10 @@ class ImperiumTitleScreen : TitleScreen(false) {
 
 	// hover fades per hot element (200 ms colour, faster scale), like the menu cards
 	private val hoverT = HashMap<String, Float>()
+
+	// press fades (100 ms): the spec's 0.966 press scale on the hand-drawn buttons
+	private val pressT = HashMap<String, Float>()
+	private var pressedKey: String? = null
 	private var lastFrameMs = 0L
 
 	init {
@@ -89,7 +94,10 @@ class ImperiumTitleScreen : TitleScreen(false) {
 	private fun accountSubtitle(): String = Component.translatable("imperium.title.switch_account").string
 
 	private fun accountW(): Int =
-		maxOf(font.width(accountName()), font.width(accountSubtitle())) + HEAD + 5 + CHEVRON_W + 12
+		maxOf(
+			ImperiumFonts.width(font, accountName(), ImperiumFonts.BARLOW_SEMIBOLD),
+			ImperiumFonts.width(font, accountSubtitle())
+		) + HEAD + 5 + CHEVRON_W + 12
 
 	private fun emblemH(): Int = if (height >= 300) EMBLEM_H else EMBLEM_H_COMPACT
 
@@ -149,14 +157,17 @@ class ImperiumTitleScreen : TitleScreen(false) {
 			Component.translatable("menu.quit").string, null, false
 		)
 
-		// footer: client version left, Mojang disclaimer centred
+		// footer: client version left, Mojang disclaimer centred; the version truncates to the
+		// left half so it never runs into the centred line on narrow windows
+		val copyright = Component.translatable("imperium.title.copyright").string
+		val copyrightW = ImperiumFonts.width(font, copyright)
+		val version = ImperiumFonts.truncate(font, "Romanica Client " + AxolotlClient.VERSION, width / 2 - copyrightW / 2 - 8)
 		graphics.text(
-			font, "Romanica Client " + AxolotlClient.VERSION, INSET, height - FOOTER_H,
+			font, ImperiumFonts.label(version), INSET, height - FOOTER_H,
 			Theme.OVERLAY_TEXT_SECONDARY, false
 		)
-		val copyright = Component.translatable("imperium.title.copyright").string
 		graphics.text(
-			font, copyright, width / 2 - font.width(copyright) / 2, height - FOOTER_H,
+			font, ImperiumFonts.label(copyright), width / 2 - copyrightW / 2, height - FOOTER_H,
 			Theme.OVERLAY_TEXT_SECONDARY, false
 		)
 	}
@@ -179,8 +190,8 @@ class ImperiumTitleScreen : TitleScreen(false) {
 		val skin = DefaultPlayerSkin.get(uuid)
 		graphics.blit(RenderPipelines.GUI_TEXTURED, skin.body().texturePath(), x + 2, y + 1, 8f, 8f, HEAD, HEAD, 8, 8, 64, 64)
 
-		graphics.text(font, accountName(), x + HEAD + 5, y + 2, Theme.OVERLAY_TEXT, false)
-		graphics.text(font, accountSubtitle(), x + HEAD + 5, y + 11, Theme.OVERLAY_TEXT_SECONDARY, false)
+		graphics.text(font, ImperiumFonts.semibold(accountName()), x + HEAD + 5, y + 2, Theme.OVERLAY_TEXT, false)
+		graphics.text(font, ImperiumFonts.label(accountSubtitle()), x + HEAD + 5, y + 11, Theme.OVERLAY_TEXT_SECONDARY, false)
 		Theme.drawGlyph(graphics, Theme.GLYPH_CHEVRON, x + w - CHEVRON_W - 6, y + (ACCOUNT_H - 4) / 2, Theme.OVERLAY_TEXT_SECONDARY)
 	}
 
@@ -203,7 +214,7 @@ class ImperiumTitleScreen : TitleScreen(false) {
 			val y = circleY()
 			val hovered = mouseX >= x && mouseX < x + CIRCLE_D && mouseY >= y && mouseY < y + CIRCLE_D
 			val t = fade("circle$i", hovered)
-			val scale = 1f + 0.1f * easeOut(t)
+			val scale = (1f + 0.1f * easeOut(t)) - 0.134f * easeOut(pressFade("circle$i"))
 			val pose = graphics.pose()
 			pose.pushMatrix()
 			pose.translate((x + CIRCLE_D / 2).toFloat(), (y + CIRCLE_D / 2).toFloat())
@@ -221,7 +232,7 @@ class ImperiumTitleScreen : TitleScreen(false) {
 			if (t > 0.05f) {
 				val label = Component.translatable(action.first).string.uppercase()
 				graphics.text(
-					font, label, x + CIRCLE_D / 2 - font.width(label) / 2, y + CIRCLE_D + 3,
+					font, ImperiumFonts.semibold(label), x + CIRCLE_D / 2 - ImperiumFonts.width(font, label, ImperiumFonts.BARLOW_SEMIBOLD) / 2, y + CIRCLE_D + 3,
 					lerpColor(0x00000000.toInt(), Theme.OVERLAY_TEXT, t), false
 				)
 			}
@@ -235,7 +246,7 @@ class ImperiumTitleScreen : TitleScreen(false) {
 	) {
 		val hovered = mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h
 		val t = fade(id, hovered)
-		val scale = 1f + 0.033f * easeOut(t)
+		val scale = (1f + 0.033f * easeOut(t)) - 0.067f * easeOut(pressFade(id))
 		val pose = graphics.pose()
 		pose.pushMatrix()
 		pose.translate((x + w / 2).toFloat(), (y + h / 2).toFloat())
@@ -250,11 +261,12 @@ class ImperiumTitleScreen : TitleScreen(false) {
 			Theme.roundRect(graphics, x, y, w, h, lerpColor(0x66000000.toInt(), Theme.PRIMARY_HOVER, t), h / 2f)
 			Theme.roundOutline(graphics, x, y, w, h, lerpColor(Theme.COMPONENT, Theme.ACCENT_SOFT, t), h / 2f)
 		}
+		val labelW = ImperiumFonts.width(font, label, ImperiumFonts.BARLOW_SEMIBOLD)
 		if (sub == null) {
-			graphics.text(font, label, x + w / 2 - font.width(label) / 2, y + (h - font.lineHeight + 1) / 2, Theme.TEXT, false)
+			graphics.text(font, ImperiumFonts.semibold(label), x + w / 2 - labelW / 2, y + (h - font.lineHeight + 1) / 2, Theme.TEXT, false)
 		} else {
-			graphics.text(font, label, x + w / 2 - font.width(label) / 2, y + 3, Theme.TEXT, false)
-			graphics.text(font, sub, x + w / 2 - font.width(sub) / 2, y + h - 11, Theme.TEXT_SECONDARY, false)
+			graphics.text(font, ImperiumFonts.semibold(label), x + w / 2 - labelW / 2, y + 3, Theme.TEXT, false)
+			graphics.text(font, ImperiumFonts.label(sub), x + w / 2 - ImperiumFonts.width(font, sub) / 2, y + h - 11, Theme.TEXT_SECONDARY, false)
 		}
 		pose.popMatrix()
 	}
@@ -266,6 +278,7 @@ class ImperiumTitleScreen : TitleScreen(false) {
 		val my = event.y().toInt()
 
 		if (mx >= accountX() && mx < accountX() + accountW() && my >= accountY() && my < accountY() + ACCOUNT_H) {
+			pressedKey = "account"
 			minecraft!!.gui.setScreen(io.github.axolotlclient.modules.auth.AccountsScreen(this))
 			return true
 		}
@@ -275,6 +288,7 @@ class ImperiumTitleScreen : TitleScreen(false) {
 			val x = circleX(CIRCLE_ACTIONS.size - 1 - i)
 			val y = circleY()
 			if (mx >= x - 2 && mx < x + CIRCLE_D + 2 && my >= y - 2 && my < y + CIRCLE_D + 2) {
+				pressedKey = "circle$i"
 				when (action.third) {
 					Action.MODULES -> minecraft!!.gui.setScreen(ImperiumMenuScreen(this))
 					Action.CLIENT -> minecraft!!.gui.setScreen(
@@ -293,6 +307,7 @@ class ImperiumTitleScreen : TitleScreen(false) {
 		}
 
 		if (my >= playY() && my < playY() + PLAY_H && mx >= playX() && mx < playX() + PLAY_W) {
+			pressedKey = "play"
 			val server = ServerData("Romanica", SERVER_ADDRESS, ServerData.Type.OTHER)
 			ConnectScreen.startConnecting(
 				this, minecraft!!, ServerAddress.parseString(SERVER_ADDRESS), server, false, null
@@ -301,15 +316,23 @@ class ImperiumTitleScreen : TitleScreen(false) {
 		}
 		if (my >= rowY() && my < rowY() + ROW_H) {
 			if (mx >= optionX() && mx < optionX() + ROW_BTN_W) {
+				pressedKey = "options"
 				minecraft!!.gui.setScreen(OptionsScreen(this, minecraft!!.options))
 				return true
 			}
 			if (mx >= quitX() && mx < quitX() + ROW_BTN_W) {
+				pressedKey = "quit"
 				minecraft!!.stop()
 				return true
 			}
 		}
 		return super.mouseClicked(event, doubleClick)
+	}
+
+	override fun mouseReleased(event: MouseButtonEvent): Boolean {
+		// the press scale (0.966) holds only while the control is held
+		pressedKey = null
+		return super.mouseReleased(event)
 	}
 
 	private fun openLink(url: String) {
@@ -323,6 +346,13 @@ class ImperiumTitleScreen : TitleScreen(false) {
 			return if (hovered) 1f else 0f
 		}
 		return hoverT[id] ?: 0f
+	}
+
+	private fun pressFade(id: String): Float {
+		if (AxolotlClient.config().menuReduceMotion.get()) {
+			return if (pressedKey == id) 1f else 0f
+		}
+		return pressT[id] ?: 0f
 	}
 
 	private fun advanceFades(mouseX: Int, mouseY: Int) {
@@ -349,6 +379,17 @@ class ImperiumTitleScreen : TitleScreen(false) {
 			val target = if (hovered) 1f else 0f
 			val next = if (t < target) min(target, t + dt / 0.2f) else max(target, t - dt / 0.2f)
 			if (next <= 0f) hoverT.remove(id) else hoverT[id] = next
+		}
+		// press fades: 100 ms toward whichever control is held
+		for (key in pressT.keys.toList()) {
+			val target = if (key == pressedKey) 1f else 0f
+			val t = pressT[key] ?: 0f
+			val next = if (t < target) min(target, t + dt / 0.1f) else max(target, t - dt / 0.1f)
+			if (next <= 0f) pressT.remove(key) else pressT[key] = next
+		}
+		val pressed = pressedKey
+		if (pressed != null) {
+			pressT.putIfAbsent(pressed, 0f)
 		}
 	}
 
