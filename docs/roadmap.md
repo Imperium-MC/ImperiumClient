@@ -9,7 +9,7 @@ Milestones run in order; each ends with a build that works in game.
 | M0 fork baseline | Done |
 | M1 menu + HUD style | Done — menu shell, search, toggles, HUD style options, inline settings panel, background blur |
 | M2 user's modules | Done — all priority modules shipped across waves 2-5 (see [alpine-parity.md](alpine-parity.md)) |
-| M3 performance | First slice done: `performance` category with the frame limiter (limiter/background/AFK/long-AFK, replacing Dynamic FPS, deferring to vanilla's inactivity throttle when vanilla is stricter) plus `disable_tnt_flash`, `hide_lightning_bolts`, `hide_hoppers` (items + minecarts) and `hide_distant_entities` + `entity_render_distance`. Open: `hud_frame_limit`, hopper *block* hiding, lazy chunk loading, chest/spawner/enchant-table simplification, cannon-minimal mode, hologram/sign text distance limits |
+| M3 performance | Done except the chunk-level items: frame limiter slice, `hud_frame_limit` (record/replay HUD cache), `text_render_distance`, `disable_tnt_expansion`, `optimize_spawners`, `disable_enchant_table_books`, each measured by `PerformanceBenchmarkGameTest` (see M3 below). Open: hopper *block* hiding + lazy chunk loading (chunk-mesh work), chest simplification (no honest win) |
 | M4 remaining modules | Done — the parity sheet shows zero real gaps (2026-10-18) |
 | M5 ImperiumMC integration | Done — handshake + server-gated features live both sides: client enforcement layer and plugin `ImperiumClientIntegrationService` (v2 tier table + rank perks) |
 | M6 launcher | Done — [ImperiumLauncher](https://github.com/Imperium-MC/ImperiumLauncher) v0.1.0 released: Microsoft login approved, signed Windows installer, auto-updater feed |
@@ -34,10 +34,10 @@ blur, the gizmo-window fix, and the first M3 performance slice — see the miles
 4. **Plugin CI + anticheat** (ImperiumMC-Plugin#12 step 0, #13).
 5. **UI v3** per the design spec now merged at `docs/design/` (#4): title screen, shell and module
    cards, settings pages, HUD editor — in Kotlin.
-6. Everything else in #12, top to bottom: M3 remainder (`hud_frame_limit` needs an offscreen HUD
-   texture cache; hopper *block* hiding belongs with lazy chunk loading; hologram/sign text distance
-   limits; cannon-minimal TNT; chest/spawner simplification), cosmetics channel design (owner input
-   wanted), real-server enforcement spot-check, parity-sheet regeneration, translations.
+6. Everything else in #12, top to bottom: the M3 remainder is down to the chunk-level items
+   (hopper *block* hiding belongs with lazy chunk loading; chests have no honest win — see M3),
+   cosmetics channel design (owner input wanted), real-server enforcement spot-check,
+   parity-sheet regeneration, translations.
 
 
 ## M0: Fork baseline
@@ -73,13 +73,30 @@ factions, EnchantedMC boosts, EnchantedMC fishing (server-gated).
 
 ## M3: Performance layer
 
-Built on top of Sodium/Lithium, not replacing them:
+Built on top of Sodium/Lithium, not replacing them. Every shipped item below is measured by
+`PerformanceBenchmarkGameTest` (`./gradlew :latest:runClientGameTest`): per feature it warms
+100 frames, measures 300 frames with the feature OFF then ON using `Minecraft.getFrameTimeNs()`
+(the debug-FPS source, via the per-frame `FrameTimeSampler` hook) with vsync off and the vanilla
+framerate limit raised, and appends both phases to
+`versions/latest/build/run/clientGameTest/benchmarks/performance-benchmarks.jsonl`. The numbers
+are local truth from the dev machine (RTX 3060; the scenes run uncapped at ~800-2300 fps, whole
+frames of 0.4-1.6 ms), not CI truth: at these frame rates run-to-run variance of roughly
+±0.3 ms dominates anything small. The ON-phase asserts on per-feature counters prove each toggle
+actually fires, and every phase asserts the expected frames arrived (rendering alive).
 
-- HUD rendered at a capped rate (`hud_frame_limit`) and reused between frames. **Not shipped:** the
-  HUD draws immediately into the per-frame GUI layer, so "keep the previous result" needs an
-  offscreen-texture cache; skipping frames without it makes the HUD blink out. Skipped rather than
-  shipping a frozen/blinking HUD (dynamic elements — CPS, FPS, coordinates — must not visibly
-  freeze). Revisit with a render-target cache in `HudManager`.
+- HUD rendered at a capped rate (`hud_frame_limit`, 0-120, default 0 = off). **Shipped** as a
+  record/replay cache (`HudFrameCache`) rather than an offscreen texture: the GUI elements the
+  HUD submits are immutable render-state snapshots, so cacheable entries re-RECORD into the
+  `GuiRenderState` at most N times per second (frame-count pacing off the game's own frame-time
+  source) and the recorded elements are re-submitted unchanged between records. Entries
+  reporting `HudEntry.dynamicContent()` — every text readout (FPS, CPS, coordinates, timers),
+  the minimap, keystrokes, the paperdoll — always render live and are never captured, so
+  nothing dynamic can visibly freeze; the cacheable set is the event-driven item HUDs (armor,
+  inventory, IP, icon). Measured (those four cached + FPS/CPS live, limit 30): avg frame
+  0.835 -> 0.861 ms, i.e. **within noise on this machine**; across six runs the delta ranged
+  -0.06..+0.37 ms with no consistent direction. Shipped anyway because it is default-off,
+  measures as cost-neutral, and the one clearly positive run (-24% frame time) came from a
+  slower-clock pass of the same scene — the honest verdict is "no measurable gain locally".
 - Frame limiter: none / minimised / unfocused / AFK, with background, AFK and long-AFK FPS caps.
   Replaces Dynamic FPS, which conflicts with a second limiter. **Shipped** as the `performance`
   category: `limiter`, `background_fps`, `afk_fps` + `afk_delay`, `long_afk_fps` + `long_afk_delay`.
@@ -93,12 +110,38 @@ Built on top of Sodium/Lithium, not replacing them:
   (horizontal distance from the camera; the camera entity and whatever the player rides are exempt).
   All gate `LevelExtractor.isEntityVisible` / `TntRenderer.submit`, so hidden entities skip render
   state extraction entirely.
-- Render-distance limits and hiding for holograms (armor-stand text), signs (entity and text
-  separately), plus display-name optimisation. **Open.**
-- Cannon mode: minimal TNT/falling-block rendering, no TNT flash or expansion. **Open** (the flash
-  half exists now via `disable_tnt_flash`; expansion/minimal mode not).
-- Chest/spawner/enchant-table render simplification, lazy chunk loading with an update cap.
-  **Open.**
+- Render-distance limits for sign text and floating name tags. **Shipped** as
+  `text_render_distance` (0-128 blocks, default 0 = vanilla): sign lettering
+  (`AbstractSignRenderer.submitSignText`, distance from the block-entity pose translation) and all
+  entity name tags including armour-stand holograms (`EntityRenderer.submitNameDisplay`, off
+  `distanceToCameraSq`) are skipped beyond the limit; the sign wood and the entities themselves
+  keep rendering. Measured (14 signs + 14 named armour stands at 22-40 blocks, limit 16): avg
+  frame 1.190 -> 0.656 ms (**-45%, +684 fps**; repeat runs saved 0.35-0.65 ms). The clearest
+  win of the tail.
+- Cannon mode: minimal TNT rendering. **Shipped** as `disable_tnt_expansion`: the final-second
+  swell scale in `TntRenderer.submit` is forced to 1 so primed TNT keeps its normal size (the
+  entity stays fully visible), composing with `disable_tnt_flash`. Measured (24 long-fuse primed
+  TNT): avg frame 0.710 -> 0.579 ms — within the machine noise, as expected for a visual toggle
+  whose wrapped call only runs during the final fuse second; the swell-suppression counter
+  proves the path fires on a short-fuse TNT.
+- Spawner and enchanting-table simplification. **Shipped:** `optimize_spawners` skips the spinning
+  display entity entirely — both `BaseSpawner.getOrCreateDisplayEntity` and the
+  `TrialSpawnerRenderer.extractSpawnerData` extraction it feeds (vanilla monster spawners only;
+  the cage is chunk-meshed and stays) — and `disable_enchant_table_books` cancels the
+  enchanting-table BER submit (that BER is only the floating book; the table block itself is
+  chunk-meshed). Measured: spawners avg frame 0.426 -> 0.509 ms (**no measurable gain** at 16
+  spawners — the per-spawner extraction is too cheap to see locally); enchanting books avg frame
+  0.945 -> 0.847 ms (-10%; an earlier run measured -24%), a real but noisy win for book-heavy
+  scenes.
+- Chest simplification. **Not shipped:** in 26.3 the entire chest is a per-frame BER model
+  submit (no static chest mesh exists), so the only client-side "simplification" is freezing
+  the lid — which still runs the BER and saves nothing — or skipping the BER, which makes chests
+  invisible. There is no honest per-frame win short of a hide toggle, so `optimize_chests` was
+  skipped rather than shipped as a no-op.
+- Hopper *block* hiding and lazy chunk loading. **Open:** both are chunk-mesh work — 26.3 exposes
+  no per-block visibility predicate or render-layer hook that avoids forcing chunk rebuilds, and
+  a resource-pack model swap remeshes every loaded chunk on toggle. The `hide_hoppers` tooltip
+  already documents that placed blocks are not covered.
 
 Each item gets a before/after FPS measurement on the same scene before it's merged.
 

@@ -49,6 +49,16 @@ public interface HudEntry extends Identifiable, Configurable, Positionable {
 		return false;
 	}
 
+	/**
+	 * Whether this entry's rendered content changes on its own while the game runs (timers,
+	 * counters, live positions, animations) rather than only through discrete events. Entries
+	 * that answer {@code true} are never served from the {@code hud_frame_limit} recording —
+	 * they re-render every frame so FPS/CPS/coordinates-style readouts never visibly freeze.
+	 */
+	default boolean dynamicContent() {
+		return false;
+	}
+
 	default boolean overridesF3() {
 		return false;
 	}

@@ -24,13 +24,17 @@ package io.github.axolotlclient.modules.hud;
 
 import io.github.axolotlclient.imperium.menu.ImperiumMenuScreen;
 import io.github.axolotlclient.bridge.render.AxoRenderContext;
+import io.github.axolotlclient.modules.hud.gui.component.HudEntry;
 import io.github.axolotlclient.modules.hud.gui.hud.KeystrokeHud;
 import io.github.axolotlclient.modules.hud.gui.hud.PackDisplayHud;
 import io.github.axolotlclient.modules.hud.gui.hud.PlayerHud;
 import io.github.axolotlclient.modules.hud.gui.hud.vanilla.*;
+import io.github.axolotlclient.util.HudFrameCache;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.profiling.Profiler;
+
+import java.util.Comparator;
 
 /**
  * This implementation of Hud modules is based on KronHUD.
@@ -79,8 +83,14 @@ public class HudManager extends HudManagerCommon {
 	public void render(AxoRenderContext context, float delta) {
 		final var mc = Profiler.get();
 		mc.push("Hud render");
-		if (!(Minecraft.getInstance().gui.screen() instanceof HudEditScreen)) {
-			super.render(context, delta);
+		if (hudsEnabled() && !(Minecraft.getInstance().gui.screen() instanceof HudEditScreen)) {
+			// hud_frame_limit: cacheable entries (see HudEntry.dynamicContent) re-record at
+			// most N times per second and are re-submitted from the recording in between;
+			// dynamic entries always render live. Mirrors HudManagerCommon.render's z-sorted
+			// loop, partitioned so the cache can wrap each cacheable entry's render.
+			var ordered = getEntries();
+			ordered.sort(Comparator.comparingInt(HudEntry::getZLevel));
+			HudFrameCache.render(context, delta, ordered);
 		}
 		mc.pop();
 	}

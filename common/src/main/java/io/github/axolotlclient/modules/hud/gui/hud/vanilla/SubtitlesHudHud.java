@@ -38,6 +38,15 @@ import io.github.axolotlclient.modules.hud.util.DefaultOptions;
 import net.fabricmc.loader.api.FabricLoader;
 
 public class SubtitlesHudHud extends BoxHudEntry implements DynamicallyPositionable {
+
+	/**
+	 * Subtitles appear and fade on their own, so this entry always re-renders live and is
+	 * never served from the {@code hud_frame_limit} recording.
+	 */
+	@Override
+	public boolean dynamicContent() {
+		return true;
+	}
 	public static final AxoIdentifier ID = AxoIdentifier.of(AxolotlClientCommon.MODID, "subtitleshud");
 	private final EnumOption<AnchorPoint> anchor = DefaultOptions.getAnchorPoint(AnchorPoint.BOTTOM_RIGHT, this);
 	// only relevant to 1.8.9

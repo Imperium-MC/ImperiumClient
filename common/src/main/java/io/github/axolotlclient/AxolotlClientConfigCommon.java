@@ -286,6 +286,24 @@ public abstract class AxolotlClientConfigCommon {
 	public final BooleanOption hideDistantEntities = new BooleanOption("hide_distant_entities", false);
 	public final IntegerOption entityRenderDistance = new IntegerOption("entity_render_distance", 64, 16, 128);
 
+	// hud_frame_limit (Alpine parity, M3): HUD elements whose content does not change on its
+	// own re-record into the GUI render state at most this many times per second; between
+	// records the previously recorded elements are replayed unchanged. 0 disables the cache.
+	public final IntegerOption hudFrameLimit = new IntegerOption("hud_frame_limit", 0, 0, 120);
+
+	// text_render_distance (Alpine parity, M3): sign and name-tag text is not rendered beyond
+	// this distance. 0 keeps vanilla behaviour (everything in range renders).
+	public final IntegerOption textRenderDistance = new IntegerOption("text_render_distance", 0, 0, 128);
+
+	// disable_tnt_expansion (Alpine parity, M3): primed TNT keeps its normal size during the
+	// final swell instead of scaling up shortly before exploding.
+	public final BooleanOption disableTntExpansion = new BooleanOption("disable_tnt_expansion", false);
+
+	// optimize_spawners / disable_enchant_table_books (Alpine parity, M3): skip the spinning
+	// mob inside monster spawners and the floating book above enchanting tables.
+	public final BooleanOption optimizeSpawners = new BooleanOption("optimize_spawners", false);
+	public final BooleanOption disableEnchantTableBooks = new BooleanOption("disable_enchant_table_books", false);
+
 	public final BooleanOption compactChat = new BooleanOption("compact_chat", false);
 
 	public final BooleanOption chatTimestamps = new BooleanOption("chat_timestamps", false);
@@ -446,6 +464,8 @@ public abstract class AxolotlClientConfigCommon {
 
 		performance.add(frameLimiter, backgroundFps, afkFps, afkDelay, longAfkFps, longAfkDelay);
 		performance.add(disableTntFlash, hideLightningBolts, hideHoppers, hideDistantEntities, entityRenderDistance);
+		performance.add(hudFrameLimit, textRenderDistance);
+		performance.add(disableTntExpansion, optimizeSpawners, disableEnchantTableBooks);
 		config.add(performance);
 
 		hidden.add(creditsBGM, someNiceBackground, modifyClientBrand, noAltIcons);

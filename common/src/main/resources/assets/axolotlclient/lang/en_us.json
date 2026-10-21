@@ -1269,5 +1269,15 @@
 		"hide_distant_entities": "Hide Distant Entities",
 		"hide_distant_entities.tooltip": "Skips rendering of entities farther than the entity render distance (horizontal, from the camera). Your own view is never affected.",
 		"entity_render_distance": "Entity Render Distance",
-		"entity_render_distance.tooltip": "Horizontal distance in blocks beyond which entities are not rendered while Hide Distant Entities is on."
+		"entity_render_distance.tooltip": "Horizontal distance in blocks beyond which entities are not rendered while Hide Distant Entities is on.",
+		"hud_frame_limit": "HUD Frame Limit",
+		"hud_frame_limit.tooltip": "Records HUD elements whose content does not change on its own at most this many times per second and re-draws the recording in between (0 = off). Data HUDs like FPS, CPS, coordinates and ping always draw live.",
+		"text_render_distance": "Text Render Distance",
+		"text_render_distance.tooltip": "Sign text and floating name tags farther than this many blocks are not rendered (0 = vanilla behaviour).",
+		"disable_tnt_expansion": "Disable TNT Expansion",
+		"disable_tnt_expansion.tooltip": "Primed TNT keeps its normal size during the final swell instead of scaling up just before exploding; the TNT stays visible.",
+		"optimize_spawners": "Optimize Spawners",
+		"optimize_spawners.tooltip": "Skips the spinning mob rendered inside monster spawners (the cage itself stays).",
+		"disable_enchant_table_books": "Disable Enchanting Table Books",
+		"disable_enchant_table_books.tooltip": "Skips the floating book above enchanting tables (the table itself stays)."
 }

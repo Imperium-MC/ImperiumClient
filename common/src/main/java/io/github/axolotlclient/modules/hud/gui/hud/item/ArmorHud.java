@@ -66,6 +66,15 @@ public class ArmorHud extends TextHudEntry {
 		AxoItemStack.of(AxoItems.IRON_HELMET)
 	));
 
+	/**
+	 * Armor pieces and their durability bars change through discrete events, not on their
+	 * own, so this entry can be served from the {@code hud_frame_limit} recording.
+	 */
+	@Override
+	public boolean dynamicContent() {
+		return false;
+	}
+
 	protected final BooleanOption showProtLvl = new BooleanOption("showProtectionLevel", false);
 	private final BooleanOption showDurabilityNumber = new BooleanOption("show_durability_num", false);
 	private final BooleanOption showMaxDurabilityNumber = new BooleanOption("show_max_durability_num", false);
