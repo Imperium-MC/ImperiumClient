@@ -299,6 +299,11 @@ public abstract class AxolotlClientConfigCommon {
 	// final swell instead of scaling up shortly before exploding.
 	public final BooleanOption disableTntExpansion = new BooleanOption("disable_tnt_expansion", false);
 
+	// optimize_spawners / disable_enchant_table_books (Alpine parity, M3): skip the spinning
+	// mob inside monster spawners and the floating book above enchanting tables.
+	public final BooleanOption optimizeSpawners = new BooleanOption("optimize_spawners", false);
+	public final BooleanOption disableEnchantTableBooks = new BooleanOption("disable_enchant_table_books", false);
+
 	public final BooleanOption compactChat = new BooleanOption("compact_chat", false);
 
 	public final BooleanOption chatTimestamps = new BooleanOption("chat_timestamps", false);
@@ -460,7 +465,7 @@ public abstract class AxolotlClientConfigCommon {
 		performance.add(frameLimiter, backgroundFps, afkFps, afkDelay, longAfkFps, longAfkDelay);
 		performance.add(disableTntFlash, hideLightningBolts, hideHoppers, hideDistantEntities, entityRenderDistance);
 		performance.add(hudFrameLimit, textRenderDistance);
-		performance.add(disableTntExpansion);
+		performance.add(disableTntExpansion, optimizeSpawners, disableEnchantTableBooks);
 		config.add(performance);
 
 		hidden.add(creditsBGM, someNiceBackground, modifyClientBrand, noAltIcons);

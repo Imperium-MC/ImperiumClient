@@ -1274,5 +1274,9 @@
 		"text_render_distance": "Text Render Distance",
 		"text_render_distance.tooltip": "Sign text and floating name tags farther than this many blocks are not rendered (0 = vanilla behaviour).",
 		"disable_tnt_expansion": "Disable TNT Expansion",
-		"disable_tnt_expansion.tooltip": "Primed TNT keeps its normal size during the final swell instead of scaling up just before exploding; the TNT stays visible."
+		"disable_tnt_expansion.tooltip": "Primed TNT keeps its normal size during the final swell instead of scaling up just before exploding; the TNT stays visible.",
+		"optimize_spawners": "Optimize Spawners",
+		"optimize_spawners.tooltip": "Skips the spinning mob rendered inside monster spawners (the cage itself stays).",
+		"disable_enchant_table_books": "Disable Enchanting Table Books",
+		"disable_enchant_table_books.tooltip": "Skips the floating book above enchanting tables (the table itself stays)."
 }
