@@ -65,26 +65,57 @@ public class ImperiumMenuGameTest implements FabricClientGameTest {
 			context.getInput().pressKey(InputConstants.KEY_RSHIFT);
 			context.waitForScreen(ImperiumMenuScreen.class);
 			context.waitTicks(5);
+			// Pin the backdrop blur explicitly: the menu's dim must sit over the vanilla
+			// menu-blur pass while the option is on (the shell's soft world backdrop).
+			context.runOnClient(mc -> mc.options.menuBackgroundBlurriness().set(5));
+			context.waitTicks(5);
 			context.takeScreenshot("imperium-menu-all");
 
 			int total = context.computeOnClient(mc -> menu(mc).visibleEntries().size());
 			check(total > 20, "menu should list the client's modules, got " + total);
 
-			// Every module card must resolve a vanilla item icon; the test fails naming the offenders.
+			// Every module card must resolve its OWN vanilla item (the keyword mapping), not the
+			// category fallback; the test fails naming the offenders.
 			List<String> missing = context.computeOnClient(mc -> {
 				List<String> offenders = new ArrayList<>();
 				for (MenuEntry e : menu(mc).visibleEntries()) {
-					if (CarvedTheme.iconFor(e) == null) {
-						offenders.add(e.name());
+					if (CarvedTheme.specificIconFor(e) == null) {
+						offenders.add(e.id());
 					}
 				}
 				return offenders;
 			});
-			check(missing.isEmpty(), "every module card needs an item icon, missing: " + missing);
-			// The keyword mapping must stay broad, not everything on the category fallback.
-			int specific = context.computeOnClient(mc -> (int) menu(mc).visibleEntries().stream()
-				.filter(e -> CarvedTheme.specificIconFor(e) != null).count());
-			check(specific * 2 >= total, "at least half the modules should map to a specific item, got " + specific + "/" + total);
+			check(missing.isEmpty(), "every module card needs its own item icon, missing: " + missing);
+
+			// The spec's acceptance: the shell at GUI scales 2 AND 3 (measurements are CSS px at
+			// scale 2; scale 3 must not break the layout).
+			withGuiScale(context, 3, () -> {
+				context.waitTicks(5);
+				context.takeScreenshot("imperium-menu-scale3");
+				context.runOnClient(mc -> menu(mc).setSearchQuery("fps"));
+				context.waitTicks(3);
+				int fpsAt3 = context.computeOnClient(mc -> indexOfAny(menu(mc), "fps"));
+				check(fpsAt3 >= 0, "searching \"fps\" should show the FPS card at GUI scale 3");
+				// At scale 3 this window is only 160 GUI px tall: the searched card can sit below
+				// the fold behind the wrapped segment chips, so the panel opens through the same
+				// hook a gear click ends in (openSettings) instead of raw coordinates.
+				int fpsAt3Card = fpsAt3;
+				context.runOnClient(mc -> menu(mc).openSettings(fpsAt3Card));
+				context.waitTicks(3);
+				check(context.computeOnClient(mc -> menu(mc).isSettingsPanelOpen()), "the settings panel should open at GUI scale 3");
+				context.takeScreenshot("imperium-menu-settings-scale3");
+				context.getInput().pressKey(InputConstants.KEY_ESCAPE);
+				context.waitTicks(3);
+				context.runOnClient(mc -> menu(mc).setSearchQuery(""));
+				context.waitTicks(2);
+			});
+
+			// Blur off: the same frame falls back to the plain surface dim over the sharp world.
+			context.runOnClient(mc -> mc.options.menuBackgroundBlurriness().set(0));
+			context.waitTicks(5);
+			context.takeScreenshot("imperium-menu-blur-off");
+			context.runOnClient(mc -> mc.options.menuBackgroundBlurriness().set(5));
+			context.waitTicks(3);
 
 			// Selecting a sidebar category moves the sliding pill.
 			clickGui(context, context.computeOnClient(mc -> menu(mc).categoryCenter(MenuCategory.RENDER)));
@@ -141,13 +172,18 @@ public class ImperiumMenuGameTest implements FabricClientGameTest {
 			check(fpsFull > 0, "unpinning should restore the alphabetical order");
 
 			// CARVED and CLASSIC are the fallback themes; prove they still render and return.
+			// A theme switch mid-session does not re-init the screen, so relayout to rebuild
+			// the legacy footer's themed buttons before photographing them.
 			setTheme(context, MenuTheme.CARVED);
+			context.runOnClient(mc -> menu(mc).resize(mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight()));
 			context.waitTicks(3);
 			context.takeScreenshot("imperium-menu-carved");
 			setTheme(context, MenuTheme.CLASSIC);
+			context.runOnClient(mc -> menu(mc).resize(mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight()));
 			context.waitTicks(3);
 			context.takeScreenshot("imperium-menu-classic");
 			setTheme(context, MenuTheme.IMPERIUM);
+			context.runOnClient(mc -> menu(mc).resize(mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight()));
 			context.waitTicks(3);
 
 			// The gear now opens the module's settings INLINE over the card grid, not a new screen.
@@ -356,6 +392,34 @@ public class ImperiumMenuGameTest implements FabricClientGameTest {
 		double scale = context.computeOnClient(mc -> mc.getWindow().getGuiScale());
 		context.getInput().setCursorPos(guiPos[0] * scale, guiPos[1] * scale);
 		context.getInput().pressMouse(InputConstants.MOUSE_BUTTON_LEFT);
+	}
+
+	/**
+	 * Runs [body] with the window at a different GUI scale, then restores the original. The real
+	 * window resize drops the player out of the world here, so the open screen is relaid out via
+	 * [net.minecraft.client.gui.screens.Screen.resize] instead (the same route a real scale change
+	 * takes through Minecraft.resizeDisplay).
+	 */
+	private static void withGuiScale(ClientGameTestContext context, int scale, Runnable body) {
+		int previous = context.computeOnClient(mc -> mc.getWindow().getGuiScale());
+		context.runOnClient(mc -> {
+			mc.getWindow().setGuiScale(scale);
+			if (mc.gui.screen() != null) {
+				mc.gui.screen().resize(mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight());
+			}
+		});
+		context.waitTicks(5);
+		try {
+			body.run();
+		} finally {
+			context.runOnClient(mc -> {
+				mc.getWindow().setGuiScale(previous);
+				if (mc.gui.screen() != null) {
+					mc.gui.screen().resize(mc.getWindow().getGuiScaledWidth(), mc.getWindow().getGuiScaledHeight());
+				}
+			});
+			context.waitTicks(3);
+		}
 	}
 
 	private static void check(boolean condition, String message) {

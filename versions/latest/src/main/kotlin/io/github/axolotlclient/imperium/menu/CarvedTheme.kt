@@ -227,14 +227,24 @@ object CarvedTheme {
 
 	/**
 	 * The keyword-matched item for a module, or null when nothing matched — used by the
-	 * gametest to prove the specific mapping stays broad (not everything on the fallback).
+	 * gametest to prove EVERY module resolves its own item (not the category fallback).
 	 */
 	@JvmStatic
 	fun specificIconFor(entry: MenuEntry): ItemStack? {
 		val id = (entry.id() + " " + entry.name()).lowercase(Locale.ROOT)
 		if (contains(id, "autofish", "auto_fish", "auto fish")) return ItemStack(Items.FISHING_ROD)
+		if (contains(id, "autoclick", "auto click")) return ItemStack(Items.STONE_BUTTON)
+		if (contains(id, "autowalk", "auto walk")) return ItemStack(Items.LEATHER_BOOTS)
+		if (contains(id, "autoeat", "auto eat")) return ItemStack(Items.COOKED_BEEF)
+		if (contains(id, "autotool", "auto tool")) return ItemStack(Items.IRON_PICKAXE)
+		if (contains(id, "autoreconnect", "auto reconnect")) return ItemStack(Items.LEAD)
+		if (contains(id, "autoboop", "auto boop")) return ItemStack(Items.NOTE_BLOCK)
+		if (contains(id, "autogg")) return ItemStack(Items.FIREWORK_ROCKET)
+		if (contains(id, "autotip")) return ItemStack(Items.GOLD_NUGGET)
 		if (contains(id, "minimap")) return ItemStack(Items.FILLED_MAP)
+		if (contains(id, "fullscreen")) return ItemStack(Items.FILLED_MAP)
 		if (contains(id, "zoom")) return ItemStack(Items.SPYGLASS)
+		if (contains(id, "tnt", "explosion")) return ItemStack(Items.TNT)
 		if (contains(id, "irltime", "time")) return ItemStack(Items.CLOCK)
 		if (contains(id, "stopwatch", "watch")) return ItemStack(Items.CLOCK)
 		if (contains(id, "day")) return ItemStack(Items.SUNFLOWER)
@@ -254,7 +264,6 @@ object CarvedTheme {
 		if (contains(id, "health", "heart")) return ItemStack(Items.GOLDEN_APPLE)
 		if (contains(id, "arrow")) return ItemStack(Items.ARROW)
 		if (contains(id, "experience", "levelhead", "xp")) return ItemStack(Items.EXPERIENCE_BOTTLE)
-		if (contains(id, "tnt", "explosion")) return ItemStack(Items.TNT)
 		if (contains(id, "farming", "crop")) return ItemStack(Items.WHEAT)
 		if (contains(id, "inventory", "itemupdate", "item update")) return ItemStack(Items.HOPPER)
 		if (contains(id, "chest")) return ItemStack(Items.CHEST)
@@ -278,6 +287,7 @@ object CarvedTheme {
 		if (contains(id, "iconhud")) return ItemStack(Items.ITEM_FRAME)
 		if (contains(id, "mouse")) return ItemStack(Items.FEATHER)
 		if (contains(id, "media", "nowplaying", "now playing")) return ItemStack(Items.MUSIC_DISC_CAT)
+		if (contains(id, "emote")) return ItemStack(Items.FIREWORK_ROCKET)
 		if (contains(id, "freelook", "snaplook")) return ItemStack(Items.ENDER_EYE)
 		if (contains(id, "blur")) return ItemStack(Items.GLASS_PANE)
 		if (contains(id, "beam")) return ItemStack(Items.END_ROD)
@@ -287,10 +297,30 @@ object CarvedTheme {
 		if (contains(id, "hitbox")) return ItemStack(Items.SHULKER_BOX)
 		if (contains(id, "chunk")) return ItemStack(Items.STRUCTURE_BLOCK)
 		if (contains(id, "nick")) return ItemStack(Items.PLAYER_HEAD)
+		if (contains(id, "death")) return ItemStack(Items.SKELETON_SKULL)
 		if (contains(id, "bedwars")) return ItemStack(Items.STRAW_BED)
+		if (contains(id, "skyblock")) return ItemStack(Items.GRASS_BLOCK)
+		if (contains(id, "hypixel")) return ItemStack(Items.EMERALD)
 		if (contains(id, "scroll")) return ItemStack(Items.PAPER)
 		if (contains(id, "performance")) return ItemStack(Items.REDSTONE_TORCH)
 		if (contains(id, "iphud", "ip hud")) return ItemStack(Items.PAPER)
+		if (contains(id, "breadcrumb")) return ItemStack(Items.BREAD)
+		if (contains(id, "potion")) return ItemStack(Items.POTION)
+		if (contains(id, "entity")) return ItemStack(Items.SPAWNER)
+		if (contains(id, "packdisplay", "pack display")) return ItemStack(Items.BUNDLE)
+		if (contains(id, "tab")) return ItemStack(Items.PAPER)
+		if (contains(id, "cannon")) return ItemStack(Items.TNT_MINECART)
+		if (contains(id, "worldedit")) return ItemStack(Items.WOODEN_AXE)
+		if (contains(id, "lowhp", "low hp")) return ItemStack(Items.ROSE_BUSH)
+		if (contains(id, "badge")) return ItemStack(Items.IRON_NUGGET)
+		if (contains(id, "account")) return ItemStack(Items.WRITTEN_BOOK)
+		if (contains(id, "pluralkit")) return ItemStack(Items.PAINTING)
+		if (contains(id, "screenshot")) return ItemStack(Items.GLOW_ITEM_FRAME)
+		if (contains(id, "rpc")) return ItemStack(Items.JUKEBOX)
+		if (contains(id, "rendering")) return ItemStack(Items.ITEM_FRAME)
+		if (contains(id, "config")) return ItemStack(Items.LECTERN)
+		if (contains(id, "general")) return ItemStack(Items.BOOK)
+		if (contains(id, "api")) return ItemStack(Items.HEART_OF_THE_SEA)
 		return null
 	}
 
