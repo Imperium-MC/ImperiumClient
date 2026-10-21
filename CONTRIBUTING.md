@@ -1,4 +1,4 @@
-# Contributing to Imperium Client
+# Contributing to Romanica Client
 
 ## Setup
 

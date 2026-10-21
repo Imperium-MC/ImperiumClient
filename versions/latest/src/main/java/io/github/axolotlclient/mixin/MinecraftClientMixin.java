@@ -46,7 +46,7 @@ public abstract class MinecraftClientMixin {
 	@Inject(method = "createTitle", at = @At("HEAD"), cancellable = true)
 	private void axolotlclient$getWindowTitle(CallbackInfoReturnable<String> cir) {
 		if (AxolotlClient.config().customWindowTitle.get()) {
-			cir.setReturnValue("AxolotlClient " + SharedConstants.getCurrentVersion().name());
+			cir.setReturnValue("Romanica Client " + SharedConstants.getCurrentVersion().name());
 		}
 	}
 

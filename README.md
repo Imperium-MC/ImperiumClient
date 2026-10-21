@@ -1,8 +1,8 @@
-# Imperium Client
+# Romanica Client
 
-A Fabric client mod for Minecraft 26.3, made for the [ImperiumMC](https://imperiummc.net) server but
+A Fabric client mod for Minecraft 26.3, made for the [Romanica](https://imperiummc.net) server but
 usable anywhere. It's based on [AxolotlClient](https://codeberg.org/AxolotlClient/AxolotlClient-mod)
-and adds its own module menu, HUD options and ImperiumMC integration on top.
+and adds its own module menu, HUD options and server integration on top.
 
 Still early, expect things to move around.
 

@@ -5,21 +5,21 @@
 product
 
 ## Users
-ImperiumMC players: grinders, PvP players, story players and cosmetic collectors on a Rome-themed prison
+Romanica players: grinders, PvP players, story players and cosmetic collectors on a Rome-themed prison
 server (play.imperiummc.net). They open the client's menus mid-session, often between mining runs or fights,
 to toggle a module, move a HUD element or change a setting, and want to be back in the game within seconds.
 Many play for hours, so the UI has to stay readable on a dimmed game world at any GUI scale.
 
 ## Product Purpose
-Imperium Client is the server's own Fabric client mod: a complete PvP and quality-of-life feature set (HUD
+Romanica Client is the server's own Fabric client mod: a complete PvP and quality-of-life feature set (HUD
 modules, zoom, waypoints, chat tools, performance options) with a fast module menu and HUD editor, plus
-ImperiumMC integration (server-gated features, cosmetics, legions). Success: players pick it over other
+server integration (server-gated features, cosmetics, legions). Success: players pick it over other
 clients because it is quicker, cleaner and feels like part of the server, and new players find every
 setting without asking in Discord.
 
 ## Brand Personality
 Clean, confident, imperial. The menus follow the reference layout in `docs/design/README.md` (owner decision, 2026-10-19):
-its layout, sizing, motion and polish, carrying ImperiumMC's emblem, name and bronze palette. Copy is
+its layout, sizing, motion and polish, carrying the server's emblem, name and bronze palette. Copy is
 plain British English; Latin appears only in the brand mark and the motto "Roma Aeterna", never as filler.
 
 ## Anti-references
@@ -36,7 +36,7 @@ plain British English; Latin appears only in the brand mark and the motto "Roma 
 2. **The game stays visible.** Translucent overlay controls with a light blur over the real world or
    panorama, never a flat opaque wallpaper.
 3. **Minecraft-native details.** Vanilla item icons in module tiles, the Minecraft font for HUD text and
-   in-world numbers, the vanilla panorama (later an ImperiumMC one) behind the title screen.
+   in-world numbers, the vanilla panorama (later a server-branded one) behind the title screen.
 4. **Back to the game fast.** Search first, one click to toggle, settings one level deep.
 5. **One theme system.** Every colour is a token with the names listed in `docs/design/README.md`, so themes can
    be swapped without touching layout.

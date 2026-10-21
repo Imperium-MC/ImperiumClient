@@ -157,7 +157,7 @@ public abstract class TitleScreenMixin extends Screen {
 
 	@ModifyArg(method = "extractRenderState", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;text(Lnet/minecraft/client/gui/Font;Ljava/lang/String;III)V"), index = 1)
 	private String axolotlclient$setVersionText(String s) {
-		return "Minecraft " + SharedConstants.getCurrentVersion().name() + "/AxolotlClient "
+		return "Minecraft " + SharedConstants.getCurrentVersion().name() + "/Romanica Client "
 			+ AxolotlClient.VERSION;
 	}
 
