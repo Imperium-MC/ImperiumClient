@@ -58,13 +58,23 @@ import org.jetbrains.annotations.NotNull;
  */
 
 public class HudEditScreen extends Screen {
-	private final Screen parent;
-	private HudEntry current;
-	private DrawPosition offset = null;
-	private boolean mouseDown;
-	private SnappingHelper snap;
-	private ModificationMode pendingMode = ModificationMode.NONE;
-	private ModificationMode mode = ModificationMode.NONE;
+	// Editor state is protected so the v2 editor layer (ImperiumHudEditScreen) can build on the
+	// same drag/snap machinery instead of forking it.
+	protected final Screen parent;
+	protected HudEntry current;
+	protected DrawPosition offset = null;
+	protected boolean mouseDown;
+	protected SnappingHelper snap;
+	protected ModificationMode pendingMode = ModificationMode.NONE;
+	protected ModificationMode mode = ModificationMode.NONE;
+
+	/**
+	 * True while a drag or corner-resize modification is in progress; the v2 layer suppresses
+	 * keyboard nudging and extra hover behaviour while the mouse owns the element.
+	 */
+	protected boolean isModificationActive() {
+		return mode != ModificationMode.NONE;
+	}
 
 	public HudEditScreen() {
 		this(null);
@@ -126,7 +136,7 @@ public class HudEditScreen extends Screen {
 			snap.renderHighlights(graphics, current);
 		}
 		HudManager.getInstance().renderPlaceholder(graphics, delta);
-		if (getFocused() instanceof HudEntryWidget w) {
+		if (renderWidgetFocusOutline() && getFocused() instanceof HudEntryWidget w) {
 			w.extractRenderState(graphics, mouseX, mouseY, delta);
 		}
 		if (entry.isPresent()) {
@@ -159,8 +169,24 @@ public class HudEditScreen extends Screen {
 			mode = ModificationMode.NONE;
 		}
 		if (mouseDown && snap != null) {
-			snap.renderSnaps(graphics);
+			renderSnapGuides(graphics);
 		}
+	}
+
+	/**
+	 * Draws the snap guide lines while an element is being dragged. The base editor uses
+	 * SnappingHelper's blue lines; the v2 layer overrides this for its accent-hot guides.
+	 */
+	protected void renderSnapGuides(GuiGraphicsExtractor graphics) {
+		snap.renderSnaps(graphics);
+	}
+
+	/**
+	 * Whether the focused entry widget's own 1px outline is drawn; the v2 layer replaces that
+	 * outline with its selection styling.
+	 */
+	protected boolean renderWidgetFocusOutline() {
+		return true;
 	}
 
 	@Override
@@ -175,6 +201,14 @@ public class HudEditScreen extends Screen {
 
 		HudManager.getInstance().getMoveableEntries().forEach(e -> addRenderableWidget(new HudEntryWidget(e)));
 
+		addControlButtons();
+	}
+
+	/**
+	 * The editor's vanilla control buttons (snapping toggle, client options, back/close). The v2
+	 * layer replaces these with its themed toolbar, so the buttons live behind this hook.
+	 */
+	protected void addControlButtons() {
 		this.addRenderableWidget(Button.builder(Component.translatable("hud.snapping").append(": ")
 				.append(Component.translatable(HudManager.getInstance().isSnappingEnabled() ? "options.on" : "options.off")),
 			buttonWidget -> {

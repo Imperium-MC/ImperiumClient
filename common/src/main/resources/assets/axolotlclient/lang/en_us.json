@@ -1140,6 +1140,8 @@
 	"imperium.menu.category.automation": "Automation",
 	"imperium.hud_editor.title": "HUD EDITOR",
 	"imperium.hud_editor.hint": "Drag to move - corners resize - right-click configures",
+	"imperium.hud_editor.snap.centre": "centre",
+	"imperium.hud_editor.snap.edge": "edge",
 	"waypointshud": "Waypoints",
 	"waypoints_data": "Waypoint Data",
 	"waypoints.show_distance": "Show Distance",
