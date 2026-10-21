@@ -22,12 +22,16 @@
 
 package io.github.axolotlclient.imperium.hud
 
+import com.mojang.blaze3d.platform.InputConstants
 import io.github.axolotlclient.AxolotlClient
 import io.github.axolotlclient.AxolotlClientConfigCommon
 import io.github.axolotlclient.imperium.theme.ImperiumTheme as Theme
 import io.github.axolotlclient.modules.hud.HudEditScreen
+import io.github.axolotlclient.modules.hud.HudManager
+import io.github.axolotlclient.modules.hud.gui.component.HudEntry
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
+import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.network.chat.Component
 
 /**
@@ -44,6 +48,9 @@ class ImperiumHudEditScreen : HudEditScreen {
 	constructor() : super()
 
 	constructor(parent: Screen?) : super(parent)
+
+	/** The element the editor has selected (persists between drags; drives styling + keyboard). */
+	private var selected: HudEntry? = null
 
 	/** The v2 chrome rides on the Imperium theme; the fallback themes keep the base editor. */
 	private fun v2(): Boolean =
@@ -86,7 +93,53 @@ class ImperiumHudEditScreen : HudEditScreen {
 	override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
 		super.extractRenderState(graphics, mouseX, mouseY, delta)
 		if (!v2()) return
+		drawSelection(graphics, mouseX, mouseY)
 		drawSnapHint(graphics)
+	}
+
+	/** 2px bronze outline plus 10px square handles on the corners and edge midpoints. */
+	private fun drawSelection(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
+		val entry = selected ?: return
+		if (!entry.isEnabled) return
+		val b = entry.trueBounds
+		val x0 = b.x() - 2
+		val y0 = b.y() - 2
+		val x1 = b.xEnd() + 2
+		val y1 = b.yEnd() + 2
+		graphics.fill(x0, y0, x1, y0 + 2, Theme.ACCENT)
+		graphics.fill(x0, y1 - 2, x1, y1, Theme.ACCENT)
+		graphics.fill(x0, y0, x0 + 2, y1, Theme.ACCENT)
+		graphics.fill(x1 - 2, y0, x1, y1, Theme.ACCENT)
+		val midX = b.x() + b.width() / 2
+		val midY = b.y() + b.height() / 2
+		drawHandle(graphics, b.x(), b.y(), mouseX, mouseY)
+		drawHandle(graphics, midX, b.y(), mouseX, mouseY)
+		drawHandle(graphics, b.xEnd(), b.y(), mouseX, mouseY)
+		drawHandle(graphics, b.x(), midY, mouseX, mouseY)
+		drawHandle(graphics, b.xEnd(), midY, mouseX, mouseY)
+		drawHandle(graphics, b.x(), b.yEnd(), mouseX, mouseY)
+		drawHandle(graphics, midX, b.yEnd(), mouseX, mouseY)
+		drawHandle(graphics, b.xEnd(), b.yEnd(), mouseX, mouseY)
+	}
+
+	/** A 10px square handle: accent-hot core with a dark 1px rim so it reads on any element. */
+	private fun drawHandle(graphics: GuiGraphicsExtractor, cx: Int, cy: Int, mouseX: Int, mouseY: Int) {
+		val x = cx - HANDLE / 2
+		val y = cy - HANDLE / 2
+		graphics.fill(x, y, x + HANDLE, y + HANDLE, Theme.FIELD)
+		val hovered = mouseX >= x - 1 && mouseX < x + HANDLE + 1 && mouseY >= y - 1 && mouseY < y + HANDLE + 1
+		graphics.fill(x + 1, y + 1, x + HANDLE - 1, y + HANDLE - 1, if (hovered) Theme.TEXT else Theme.ACCENT_HOT)
+	}
+
+	// ── input ─────────────────────────────────────────────────────────────────────────────────
+
+	override fun mouseClicked(event: MouseButtonEvent, doubleClick: Boolean): Boolean {
+		if (!v2()) return super.mouseClicked(event, doubleClick)
+		// Clicking an element selects it; clicking empty space clears the selection. Dragging,
+		// resizing and the fallback right-click behaviour stay in the base editor.
+		val under = HudManager.getInstance().getEntryXY(event.x().toInt(), event.y().toInt()).orElse(null)
+		selected = under
+		return super.mouseClicked(event, doubleClick)
 	}
 
 	/** The snap hint pill at the top centre while dragging. */
@@ -126,6 +179,7 @@ class ImperiumHudEditScreen : HudEditScreen {
 	}
 
 	companion object {
+		private const val HANDLE = 10
 		private const val PILL_H = 16
 		private const val PILL_Y = 8
 		private const val PILL_PAD = 9
