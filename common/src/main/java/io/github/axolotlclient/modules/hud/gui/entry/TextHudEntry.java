@@ -54,6 +54,17 @@ public abstract class TextHudEntry extends BoxHudEntry implements DynamicallyPos
 		return true;
 	}
 
+	/**
+	 * Text HUDs are data readouts (FPS, CPS, coordinates, timers, live lists) whose content
+	 * changes on its own, so they always re-render live and are never served from the
+	 * {@code hud_frame_limit} recording. The few entries whose text only changes through
+	 * discrete events opt back out with their own override.
+	 */
+	@Override
+	public boolean dynamicContent() {
+		return true;
+	}
+
 	@Override
 	public List<Option<?>> getConfigurationOptions() {
 		List<Option<?>> options = super.getConfigurationOptions();

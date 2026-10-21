@@ -286,6 +286,11 @@ public abstract class AxolotlClientConfigCommon {
 	public final BooleanOption hideDistantEntities = new BooleanOption("hide_distant_entities", false);
 	public final IntegerOption entityRenderDistance = new IntegerOption("entity_render_distance", 64, 16, 128);
 
+	// hud_frame_limit (Alpine parity, M3): HUD elements whose content does not change on its
+	// own re-record into the GUI render state at most this many times per second; between
+	// records the previously recorded elements are replayed unchanged. 0 disables the cache.
+	public final IntegerOption hudFrameLimit = new IntegerOption("hud_frame_limit", 0, 0, 120);
+
 	public final BooleanOption compactChat = new BooleanOption("compact_chat", false);
 
 	public final BooleanOption chatTimestamps = new BooleanOption("chat_timestamps", false);
@@ -446,6 +451,7 @@ public abstract class AxolotlClientConfigCommon {
 
 		performance.add(frameLimiter, backgroundFps, afkFps, afkDelay, longAfkFps, longAfkDelay);
 		performance.add(disableTntFlash, hideLightningBolts, hideHoppers, hideDistantEntities, entityRenderDistance);
+		performance.add(hudFrameLimit);
 		config.add(performance);
 
 		hidden.add(creditsBGM, someNiceBackground, modifyClientBrand, noAltIcons);

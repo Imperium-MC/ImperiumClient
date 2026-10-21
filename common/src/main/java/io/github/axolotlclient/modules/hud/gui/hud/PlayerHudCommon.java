@@ -36,6 +36,15 @@ import io.github.axolotlclient.modules.hud.gui.layout.AnchorPoint;
 import io.github.axolotlclient.modules.hud.util.DefaultOptions;
 
 public abstract class PlayerHudCommon extends BoxHudEntry implements DynamicallyPositionable {
+
+	/**
+	 * The rendered player and their health change continuously, so this entry always
+	 * re-renders live and is never served from the {@code hud_frame_limit} recording.
+	 */
+	@Override
+	public boolean dynamicContent() {
+		return true;
+	}
 	public static final AxoIdentifier ID = AxoIdentifier.of("kronhud", "playerhud");
 	protected final DoubleOption rotation = new DoubleOption("rotation", 0d, 0d, 360d);
 	protected final BooleanOption dynamicRotation = new BooleanOption("dynamicrotation", true);

@@ -1268,5 +1268,7 @@
 		"hide_distant_entities": "Hide Distant Entities",
 		"hide_distant_entities.tooltip": "Skips rendering of entities farther than the entity render distance (horizontal, from the camera). Your own view is never affected.",
 		"entity_render_distance": "Entity Render Distance",
-		"entity_render_distance.tooltip": "Horizontal distance in blocks beyond which entities are not rendered while Hide Distant Entities is on."
+		"entity_render_distance.tooltip": "Horizontal distance in blocks beyond which entities are not rendered while Hide Distant Entities is on.",
+		"hud_frame_limit": "HUD Frame Limit",
+		"hud_frame_limit.tooltip": "Records HUD elements whose content does not change on its own at most this many times per second and re-draws the recording in between (0 = off). Data HUDs like FPS, CPS, coordinates and ping always draw live."
 }

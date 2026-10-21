@@ -65,6 +65,15 @@ public class IPHud extends TextHudEntry {
 		});
 	}
 
+	/**
+	 * The address only changes when connecting to a different server, so this entry is safe
+	 * to serve from the {@code hud_frame_limit} recording despite being a text HUD.
+	 */
+	@Override
+	public boolean dynamicContent() {
+		return false;
+	}
+
 	@Override
 	public AxoIdentifier getId() {
 		return ID;

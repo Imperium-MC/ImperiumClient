@@ -64,6 +64,15 @@ import net.minecraft.util.Mth;
  */
 public class MinimapHud extends BoxHudEntry implements DynamicallyPositionable {
 
+	/**
+	 * The map follows the camera every frame, so this entry always re-renders live and is
+	 * never served from the {@code hud_frame_limit} recording.
+	 */
+	@Override
+	public boolean dynamicContent() {
+		return true;
+	}
+
 	public static final Identifier ID = Identifier.fromNamespaceAndPath("imperiumclient", "minimaphud");
 
 	private static final int DEFAULT_SIZE = 128;
