@@ -83,6 +83,12 @@ public class PerformanceBenchmarkGameTest implements FabricClientGameTest {
 
 	@Override
 	public void runTest(ClientGameTestContext context) {
+		// The benchmark renders hundreds of uncapped frames per feature and its scene
+		// sync is sensitive to a starved client; it is developer tooling, not a release
+		// gate. Run explicitly with -Dimperiumclient.gametest.subset=benchmark.
+		if (!ImperiumGametestSubsets.benchmark()) {
+			return;
+		}
 		try (TestSingleplayerContext world = context.worldBuilder().create()) {
 			world.getConnection().waitForChunksRender();
 			// Let the window scale and frame pacing settle before any measurement: a freshly

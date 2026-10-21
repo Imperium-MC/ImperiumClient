@@ -37,6 +37,8 @@ public final class ImperiumGametestSubsets {
 
 	public static final String SUBSET_PROPERTY = "imperiumclient.gametest.subset";
 	public static final String CI = "ci";
+	/** Opt-in dev mode for the (slow) performance benchmark suite; never part of a release gate. */
+	public static final String BENCHMARK = "benchmark";
 
 	private ImperiumGametestSubsets() {
 	}
@@ -50,6 +52,10 @@ public final class ImperiumGametestSubsets {
 	 * True while the headless "ci" subset runs: only logic/protocol tests execute, the
 	 * GPU-bound world-and-screenshot tests early-return.
 	 */
+	public static boolean benchmark() {
+		return isActive(BENCHMARK);
+	}
+
 	public static boolean ci() {
 		return isActive(CI);
 	}
