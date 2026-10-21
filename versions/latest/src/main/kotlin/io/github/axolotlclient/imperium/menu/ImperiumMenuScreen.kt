@@ -38,11 +38,11 @@ import io.github.axolotlclient.bridge.render.AxoRenderContext
 import io.github.axolotlclient.bridge.util.AxoI18n
 import io.github.axolotlclient.config.screen.ProfilesScreen
 import io.github.axolotlclient.imperium.ServerGating
+import io.github.axolotlclient.imperium.theme.ImperiumFonts
 import io.github.axolotlclient.imperium.theme.ImperiumTheme as Theme
 import io.github.axolotlclient.modules.hud.HudEditScreen
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.AbstractWidget
-import net.minecraft.client.gui.components.Button
 import net.minecraft.client.gui.components.EditBox
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.KeyEvent
@@ -92,9 +92,9 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 	private var query = ""
 	private var scroll = 0.0
 	private lateinit var search: EditBox
-	private lateinit var editHudButton: Button
-	private lateinit var profilesButton: Button
-	private lateinit var allSettingsButton: Button
+	private lateinit var editHudButton: ImperiumButton
+	private lateinit var profilesButton: ImperiumButton
+	private lateinit var allSettingsButton: ImperiumButton
 
 	// v3 adaptive metrics (recomputed in init: the sidebar compresses on short windows and the
 	// segment chips wrap when the content column cannot hold them in one row).
@@ -179,18 +179,15 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 		}
 		val buttonY = panelY + panelH - FOOTER_H + 4
 		val buttonX = panelX + SIDEBAR_W + GAP
-		editHudButton = Button.builder(
-			Component.translatable("imperium.menu.edit_hud"),
-			{ _: Button -> minecraft!!.gui.setScreen(HudEditScreen(this)) }
-		).bounds(buttonX, buttonY, 80, 20).build()
-		profilesButton = Button.builder(
-			Component.translatable("imperium.menu.profiles"),
-			{ _: Button -> minecraft!!.gui.setScreen(ProfilesScreen(this)) }
-		).bounds(buttonX + 84, buttonY, 80, 20).build()
-		allSettingsButton = Button.builder(
-			Component.translatable("imperium.menu.all_settings"),
-			{ _: Button -> minecraft!!.gui.setScreen(ConfigStyles.createScreen(this, AxolotlClientCommon.getInstance().configManager.root)) }
-		).bounds(buttonX + 168, buttonY, 90, 20).build()
+		editHudButton = ImperiumButton(
+			buttonX, buttonY, 80, 20, Component.translatable("imperium.menu.edit_hud")
+		) { minecraft!!.gui.setScreen(HudEditScreen(this)) }
+		profilesButton = ImperiumButton(
+			buttonX + 84, buttonY, 80, 20, Component.translatable("imperium.menu.profiles")
+		) { minecraft!!.gui.setScreen(ProfilesScreen(this)) }
+		allSettingsButton = ImperiumButton(
+			buttonX + 168, buttonY, 90, 20, Component.translatable("imperium.menu.all_settings")
+		) { minecraft!!.gui.setScreen(ConfigStyles.createScreen(this, AxolotlClientCommon.getInstance().configManager.root)) }
 
 		if (settingsEntry == null) {
 			addRenderableWidget(search)
