@@ -295,6 +295,10 @@ public abstract class AxolotlClientConfigCommon {
 	// this distance. 0 keeps vanilla behaviour (everything in range renders).
 	public final IntegerOption textRenderDistance = new IntegerOption("text_render_distance", 0, 0, 128);
 
+	// disable_tnt_expansion (Alpine parity, M3): primed TNT keeps its normal size during the
+	// final swell instead of scaling up shortly before exploding.
+	public final BooleanOption disableTntExpansion = new BooleanOption("disable_tnt_expansion", false);
+
 	public final BooleanOption compactChat = new BooleanOption("compact_chat", false);
 
 	public final BooleanOption chatTimestamps = new BooleanOption("chat_timestamps", false);
@@ -456,6 +460,7 @@ public abstract class AxolotlClientConfigCommon {
 		performance.add(frameLimiter, backgroundFps, afkFps, afkDelay, longAfkFps, longAfkDelay);
 		performance.add(disableTntFlash, hideLightningBolts, hideHoppers, hideDistantEntities, entityRenderDistance);
 		performance.add(hudFrameLimit, textRenderDistance);
+		performance.add(disableTntExpansion);
 		config.add(performance);
 
 		hidden.add(creditsBGM, someNiceBackground, modifyClientBrand, noAltIcons);

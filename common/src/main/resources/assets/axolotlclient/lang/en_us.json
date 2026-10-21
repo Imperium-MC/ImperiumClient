@@ -1272,5 +1272,7 @@
 		"hud_frame_limit": "HUD Frame Limit",
 		"hud_frame_limit.tooltip": "Records HUD elements whose content does not change on its own at most this many times per second and re-draws the recording in between (0 = off). Data HUDs like FPS, CPS, coordinates and ping always draw live.",
 		"text_render_distance": "Text Render Distance",
-		"text_render_distance.tooltip": "Sign text and floating name tags farther than this many blocks are not rendered (0 = vanilla behaviour)."
+		"text_render_distance.tooltip": "Sign text and floating name tags farther than this many blocks are not rendered (0 = vanilla behaviour).",
+		"disable_tnt_expansion": "Disable TNT Expansion",
+		"disable_tnt_expansion.tooltip": "Primed TNT keeps its normal size during the final swell instead of scaling up just before exploding; the TNT stays visible."
 }

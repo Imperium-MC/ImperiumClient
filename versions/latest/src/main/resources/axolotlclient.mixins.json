@@ -19,6 +19,7 @@
 		"CompactItemCountMixin",
 		"ContainerCenteringMixin",
 		"DebugHudMixin",
+		"DisableTntExpansionMixin",
 		"DisableTntFlashMixin",
 		"DisconnectedScreenMixin",
 		"DownloadedPackSourceAccessor",
