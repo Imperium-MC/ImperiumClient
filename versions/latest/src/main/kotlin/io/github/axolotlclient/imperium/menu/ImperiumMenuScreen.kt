@@ -630,13 +630,23 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 
 	/**
 	 * The v3 shell's background stratum: everything that must sit UNDER the option widgets
-	 * (card bodies, row pills, the search pill). In-game the vanilla transparent gradient is
-	 * skipped in favour of the spec's own surface dim, so the world shows through exactly as
-	 * the CSS mockup's `.dim` intends; over other screens the vanilla background stays under it.
+	 * (card bodies, row pills, the search pill).
+	 *
+	 * In-world the vanilla background layers are replaced by the spec's own recipe: the soft
+	 * world blur ([extractBlurredBackground] places the frame's blur boundary here, running the
+	 * vanilla menu-blur post pass over everything drawn before this screen) under the spec's
+	 * surface dim - no vanilla menu texture, so the blurred world reads through exactly as the
+	 * CSS mockup's `.dim` intends. The blur honours the vanilla "Menu Background Blurriness"
+	 * option (at 0 the dim falls back to plain translucency) and, because the boundary only
+	 * exists while this screen draws it, it costs nothing when no screen is open. The
+	 * HUD-element blur (HudBlur) is a separate, earlier pass and composes under this untouched.
+	 * Over the title screen (no world) the vanilla panorama and its blur stay, via super.
 	 */
 	private fun extractBackgroundV3(graphics: GuiGraphicsExtractor) {
-		if (!isInGameUi) {
+		if (minecraft == null || minecraft!!.level == null) {
 			super.extractBackground(graphics, 0, 0, 0f)
+		} else {
+			extractBlurredBackground(graphics)
 		}
 		graphics.fill(0, 0, width, height, Theme.SURFACE)
 
