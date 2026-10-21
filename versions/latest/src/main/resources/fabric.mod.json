@@ -30,6 +30,10 @@
 			{
 				"adapter": "kotlin",
 				"value": "io.github.axolotlclient.imperium.media.ImperiumMediaInit"
+			},
+			{
+				"adapter": "kotlin",
+				"value": "io.github.axolotlclient.imperium.online.ImperiumOnline"
 			}
 		],
 		"modmenu": [
