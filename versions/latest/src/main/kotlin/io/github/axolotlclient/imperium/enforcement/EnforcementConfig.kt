@@ -35,15 +35,17 @@ import io.github.axolotlclient.AxolotlClientConfig.impl.options.StringOption
  *  anticheat applies. That is the honest fallback.
  *  - `enforcement.server_allowlist` — comma-separated hostname allowlist. The layer is
  *  scoped to servers whose address matches an entry (hostname suffix match on the dot boundary).
- *  Default: exactly `imperiummc.net` and `play.imperiummc.net`.
+ *  Default: `imperiummc.net`, `play.imperiummc.net`, `romanica.net`, `play.romanica.net`
+ *  (old and new domains both enforce during the rebrand transition).
  */
 object EnforcementConfig {
 
 	@JvmField
 	val category = OptionCategory.create("enforcement")
 
-	/** Default scope: the ImperiumMC addresses, exactly as the owner spec pins them. */
-	const val DEFAULT_ALLOWLIST = "imperiummc.net,play.imperiummc.net"
+	/** Default scope: the ImperiumMC addresses plus the Romanica ones (both live during the
+	 *  domain transition; drop the imperiummc.net pair at the romanica.net cutover). */
+	const val DEFAULT_ALLOWLIST = "imperiummc.net,play.imperiummc.net,romanica.net,play.romanica.net"
 
 	@JvmField
 	val serverAllowlist = StringOption("server_allowlist", DEFAULT_ALLOWLIST)

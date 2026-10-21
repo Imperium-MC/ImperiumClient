@@ -43,7 +43,7 @@ import net.minecraft.network.chat.Component;
 public class TitlesGameTest implements FabricClientGameTest {
 
 	private static final String LONG_TITLE_TEXT =
-		"The Imperium salutes its builders across every corner of the realm and beyond the horizon";
+		"The Romanica salutes its builders across every corner of the realm and beyond the horizon";
 	private static final String LONG_SUBTITLE_TEXT =
 		"a coloured subtitle that is also far too long to fit on a single line";
 
@@ -59,8 +59,8 @@ public class TitlesGameTest implements FabricClientGameTest {
 			context.runOnClient(mc -> mc.gui.hud.setTimes(0, 400, 0));
 
 			Component title = Component.literal("The ").withStyle(ChatFormatting.GOLD)
-				.append(Component.literal("Imperium ").withStyle(ChatFormatting.RED))
-				.append(Component.literal(LONG_TITLE_TEXT.substring(12)).withStyle(ChatFormatting.GOLD));
+				.append(Component.literal("Romanica ").withStyle(ChatFormatting.RED))
+				.append(Component.literal(LONG_TITLE_TEXT.substring(13)).withStyle(ChatFormatting.GOLD));
 			Component subtitle = Component.literal("a ").withStyle(ChatFormatting.YELLOW)
 				.append(Component.literal("coloured").withStyle(ChatFormatting.AQUA))
 				.append(Component.literal(LONG_SUBTITLE_TEXT.substring(11)).withStyle(ChatFormatting.YELLOW));

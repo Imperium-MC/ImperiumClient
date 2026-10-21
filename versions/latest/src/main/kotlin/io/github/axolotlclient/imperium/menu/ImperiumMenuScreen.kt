@@ -1011,7 +1011,7 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 	private fun extractSidebarV3(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
 		// header: emblem and the two-line wordmark
 		graphics.blit(RenderPipelines.GUI_TEXTURED, Theme.EMBLEM, V3_PAD, V3_PAD, 0f, 0f, V3_HEADER_H, V3_HEADER_H, 128, 128, 128, 128)
-		Theme.trackedCaps(graphics, font, "IMPERIUM", V3_PAD + V3_HEADER_H + 6, V3_PAD + 4, Theme.TEXT_ACCENT)
+		Theme.trackedCaps(graphics, font, "ROMANICA", V3_PAD + V3_HEADER_H + 6, V3_PAD + 4, Theme.TEXT_ACCENT)
 		Theme.trackedCaps(graphics, font, "CLIENT", V3_PAD + V3_HEADER_H + 6, V3_PAD + 15, Theme.TEXT_SECONDARY)
 
 		val selectedIndex = navIndex(category)

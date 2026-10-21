@@ -2,11 +2,11 @@
 	"schemaVersion": 1,
 	"id": "imperiumclient",
 	"version": "${version}",
-	"name": "Imperium Client",
-	"description": "Client mod made for ImperiumMC: module menu, HUD and quality-of-life features. Based on AxolotlClient.",
+	"name": "Romanica Client",
+	"description": "Client mod made for Romanica: module menu, HUD and quality-of-life features. Based on AxolotlClient.",
 	"authors": [
 		"MylesThePro1",
-		"ImperiumMC Contributors"
+		"Romanica Contributors"
 	],
 	"contributors": [
 		"moehreag (AxolotlClient)",

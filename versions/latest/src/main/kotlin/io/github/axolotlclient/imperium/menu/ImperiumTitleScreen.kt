@@ -53,7 +53,7 @@ import net.minecraft.util.Mth
  * The v3 title screen (docs/design/README.md, mockup 04) over the vanilla rotating panorama:
  * an account switcher top-left, a row of 40px icon circles top-right (Modules, the client's
  * settings, imperiummc.net, the store, Discord, the vanilla menu), the emblem and wordmark
- * centred, a 400x50 Play ImperiumMC button carrying the live player count from
+ * centred, a 400x50 Play Romanica button carrying the live player count from
  * imperiummc.net/api/server/status (silent when offline), and the Options/Quit row.
  *
  * Sizes are the spec's CSS measurements halved, like the menu shell. [TitleScreenMixin] swaps
@@ -151,7 +151,7 @@ class ImperiumTitleScreen : TitleScreen(false) {
 
 		// footer: client version left, Mojang disclaimer centred
 		graphics.text(
-			font, "ImperiumClient " + AxolotlClient.VERSION, INSET, height - FOOTER_H,
+			font, "Romanica Client " + AxolotlClient.VERSION, INSET, height - FOOTER_H,
 			Theme.OVERLAY_TEXT_SECONDARY, false
 		)
 		val copyright = Component.translatable("imperium.title.copyright").string
@@ -187,12 +187,12 @@ class ImperiumTitleScreen : TitleScreen(false) {
 	private fun drawWordmark(graphics: GuiGraphicsExtractor, cx: Int, cy: Int) {
 		// the Cinzel-style wordmark, approximated: tracked capitals at 2x (see the font note
 		// in docs/design - no new TTF binaries ship with the client)
-		val w = Theme.trackedWidth(font, "IMPERIUM") * 2
+		val w = Theme.trackedWidth(font, "ROMANICA") * 2
 		val pose = graphics.pose()
 		pose.pushMatrix()
 		pose.translate((cx - w / 2).toFloat(), (cy - WORDMARK_H / 2).toFloat())
 		pose.scale(2f, 2f)
-		Theme.trackedCaps(graphics, font, "IMPERIUM", 0, 0, Theme.TEXT_ACCENT)
+		Theme.trackedCaps(graphics, font, "ROMANICA", 0, 0, Theme.TEXT_ACCENT)
 		pose.popMatrix()
 	}
 
@@ -293,7 +293,7 @@ class ImperiumTitleScreen : TitleScreen(false) {
 		}
 
 		if (my >= playY() && my < playY() + PLAY_H && mx >= playX() && mx < playX() + PLAY_W) {
-			val server = ServerData("ImperiumMC", SERVER_ADDRESS, ServerData.Type.OTHER)
+			val server = ServerData("Romanica", SERVER_ADDRESS, ServerData.Type.OTHER)
 			ConnectScreen.startConnecting(
 				this, minecraft!!, ServerAddress.parseString(SERVER_ADDRESS), server, false, null
 			)
@@ -386,6 +386,8 @@ class ImperiumTitleScreen : TitleScreen(false) {
 		private const val ROW_H = 25
 		private const val ROW_BTN_W = 97
 		private const val FOOTER_H = 14
+		// Cutover note: romanica.net is not registered yet; every URL below stays on
+		// imperiummc.net until the domain flip (rebrand/romanica display-only phase).
 		private const val SERVER_ADDRESS = "play.imperiummc.net"
 		private const val SITE_URL = "https://imperiummc.net"
 		private const val STORE_URL = "https://imperiummc.net/store"
@@ -424,6 +426,7 @@ class ImperiumTitleScreen : TitleScreen(false) {
 			fetchedCount = true
 			ThreadExecuter.scheduleTask {
 				try {
+					// status fetch stays on imperiummc.net until the romanica.net cutover
 					val request = HttpRequest.newBuilder(URI.create("https://imperiummc.net/api/server/status"))
 						.timeout(java.time.Duration.ofSeconds(4))
 						.GET()
