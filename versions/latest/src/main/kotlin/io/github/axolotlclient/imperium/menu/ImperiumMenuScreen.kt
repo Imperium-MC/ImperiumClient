@@ -108,12 +108,16 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 	/** x/y of each segment chip, indexed by [MenuCategory] ordinal. */
 	private var segmentPos = arrayOfNulls<IntArray>(0)
 
-	// v3 motion state: the sliding nav pill and per-card hover fades.
+	// v3 motion state: the sliding nav pill, per-card hover fades and per-control press fades.
 	private var pillFromY = 0f
 	private var pillY = 0f
 	private var pillStartMs = 0L
 	private var pillInit = false
 	private val hoverT = HashMap<String, Float>()
+	private val pressT = HashMap<String, Float>()
+
+	/** The hand-drawn control currently held by the mouse (its press fade runs to 1). */
+	private var pressedKey: String? = null
 	private var lastFrameMs = 0L
 
 	// The inline settings panel. While open, the card grid is not drawn and the search box
@@ -241,7 +245,7 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 	/** Packs the category chips into centred rows that fit the content column. */
 	private fun layoutV3Segments() {
 		val labels = segmentLabels()
-		val widths = labels.map { font.width(it) + V3_SEG_PAD * 2 }
+		val widths = labels.map { segmentWidth(labels.indexOf(it)) + V3_SEG_PAD * 2 }
 		val maxRowW = contentW()
 		val pos = arrayOfNulls<IntArray>(labels.size)
 		var row = 0
@@ -268,6 +272,10 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 
 	private fun segmentLabels(): List<String> =
 		MenuCategory.entries.map { c: MenuCategory -> Component.translatable(c.translationKey()).string }
+
+	/** A segment chip's label width in the UI font (the chips render in Barlow SemiBold). */
+	private fun segmentWidth(index: Int): Int =
+		ImperiumFonts.width(font, segmentLabels()[index], ImperiumFonts.BARLOW_SEMIBOLD)
 
 	private fun searchX(): Int = width - V3_CONTENT_PAD - V3_SEARCH_W
 
@@ -672,7 +680,7 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 			val y = cardY(i)
 			if (y + cardH() < contentY() || y > contentY() + contentH()) continue
 			val t = hoverFade(entry.id())
-			val scale = hoverScale(t)
+			val scale = controlScale(min(1f, t * 2), pressFade("card:${entry.id()}"))
 			val pose = graphics.pose()
 			pose.pushMatrix()
 			pose.translate((x + cardW() / 2).toFloat(), (y + cardH() / 2).toFloat())
@@ -1053,8 +1061,9 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 			val label = Component.translatable(c.translationKey()).string
 			val labelX = iconX + 13
 			val labelY = y + (navItemH - font.lineHeight + 1) / 2
+			val text = ImperiumFonts.truncate(font, label, V3_SIDEBAR_W - V3_PAD - labelX - 4)
 			graphics.text(
-				font, font.plainSubstrByWidth(label, V3_SIDEBAR_W - V3_PAD - labelX - 4), labelX, labelY,
+				font, ImperiumFonts.label(text), labelX, labelY,
 				if (selected || hovered) Theme.TEXT else Theme.TEXT_SECONDARY, false
 			)
 		}
@@ -1069,22 +1078,36 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 		if (footerCompact) {
 			val y = height - V3_PAD - V3_PILL_COMPACT
 			var x = V3_PAD
-			for ((_, glyph) in actions) {
-				val hovered = mouseX >= x && mouseX < x + V3_PILL_COMPACT && mouseY >= y && mouseY < y + V3_PILL_COMPACT
-				Theme.roundRect(graphics, x, y, V3_PILL_COMPACT, V3_PILL_COMPACT, if (hovered) Theme.PRIMARY_HOVER else Theme.LAYER, V3_PILL_COMPACT / 2f)
-				Theme.roundOutline(graphics, x, y, V3_PILL_COMPACT, V3_PILL_COMPACT, if (hovered) Theme.ACCENT_SOFT else Theme.COMPONENT, V3_PILL_COMPACT / 2f)
-				Theme.drawGlyph(graphics, glyph, x + (V3_PILL_COMPACT - glyph[0].length) / 2, y + (V3_PILL_COMPACT - glyph.size) / 2, if (hovered) Theme.TEXT else Theme.TEXT_SECONDARY)
+			for (i in actions.indices) {
+				val (_, glyph) = actions[i]
+				val hovered = mxInPill(mouseX, mouseY, x, y, V3_PILL_COMPACT, V3_PILL_COMPACT)
+				val t = controlFade("pill:$i", hovered)
+				val scale = controlScale(t, pressFade("pill:$i"))
+				poseScale(graphics, x, y, V3_PILL_COMPACT, V3_PILL_COMPACT, scale) {
+					Theme.roundRect(graphics, x, y, V3_PILL_COMPACT, V3_PILL_COMPACT, lerpColor(Theme.LAYER, Theme.PRIMARY_HOVER, t), V3_PILL_COMPACT / 2f)
+					Theme.roundOutline(graphics, x, y, V3_PILL_COMPACT, V3_PILL_COMPACT, lerpColor(Theme.COMPONENT, Theme.ACCENT_SOFT, t), V3_PILL_COMPACT / 2f)
+					Theme.drawGlyph(graphics, glyph, x + (V3_PILL_COMPACT - glyph[0].length) / 2, y + (V3_PILL_COMPACT - glyph.size) / 2, if (t > 0.5f) Theme.TEXT else Theme.TEXT_SECONDARY)
+				}
 				x += V3_PILL_COMPACT + V3_SEG_GAP
 			}
 		} else {
 			val w = V3_SIDEBAR_W - V3_PAD * 2
 			var y = height - V3_PAD - 3 * V3_PILL_H - 2 * V3_PILL_GAP
-			for ((label, glyph) in actions) {
-				val hovered = mouseX >= V3_PAD && mouseX < V3_PAD + w && mouseY >= y && mouseY < y + V3_PILL_H
-				Theme.roundRect(graphics, V3_PAD, y, w, V3_PILL_H, if (hovered) Theme.PRIMARY_HOVER else Theme.LAYER, V3_PILL_H / 2f)
-				Theme.roundOutline(graphics, V3_PAD, y, w, V3_PILL_H, if (hovered) Theme.ACCENT_SOFT else Theme.COMPONENT, V3_PILL_H / 2f)
-				Theme.drawGlyph(graphics, glyph, V3_PAD + 8, y + (V3_PILL_H - glyph.size) / 2, if (hovered) Theme.TEXT else Theme.TEXT_SECONDARY)
-				graphics.text(font, label, V3_PAD + 22, y + (V3_PILL_H - font.lineHeight + 1) / 2, if (hovered) Theme.TEXT else Theme.TEXT_SECONDARY, false)
+			for (i in actions.indices) {
+				val (label, glyph) = actions[i]
+				val hovered = mxInPill(mouseX, mouseY, V3_PAD, y, w, V3_PILL_H)
+				val t = controlFade("pill:$i", hovered)
+				val scale = controlScale(t, pressFade("pill:$i"))
+				poseScale(graphics, V3_PAD, y, w, V3_PILL_H, scale) {
+					Theme.roundRect(graphics, V3_PAD, y, w, V3_PILL_H, lerpColor(Theme.LAYER, Theme.PRIMARY_HOVER, t), V3_PILL_H / 2f)
+					Theme.roundOutline(graphics, V3_PAD, y, w, V3_PILL_H, lerpColor(Theme.COMPONENT, Theme.ACCENT_SOFT, t), V3_PILL_H / 2f)
+					Theme.drawGlyph(graphics, glyph, V3_PAD + 8, y + (V3_PILL_H - glyph.size) / 2, if (t > 0.5f) Theme.TEXT else Theme.TEXT_SECONDARY)
+					val text = ImperiumFonts.truncate(font, label, V3_SIDEBAR_W - V3_PAD - (V3_PAD + 22) - 4)
+					graphics.text(
+						font, ImperiumFonts.semibold(text), V3_PAD + 22, y + (V3_PILL_H - font.lineHeight + 1) / 2,
+						if (t > 0.5f) Theme.TEXT else Theme.TEXT_SECONDARY, false
+					)
+				}
 				y += V3_PILL_H + V3_PILL_GAP
 			}
 		}
@@ -1100,19 +1123,25 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 			title = Component.translatable("imperium.menu.header.title").string
 			description = Component.translatable("imperium.menu.header.description").string
 		}
-		graphics.text(font, title, V3_SIDEBAR_W + V3_CONTENT_PAD, V3_HEADER_Y, Theme.TEXT, false)
-		graphics.text(font, description, V3_SIDEBAR_W + V3_CONTENT_PAD, V3_HEADER_Y + 11, Theme.TEXT_SECONDARY, false)
+		// the header column squeezes on very small windows (GUI scale 3 on an 854x480 frame):
+		// both lines truncate to the space between the sidebar and the search pill.
+		val headerRight = if (settingsEntry == null) searchX() - 6 else width - V3_CONTENT_PAD
+		val headerW = headerRight - (V3_SIDEBAR_W + V3_CONTENT_PAD)
+		val titleText = ImperiumFonts.truncate(font, title, headerW, ImperiumFonts.BARLOW_SEMIBOLD)
+		val descriptionText = ImperiumFonts.truncate(font, description, headerW)
+		graphics.text(font, ImperiumFonts.semibold(titleText), V3_SIDEBAR_W + V3_CONTENT_PAD, V3_HEADER_Y, Theme.TEXT, false)
+		graphics.text(font, ImperiumFonts.label(descriptionText), V3_SIDEBAR_W + V3_CONTENT_PAD, V3_HEADER_Y + 11, Theme.TEXT_SECONDARY, false)
 
 		if (settingsEntry == null) {
 			// search affordance over the pill + the enabled-count badge
 			Theme.drawGlyph(graphics, Theme.GLYPH_SEARCH, searchX() + 7, searchY() + 4, Theme.TEXT_TERTIARY)
 			val text = Component.translatable("imperium.menu.enabled_count", enabledCount()).string
-			val w = font.width(text) + 22
+			val w = ImperiumFonts.width(font, text, ImperiumFonts.BARLOW_SEMIBOLD) + 22
 			val x = searchX() - 6 - w
 			Theme.roundRect(graphics, x, V3_HEADER_Y + 3, w, V3_BADGE_H, Theme.SECONDARY, V3_BADGE_H / 2f)
 			Theme.roundOutline(graphics, x, V3_HEADER_Y + 3, w, V3_BADGE_H, Theme.ACCENT_SOFT, V3_BADGE_H / 2f)
 			Theme.drawGlyph(graphics, Theme.GLYPH_BOLT, x + 6, V3_HEADER_Y + 3 + (V3_BADGE_H - Theme.GLYPH_BOLT.size) / 2, Theme.TEXT_ACCENT)
-			graphics.text(font, text, x + 14, V3_HEADER_Y + 3 + (V3_BADGE_H - font.lineHeight + 1) / 2, Theme.TEXT_ACCENT, false)
+			graphics.text(font, ImperiumFonts.semibold(text), x + 14, V3_HEADER_Y + 3 + (V3_BADGE_H - font.lineHeight + 1) / 2, Theme.TEXT_ACCENT, false)
 		}
 	}
 
@@ -1124,25 +1153,30 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 			val pos = segmentPos[i] ?: continue
 			val x = pos[0]
 			val y = pos[1]
-			val w = font.width(labels[i]) + V3_SEG_PAD * 2
-			val hovered = !selected && mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + V3_SEG_H
-			if (selected) {
-				Theme.roundRect(graphics, x, y, w, V3_SEG_H, Theme.PRIMARY, V3_SEG_H / 2f)
-				Theme.roundOutline(graphics, x + 1, y + 1, w - 2, V3_SEG_H - 2, Theme.ACCENT_SOFT, (V3_SEG_H - 2) / 2f)
-			} else if (hovered) {
-				Theme.roundRect(graphics, x, y, w, V3_SEG_H, Theme.PRIMARY_HOVER, V3_SEG_H / 2f)
+			val w = segmentWidth(i) + V3_SEG_PAD * 2
+			val hovered = !selected && mxInPill(mouseX, mouseY, x, y, w, V3_SEG_H)
+			val t = controlFade("seg:$i", hovered)
+			val scale = controlScale(t, pressFade("seg:$i"))
+			poseScale(graphics, x, y, w, V3_SEG_H, scale) {
+				if (selected) {
+					Theme.roundRect(graphics, x, y, w, V3_SEG_H, Theme.PRIMARY, V3_SEG_H / 2f)
+					Theme.roundOutline(graphics, x + 1, y + 1, w - 2, V3_SEG_H - 2, Theme.ACCENT_SOFT, (V3_SEG_H - 2) / 2f)
+				} else {
+					Theme.roundRect(graphics, x, y, w, V3_SEG_H, lerpColor(0x00000000.toInt(), Theme.PRIMARY_HOVER, t), V3_SEG_H / 2f)
+					Theme.roundOutline(graphics, x, y, w, V3_SEG_H, lerpColor(0x00000000.toInt(), Theme.COMPONENT, t * 0.6f), V3_SEG_H / 2f)
+				}
+				graphics.text(
+					font, ImperiumFonts.semibold(labels[i]), x + V3_SEG_PAD, y + (V3_SEG_H - font.lineHeight + 1) / 2,
+					if (selected || t > 0.5f) Theme.TEXT else Theme.TEXT_SECONDARY, false
+				)
 			}
-			graphics.text(
-				font, labels[i], x + V3_SEG_PAD, y + (V3_SEG_H - font.lineHeight + 1) / 2,
-				if (selected) Theme.TEXT else Theme.TEXT_SECONDARY, false
-			)
 		}
 	}
 
 	private fun extractCardsV3(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
 		if (visible.isEmpty()) {
 			graphics.centeredText(
-				font, Component.translatable("imperium.menu.no_results"),
+				font, ImperiumFonts.label(Component.translatable("imperium.menu.no_results").string),
 				contentX() + contentW() / 2, contentY() + listTopInset() + contentH() / 2 - 4, Theme.TEXT_TERTIARY
 			)
 			return
@@ -1154,7 +1188,7 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 			val y = cardY(i)
 			if (y + cardH() < contentY() || y > contentY() + contentH()) continue
 			val t = hoverFade(entry.id())
-			val scale = hoverScale(t)
+			val scale = controlScale(min(1f, t * 2), pressFade("card:${entry.id()}"))
 			val pose = graphics.pose()
 			pose.pushMatrix()
 			pose.translate((x + cardW() / 2).toFloat(), (y + cardH() / 2).toFloat())
@@ -1171,8 +1205,8 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 
 			// name, top-right
 			val nameColor = if (on || hovered || t > 0.5f) Theme.TEXT else Theme.TEXT_TERTIARY
-			val name = font.plainSubstrByWidth(entry.name(), cardNameRight(x) - cardTagX(x))
-			graphics.text(font, name, cardNameRight(x) - font.width(name), y + 6, nameColor, false)
+			val name = ImperiumFonts.truncate(font, entry.name(), cardNameRight(x) - cardTagX(x))
+			graphics.text(font, ImperiumFonts.label(name), cardNameRight(x) - ImperiumFonts.width(font, name), y + 6, nameColor, false)
 
 			// reason / tag line, bottom-left
 			val pinned = pinnedIds.contains(entry.id())
@@ -1182,9 +1216,10 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 				else -> null
 			}
 			if (tag != null) {
+				val tagText = ImperiumFonts.truncate(font, tag, cardW() - (cardTagX(x) - x) - 3 * 15 - 4)
 				graphics.text(
-					font, font.plainSubstrByWidth(tag, cardW() - (cardTagX(x) - x) - 3 * 15 - 4),
-					cardTagX(x), y + cardH() - 13, if (blocked) Theme.BLOCKED_TAG else Theme.TEXT_DISABLED, false
+					font, ImperiumFonts.label(tagText), cardTagX(x), y + cardH() - 13,
+					if (blocked) Theme.BLOCKED_TAG else Theme.TEXT_DISABLED, false
 				)
 			}
 
@@ -1225,13 +1260,18 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 		val by = bandY() - 2
 		val bw = 44
 		val bh = V3_SEG_H + 2
-		val backHovered = mouseX >= bx && mouseX < bx + bw && mouseY >= by && mouseY < by + bh
-		Theme.roundRect(graphics, bx, by, bw, bh, if (backHovered) Theme.PRIMARY_HOVER else Theme.LAYER, bh / 2f)
-		Theme.roundOutline(graphics, bx, by, bw, bh, if (backHovered) Theme.ACCENT_SOFT else Theme.COMPONENT, bh / 2f)
-		graphics.text(
-			font, "< " + Component.translatable("imperium.menu.settings_back").string, bx + 8,
-			by + (bh - font.lineHeight) / 2, if (backHovered) Theme.TEXT else Theme.TEXT_SECONDARY, false
-		)
+		val backHovered = mxInPill(mouseX, mouseY, bx, by, bw, bh)
+		val bt = controlFade("back", backHovered)
+		val bScale = controlScale(bt, pressFade("back"))
+		poseScale(graphics, bx, by, bw, bh, bScale) {
+			Theme.roundRect(graphics, bx, by, bw, bh, lerpColor(Theme.LAYER, Theme.PRIMARY_HOVER, bt), bh / 2f)
+			Theme.roundOutline(graphics, bx, by, bw, bh, lerpColor(Theme.COMPONENT, Theme.ACCENT_SOFT, bt), bh / 2f)
+			val text = ImperiumFonts.truncate(font, "< " + Component.translatable("imperium.menu.settings_back").string, bw - 12, ImperiumFonts.BARLOW_SEMIBOLD)
+			graphics.text(
+				font, ImperiumFonts.semibold(text), bx + 8,
+				by + (bh - font.lineHeight) / 2, if (bt > 0.5f) Theme.TEXT else Theme.TEXT_SECONDARY, false
+			)
+		}
 
 		val top = settingsScrollTop()
 		val bottom = settingsScrollBottom()
@@ -1241,12 +1281,12 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 			if (row.header != null) {
 				// section header: 14x2 accent dash + label
 				graphics.fill(contentX() + 2, y + 4, contentX() + 16, y + 6, Theme.TEXT_ACCENT)
-				graphics.text(font, row.header.uppercase(Locale.ROOT), contentX() + 21, y + 1, Theme.TEXT_SECONDARY, false)
+				graphics.text(font, ImperiumFonts.semibold(row.header.uppercase(Locale.ROOT)), contentX() + 21, y + 1, Theme.TEXT_SECONDARY, false)
 				y += settingsHeaderH()
 				continue
 			}
 			val rect = rowRect(row)
-			val hovered = mouseX >= rect[0] && mouseX < rect[0] + rect[1] && mouseY >= y && mouseY < y + SETTINGS_ROW_H
+			val hovered = mxInPill(mouseX, mouseY, rect[0], y, rect[1], SETTINGS_ROW_H)
 			if (hovered) {
 				Theme.roundRect(graphics, rect[0], y, rect[1], SETTINGS_ROW_H, Theme.ROW_HOVER_BG, V3_ROW_R)
 				Theme.roundOutline(graphics, rect[0], y, rect[1], SETTINGS_ROW_H, Theme.ACCENT_SOFT, V3_ROW_R)
@@ -1254,9 +1294,9 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 			val labelX = rect[0] + 8 + row.indent * SETTINGS_INDENT
 			val resetX = rect[0] + rect[1] - V3_RESET_W - 7
 			val widgetLeft = row.widget?.x ?: (resetX - 1)
-			val label = font.plainSubstrByWidth(AxoI18n.translate(row.option!!.name), max(8, widgetLeft - labelX - 4))
+			val label = ImperiumFonts.truncate(font, AxoI18n.translate(row.option!!.name), max(8, widgetLeft - labelX - 4))
 			graphics.text(
-				font, label, labelX, y + (SETTINGS_ROW_H - font.lineHeight + 1) / 2,
+				font, ImperiumFonts.label(label), labelX, y + (SETTINGS_ROW_H - font.lineHeight + 1) / 2,
 				if (hovered) Theme.TEXT else Theme.TEXT_SECONDARY, false
 			)
 			// reset icon at the row end
@@ -1285,11 +1325,41 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 		return label.contains(query.lowercase(Locale.ROOT).trim())
 	}
 
-	// hover fades: 200ms ease-out toward the hovered state; the scale finishes in 100ms (t*2).
+	// hover/press fades: 200 ms ease-out colour toward the hovered state, 100 ms for the scale
+	// (the spec's control motion: 1.033 hover, 0.966 press, the nav pill sliding in 125 ms).
 
 	private fun hoverFade(id: String): Float = hoverT[id] ?: 0f
 
-	private fun hoverScale(t: Float): Float = if (reduceMotion()) 1f else 1f + 0.03f * easeOut(min(1f, t * 2))
+	/** A press fade for hand-drawn controls (cards, pills, segments), 1 while held. */
+	private fun pressFade(key: String): Float = pressT[key] ?: 0f
+
+	private fun controlScale(t: Float, p: Float): Float =
+		if (reduceMotion()) 1f else 1f + 0.033f * easeOut(t) - 0.067f * easeOut(p)
+
+	/** A hovered test for the hand-drawn controls (GUI ints from the mouse position). */
+	private fun mxInPill(mouseX: Int, mouseY: Int, x: Int, y: Int, w: Int, h: Int): Boolean =
+		mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h
+
+	/** The control's hover fade value, snapped when "Reduce motion" is on. */
+	private fun controlFade(key: String, hovered: Boolean): Float {
+		if (reduceMotion()) return if (hovered) 1f else 0f
+		return hoverT[key] ?: 0f
+	}
+
+	/** Draws [block] scaled by [scale] around the rect's centre. */
+	private inline fun poseScale(graphics: GuiGraphicsExtractor, x: Int, y: Int, w: Int, h: Int, scale: Float, block: () -> Unit) {
+		if (scale == 1f) {
+			block()
+			return
+		}
+		val pose = graphics.pose()
+		pose.pushMatrix()
+		pose.translate((x + w / 2).toFloat(), (y + h / 2).toFloat())
+		pose.scale(scale, scale)
+		pose.translate(-(x + w / 2).toFloat(), -(y + h / 2).toFloat())
+		block()
+		pose.popMatrix()
+	}
 
 	private fun advanceHoverFades(mouseX: Int, mouseY: Int) {
 		val now = now()
@@ -1298,6 +1368,7 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 		if (reduceMotion()) {
 			return
 		}
+		val targets = LinkedHashMap<String, Float>()
 		if (settingsEntry == null && visible.isNotEmpty()) {
 			for (i in visible.indices) {
 				val entry = visible[i]
@@ -1306,11 +1377,46 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 				if (y + cardH() < contentY() || y > contentY() + contentH()) continue
 				val hovered = inContent(mouseX.toDouble(), mouseY.toDouble()) &&
 					mouseX >= x && mouseX < x + cardW() && mouseY >= y && mouseY < y + cardH()
-				val t = hoverT[entry.id()] ?: 0f
-				val target = if (hovered) 1f else 0f
-				val next = if (t < target) min(target, t + dt / 0.2f) else max(target, t - dt / 0.2f)
-				if (next <= 0f) hoverT.remove(entry.id()) else hoverT[entry.id()] = next
+				targets[entry.id()] = if (hovered) 1f else 0f
 			}
+			// category segments
+			for (i in MenuCategory.entries.indices) {
+				val pos = segmentPos[i] ?: continue
+				val w = segmentWidth(i) + V3_SEG_PAD * 2
+				targets["seg:$i"] = if (category != MenuCategory.entries[i] && mxInPill(mouseX, mouseY, pos[0], pos[1], w, V3_SEG_H)) 1f else 0f
+			}
+		}
+		if (settingsEntry != null) {
+			targets["back"] = if (overBackPillV3(mouseX, mouseY)) 1f else 0f
+		} else if (footerCompact) {
+			val y = height - V3_PAD - V3_PILL_COMPACT
+			for (i in 0 until 3) {
+				val x = V3_PAD + i * (V3_PILL_COMPACT + V3_SEG_GAP)
+				targets["pill:$i"] = if (mxInPill(mouseX, mouseY, x, y, V3_PILL_COMPACT, V3_PILL_COMPACT)) 1f else 0f
+			}
+		} else {
+			val w = V3_SIDEBAR_W - V3_PAD * 2
+			var y = height - V3_PAD - 3 * V3_PILL_H - 2 * V3_PILL_GAP
+			for (i in 0 until 3) {
+				targets["pill:$i"] = if (mxInPill(mouseX, mouseY, V3_PAD, y, w, V3_PILL_H)) 1f else 0f
+				y += V3_PILL_H + V3_PILL_GAP
+			}
+		}
+		for ((key, target) in targets) {
+			val t = hoverT[key] ?: 0f
+			val next = if (t < target) min(target, t + dt / 0.2f) else max(target, t - dt / 0.2f)
+			if (next <= 0f) hoverT.remove(key) else hoverT[key] = next
+		}
+		// press fades run on their own faster curve toward "the control that is held"
+		for (key in pressT.keys.toList()) {
+			val target = if (key == pressedKey) 1f else 0f
+			val t = pressT[key] ?: 0f
+			val next = if (t < target) min(target, t + dt / 0.1f) else max(target, t - dt / 0.1f)
+			if (next <= 0f) pressT.remove(key) else pressT[key] = next
+		}
+		val pressed = pressedKey
+		if (pressed != null) {
+			pressT.putIfAbsent(pressed, 0f)
 		}
 	}
 
@@ -1398,6 +1504,7 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 		if (settingsEntry != null) {
 			// the back pill wins over any row scrolled under it
 			if (overBackPillV3(mx, my)) {
+				pressedKey = "back"
 				closeSettingsPanel()
 				return true
 			}
@@ -1426,6 +1533,7 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 			if (footerCompact) {
 				val y = height - V3_PAD - V3_PILL_COMPACT
 				if (my >= y && my < y + V3_PILL_COMPACT && mx < V3_PAD + 3 * V3_PILL_COMPACT + 2 * V3_SEG_GAP) {
+					pressedKey = "pill:" + (mx - V3_PAD) / (V3_PILL_COMPACT + V3_SEG_GAP)
 					when ((mx - V3_PAD) / (V3_PILL_COMPACT + V3_SEG_GAP)) {
 						0 -> {
 							minecraft!!.gui.setScreen(HudEditScreen(this))
@@ -1445,6 +1553,7 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 				var y = height - V3_PAD - 3 * V3_PILL_H - 2 * V3_PILL_GAP
 				for (i in 0 until 3) {
 					if (my >= y && my < y + V3_PILL_H) {
+						pressedKey = "pill:$i"
 						when (i) {
 							0 -> minecraft!!.gui.setScreen(HudEditScreen(this))
 							1 -> minecraft!!.gui.setScreen(ProfilesScreen(this))
@@ -1459,11 +1568,11 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 
 		// category segments
 		if (settingsEntry == null) {
-			val labels = segmentLabels()
 			for (i in MenuCategory.entries.indices) {
 				val pos = segmentPos[i] ?: continue
-				val w = font.width(labels[i]) + V3_SEG_PAD * 2
+				val w = segmentWidth(i) + V3_SEG_PAD * 2
 				if (my >= pos[1] && my < pos[1] + V3_SEG_H && mx >= pos[0] && mx < pos[0] + w) {
+					pressedKey = "seg:$i"
 					selectCategory(MenuCategory.entries[i])
 					return true
 				}
@@ -1476,6 +1585,7 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 			val cy = cardY(i)
 			if (mx < x || mx >= x + cardW() || my < cy || my >= cy + cardH()) continue
 			val entry = visible[i]
+			pressedKey = "card:${entry.id()}"
 			if (event.button() == InputConstants.MOUSE_BUTTON_RIGHT || !entry.hasToggle()) {
 				openSettings(i)
 				return true
@@ -1554,6 +1664,12 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 		if (index < 0 || index + 1 >= settingsRows.size) return null
 		val next = settingsRows[index + 1]
 		return if (next.option != null) next else null
+	}
+
+	override fun mouseReleased(event: MouseButtonEvent): Boolean {
+		// the press scale (0.966) holds only while the control is held
+		pressedKey = null
+		return super.mouseReleased(event)
 	}
 
 	override fun mouseScrolled(mouseX: Double, mouseY: Double, scrollX: Double, scrollY: Double): Boolean {
