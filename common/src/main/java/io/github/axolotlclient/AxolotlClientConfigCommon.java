@@ -291,6 +291,10 @@ public abstract class AxolotlClientConfigCommon {
 	// records the previously recorded elements are replayed unchanged. 0 disables the cache.
 	public final IntegerOption hudFrameLimit = new IntegerOption("hud_frame_limit", 0, 0, 120);
 
+	// text_render_distance (Alpine parity, M3): sign and name-tag text is not rendered beyond
+	// this distance. 0 keeps vanilla behaviour (everything in range renders).
+	public final IntegerOption textRenderDistance = new IntegerOption("text_render_distance", 0, 0, 128);
+
 	public final BooleanOption compactChat = new BooleanOption("compact_chat", false);
 
 	public final BooleanOption chatTimestamps = new BooleanOption("chat_timestamps", false);
@@ -451,7 +455,7 @@ public abstract class AxolotlClientConfigCommon {
 
 		performance.add(frameLimiter, backgroundFps, afkFps, afkDelay, longAfkFps, longAfkDelay);
 		performance.add(disableTntFlash, hideLightningBolts, hideHoppers, hideDistantEntities, entityRenderDistance);
-		performance.add(hudFrameLimit);
+		performance.add(hudFrameLimit, textRenderDistance);
 		config.add(performance);
 
 		hidden.add(creditsBGM, someNiceBackground, modifyClientBrand, noAltIcons);
