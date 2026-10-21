@@ -38,6 +38,7 @@ import io.github.axolotlclient.bridge.render.AxoRenderContext
 import io.github.axolotlclient.bridge.util.AxoI18n
 import io.github.axolotlclient.config.screen.ProfilesScreen
 import io.github.axolotlclient.imperium.ServerGating
+import io.github.axolotlclient.imperium.hud.ImperiumHudEditScreen
 import io.github.axolotlclient.imperium.theme.ImperiumTheme as Theme
 import io.github.axolotlclient.modules.hud.HudEditScreen
 import io.github.axolotlclient.modules.hud.gui.component.HudEntry
@@ -187,7 +188,7 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 		val buttonX = panelX + SIDEBAR_W + GAP
 		editHudButton = Button.builder(
 			Component.translatable("imperium.menu.edit_hud"),
-			{ _: Button -> minecraft!!.gui.setScreen(HudEditScreen(this)) }
+			{ _: Button -> minecraft!!.gui.setScreen(ImperiumHudEditScreen(this)) }
 		).bounds(buttonX, buttonY, 80, 20).build()
 		profilesButton = Button.builder(
 			Component.translatable("imperium.menu.profiles"),
@@ -1441,7 +1442,7 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 				if (my >= y && my < y + V3_PILL_COMPACT && mx < V3_PAD + 3 * V3_PILL_COMPACT + 2 * V3_SEG_GAP) {
 					when ((mx - V3_PAD) / (V3_PILL_COMPACT + V3_SEG_GAP)) {
 						0 -> {
-							minecraft!!.gui.setScreen(HudEditScreen(this))
+							minecraft!!.gui.setScreen(ImperiumHudEditScreen(this))
 							return true
 						}
 						1 -> {
@@ -1459,7 +1460,7 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 				for (i in 0 until 3) {
 					if (my >= y && my < y + V3_PILL_H) {
 						when (i) {
-							0 -> minecraft!!.gui.setScreen(HudEditScreen(this))
+							0 -> minecraft!!.gui.setScreen(ImperiumHudEditScreen(this))
 							1 -> minecraft!!.gui.setScreen(ProfilesScreen(this))
 							2 -> minecraft!!.gui.setScreen(ConfigStyles.createScreen(this, AxolotlClientCommon.getInstance().configManager.root))
 						}

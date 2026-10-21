@@ -27,6 +27,7 @@ import java.util.List;
 
 import io.github.axolotlclient.AxolotlClientConfigCommon.MenuTheme;
 import io.github.axolotlclient.imperium.ImperiumClientSession;
+import io.github.axolotlclient.imperium.hud.ImperiumHudEditScreen;
 import io.github.axolotlclient.imperium.menu.CarvedTheme;
 import io.github.axolotlclient.imperium.menu.ImperiumMenuScreen;
 import io.github.axolotlclient.imperium.menu.ImperiumTitleScreen;
@@ -241,7 +242,9 @@ public class ImperiumMenuGameTest implements FabricClientGameTest {
 				fpsHud().setEnabled(true);
 				fpsHud().onBoundsUpdate();
 			});
-			context.setScreen(() -> new HudEditScreen());
+			// The v2 editor (theme Imperium, pinned above) wraps the same drag machinery; the
+			// drag must keep working through the new layer.
+			context.setScreen(() -> new ImperiumHudEditScreen());
 			context.waitTicks(5);
 			context.takeScreenshot("imperium-hud-editor");
 			int[] start = context.computeOnClient(mc -> {

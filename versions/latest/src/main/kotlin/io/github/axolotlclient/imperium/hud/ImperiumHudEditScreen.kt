@@ -38,12 +38,21 @@ import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.KeyEvent
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.network.chat.Component
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * The HUD editor v2 layer (docs/design/README.md, "HUD editor"): the Imperium-theme skin over
  * the existing editor, not a fork of the HUD framework. Dragging, corner-resizing, snapping and
- * magnet links still run entirely in [HudEditScreen]; this class layers the spec's editor
- * chrome on top.
+ * magnet links still run entirely in [HudEditScreen]; this class adds the spec's editor chrome:
+ *
+ *  - a snap hint pill at the top centre while dragging ("x 128 · y 64", or the snapped edge
+ *    name once a guide takes over),
+ *  - snap guide lines in `--imp-accent-hot` for the frames a snap is active,
+ *  - selection styling: a 2px bronze outline with 10px square handles on the corners/edges,
+ *  - a right-click context menu (Settings / Reset / Hide / 3x3 anchor picker),
+ *  - keyboard nudging (arrows, Shift x10), bounded undo/redo (Ctrl+Z / Ctrl+Y), Delete hides,
+ *  - the bottom-left toolbar (Snapping, Undo, Redo, Modules, Done) and the circular help
+ *    button with a key/description panel, all in theme materials rather than vanilla buttons.
  *
  * CARVED and CLASSIC keep the original editor (vanilla buttons, blue snap lines) as the
  * documented fallback; the v2 layer deactivates with the theme.
@@ -54,18 +63,14 @@ class ImperiumHudEditScreen : HudEditScreen {
 
 	constructor(parent: Screen?) : super(parent)
 
-	/** The element the editor has selected (persists between drags; drives styling + keyboard). */
 	private var selected: HudEntry? = null
+	private var helpOpen = false
 	private var contextMenu: HudEditorContextMenu? = null
 	private val history = HudEditorHistory()
 
 	// Drag bookkeeping: the snapshot taken when a drag starts, committed to history on release.
 	private var dragEntry: HudEntry? = null
 	private var dragBefore: HudEditorHistory.Snapshot? = null
-
-	/** The v2 chrome rides on the Imperium theme; the fallback themes keep the base editor. */
-	private fun v2(): Boolean =
-		AxolotlClient.config().menuTheme.get() == AxolotlClientConfigCommon.MenuTheme.IMPERIUM
 
 	override fun init() {
 		super.init()
@@ -75,8 +80,14 @@ class ImperiumHudEditScreen : HudEditScreen {
 		}
 	}
 
+	/** The v2 chrome rides on the Imperium theme; the fallback themes keep the base editor. */
+	private fun v2(): Boolean =
+		AxolotlClient.config().menuTheme.get() == AxolotlClientConfigCommon.MenuTheme.IMPERIUM
+
+	// ── base editor hooks ─────────────────────────────────────────────────────────────────────
+
 	override fun addControlButtons() {
-		// The v2 toolbar replaces the vanilla buttons; fallback themes keep them.
+		// The toolbar replaces the vanilla buttons; fallback themes keep them.
 		if (!v2()) {
 			super.addControlButtons()
 		}
@@ -84,7 +95,6 @@ class ImperiumHudEditScreen : HudEditScreen {
 
 	override fun renderWidgetFocusOutline(): Boolean = !v2()
 
-	/** The spec's guide lines: 1px rules in accent-hot for the frames a snap is holding. */
 	override fun renderSnapGuides(graphics: GuiGraphicsExtractor) {
 		if (!v2()) {
 			super.renderSnapGuides(graphics)
@@ -93,6 +103,8 @@ class ImperiumHudEditScreen : HudEditScreen {
 		val helper = snap ?: return
 		val entry = current ?: return
 		helper.setCurrent(entry.trueBounds)
+		// The spec's guide lines: full-height/width 1px rules in accent-hot, only for the
+		// frames a snap is actually holding the element.
 		helper.rawXSnap.ifPresent { x -> graphics.fill(x, 0, x + 1, height, Theme.ACCENT_HOT) }
 		helper.rawYSnap.ifPresent { y -> graphics.fill(0, y, width, y + 1, Theme.ACCENT_HOT) }
 	}
@@ -105,11 +117,15 @@ class ImperiumHudEditScreen : HudEditScreen {
 		minecraft!!.gui.setScreen(parent)
 	}
 
+	// ── rendering ─────────────────────────────────────────────────────────────────────────────
+
 	override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
 		super.extractRenderState(graphics, mouseX, mouseY, delta)
 		if (!v2()) return
 		drawSelection(graphics, mouseX, mouseY)
 		drawSnapHint(graphics)
+		drawToolbar(graphics, mouseX, mouseY)
+		drawHelp(graphics, mouseX, mouseY)
 		contextMenu?.render(graphics, font, mouseX, mouseY)
 	}
 
@@ -147,13 +163,189 @@ class ImperiumHudEditScreen : HudEditScreen {
 		graphics.fill(x + 1, y + 1, x + HANDLE - 1, y + HANDLE - 1, if (hovered) Theme.TEXT else Theme.ACCENT_HOT)
 	}
 
+	/** The snap hint pill at the top centre while dragging. */
+	private fun drawSnapHint(graphics: GuiGraphicsExtractor) {
+		val entry = current ?: return
+		if (!mouseDown) return
+		val bounds = entry.trueBounds
+		val helper = snap
+		val xName: String
+		val yName: String
+		if (helper != null) {
+			helper.setCurrent(bounds)
+			xName = helper.rawXSnap.map { value -> snapName(value, true) }.orElse(bounds.x().toString())
+			yName = helper.rawYSnap.map { value -> snapName(value, false) }.orElse(bounds.y().toString())
+		} else {
+			xName = bounds.x().toString()
+			yName = bounds.y().toString()
+		}
+		val text = "x $xName $MIDDLE_DOT y $yName"
+		val w = font.width(text) + PILL_PAD * 2
+		val x = width / 2 - w / 2
+		Theme.roundRect(graphics, x, PILL_Y, w, PILL_H, Theme.OVERLAY_CONTROL, PILL_H / 2f)
+		Theme.roundOutline(graphics, x, PILL_Y, w, PILL_H, Theme.OVERLAY_BORDER, PILL_H / 2f)
+		graphics.text(
+			font, text, x + PILL_PAD, PILL_Y + (PILL_H - font.lineHeight + 1) / 2, Theme.OVERLAY_TEXT, false
+		)
+	}
+
+	/** "centre" when the snap line is the screen centre, "edge" for element edges. */
+	private fun snapName(value: Int, horizontal: Boolean): String {
+		val centre = if (horizontal) width / 2 else height / 2
+		return if (value == centre) {
+			Component.translatable("imperium.hud_editor.snap.centre").string
+		} else {
+			Component.translatable("imperium.hud_editor.snap.edge").string
+		}
+	}
+
+	// ── toolbar ───────────────────────────────────────────────────────────────────────────────
+
+	private enum class ChipId { SNAPPING, UNDO, REDO, MODULES, DONE }
+
+	private class Chip(val id: ChipId, val label: String, val x: Int, val y: Int, val w: Int, val enabled: Boolean)
+
+	private val chipY: Int get() = height - TOOLBAR_MARGIN - CHIP_H
+
+	private fun chips(): List<Chip> {
+		var x = TOOLBAR_MARGIN
+		fun next(id: ChipId, key: String, enabled: Boolean = true, dot: Boolean = false): Chip {
+			val label = Component.translatable(key).string
+			val w = CHIP_PAD * 2 + (if (dot) STATE_DOT + STATE_DOT_GAP else 0) + font.width(label)
+			val chip = Chip(id, label, x, chipY, w, enabled)
+			x += w + CHIP_GAP
+			return chip
+		}
+		return listOf(
+			next(ChipId.SNAPPING, "hud.snapping", dot = true),
+			next(ChipId.UNDO, "imperium.hud_editor.toolbar.undo", enabled = history.canUndo),
+			next(ChipId.REDO, "imperium.hud_editor.toolbar.redo", enabled = history.canRedo),
+			next(ChipId.MODULES, "imperium.hud_editor.toolbar.modules"),
+			next(ChipId.DONE, "imperium.hud_editor.toolbar.done")
+		)
+	}
+
+	private fun drawToolbar(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
+		val snappingOn = HudManager.getInstance().isSnappingEnabled
+		for (chip in chips()) {
+			val hovered = chip.enabled && mouseX >= chip.x && mouseX < chip.x + chip.w &&
+				mouseY >= chip.y && mouseY < chip.y + CHIP_H
+			Theme.roundRect(
+				graphics, chip.x, chip.y, chip.w, CHIP_H,
+				if (hovered) Theme.OVERLAY_CONTROL_HOVER else Theme.OVERLAY_CONTROL, CHIP_H / 2f
+			)
+			Theme.roundOutline(
+				graphics, chip.x, chip.y, chip.w, CHIP_H,
+				if (hovered) Theme.OVERLAY_BORDER_HOVER else Theme.OVERLAY_BORDER, CHIP_H / 2f
+			)
+			var tx = chip.x + CHIP_PAD
+			if (chip.id == ChipId.SNAPPING) {
+				// State is never colour-alone: the dot sits inside a pill whose label stays.
+				graphics.fill(
+					tx, chip.y + (CHIP_H - STATE_DOT) / 2, tx + STATE_DOT, chip.y + (CHIP_H + STATE_DOT) / 2,
+					if (snappingOn) Theme.ACCENT_HOT else Theme.TEXT_DISABLED
+				)
+				tx += STATE_DOT + STATE_DOT_GAP
+			}
+			graphics.text(
+				font, chip.label, tx, chip.y + (CHIP_H - font.lineHeight + 1) / 2,
+				if (chip.enabled) Theme.OVERLAY_TEXT else Theme.TEXT_DISABLED, false
+			)
+		}
+	}
+
+	private fun toolbarHit(mx: Double, my: Double): ChipId? {
+		for (chip in chips()) {
+			if (mx >= chip.x && mx < chip.x + chip.w && my >= chip.y && my < chip.y + CHIP_H) {
+				return chip.id
+			}
+		}
+		return null
+	}
+
+	private fun handleChip(id: ChipId) {
+		when (id) {
+			ChipId.SNAPPING -> HudManager.getInstance().toggleSnapping()
+			ChipId.UNDO -> undo()
+			ChipId.REDO -> redo()
+			ChipId.MODULES -> minecraft!!.gui.setScreen(ImperiumMenuScreen(this))
+			ChipId.DONE -> onClose()
+		}
+	}
+
+	// ── help ──────────────────────────────────────────────────────────────────────────────────
+
+	private fun helpX(): Int = width - HELP_MARGIN - HELP_SIZE
+	private fun helpY(): Int = height - HELP_MARGIN - HELP_SIZE
+
+	private fun overHelpButton(mx: Double, my: Double): Boolean =
+		mx >= helpX() && mx < helpX() + HELP_SIZE && my >= helpY() && my < helpY() + HELP_SIZE
+
+	private data class HelpRow(val key: String, val label: String)
+
+	private fun helpRows(): List<HelpRow> = listOf(
+		HelpRow(tr("imperium.hud_editor.help.nudge.key"), tr("imperium.hud_editor.help.nudge")),
+		HelpRow(tr("imperium.hud_editor.help.nudge_big.key"), tr("imperium.hud_editor.help.nudge_big")),
+		HelpRow(tr("imperium.hud_editor.help.undo.key"), tr("imperium.hud_editor.help.undo")),
+		HelpRow(tr("imperium.hud_editor.help.redo.key"), tr("imperium.hud_editor.help.redo")),
+		HelpRow(tr("imperium.hud_editor.help.hide.key"), tr("imperium.hud_editor.help.hide")),
+		HelpRow(tr("imperium.hud_editor.help.menu.key"), tr("imperium.hud_editor.help.menu")),
+		HelpRow(tr("imperium.hud_editor.help.help.key"), tr("imperium.hud_editor.help.help"))
+	)
+
+	private fun tr(key: String): String = Component.translatable(key).string
+
+	private fun drawHelp(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
+		val hovered = overHelpButton(mouseX.toDouble(), mouseY.toDouble())
+		Theme.roundRect(
+			graphics, helpX(), helpY(), HELP_SIZE, HELP_SIZE,
+			if (hovered || helpOpen) Theme.OVERLAY_CONTROL_HOVER else Theme.OVERLAY_CONTROL, HELP_SIZE / 2f
+		)
+		Theme.roundOutline(
+			graphics, helpX(), helpY(), HELP_SIZE, HELP_SIZE,
+			if (hovered || helpOpen) Theme.OVERLAY_BORDER_HOVER else Theme.OVERLAY_BORDER, HELP_SIZE / 2f
+		)
+		graphics.text(
+			font, "?", helpX() + (HELP_SIZE - font.width("?")) / 2,
+			helpY() + (HELP_SIZE - font.lineHeight) / 2, Theme.TEXT_ACCENT, false
+		)
+		if (!helpOpen) return
+
+		val rows = helpRows()
+		val keyW = rows.maxOf { font.width(it.key) + KEY_CHIP_PAD * 2 }.coerceAtLeast(MIN_KEY_CHIP_W)
+		val panelW = (rows.maxOf { keyW + HELP_GAP + font.width(it.label) } + HELP_PAD * 2).coerceAtLeast(HELP_MIN_W)
+		val rowH = KEY_CHIP_H + 4
+		val panelH = HELP_PAD * 2 + HELP_TITLE_H + rows.size * rowH
+		val px = width - HELP_MARGIN - panelW
+		val py = helpY() - HELP_PANEL_GAP - panelH
+		Theme.roundRect(graphics, px, py, panelW, panelH, Theme.PANEL_BASE, HELP_R)
+		Theme.roundOutline(graphics, px, py, panelW, panelH, Theme.OVERLAY_BORDER, HELP_R)
+		graphics.text(
+			font, tr("imperium.hud_editor.help.title"), px + HELP_PAD, py + HELP_PAD, Theme.TEXT_ACCENT, false
+		)
+		var y = py + HELP_PAD + HELP_TITLE_H
+		for (row in rows) {
+			// The key chip: Minecraft font in a small rounded chip.
+			Theme.roundRect(graphics, px + HELP_PAD, y, keyW, KEY_CHIP_H, Theme.CHIP, KEY_CHIP_H / 2f)
+			Theme.roundOutline(graphics, px + HELP_PAD, y, keyW, KEY_CHIP_H, Theme.COMPONENT, KEY_CHIP_H / 2f)
+			graphics.text(
+				font, row.key, px + HELP_PAD + (keyW - font.width(row.key)) / 2,
+				y + (KEY_CHIP_H - font.lineHeight + 1) / 2, Theme.TEXT, false
+			)
+			graphics.text(
+				font, row.label, px + HELP_PAD + keyW + HELP_GAP,
+				y + (KEY_CHIP_H - font.lineHeight + 1) / 2, Theme.TEXT_SECONDARY, false
+			)
+			y += rowH
+		}
+	}
+
 	// ── input ─────────────────────────────────────────────────────────────────────────────────
 
 	override fun mouseClicked(event: MouseButtonEvent, doubleClick: Boolean): Boolean {
 		if (!v2()) return super.mouseClicked(event, doubleClick)
 		val mx = event.x()
 		val my = event.y()
-		// The context menu consumes every click: an action inside, a dismiss outside.
 		contextMenu?.let { menu ->
 			when (val action = menu.hit(mx, my)) {
 				HudEditorContextMenu.Action.Settings -> openSettingsFor(menu.entry)
@@ -164,8 +356,20 @@ class ImperiumHudEditScreen : HudEditScreen {
 			}
 			return true
 		}
-		// Clicking an element selects it; clicking empty space clears the selection. Dragging
-		// and resizing stay in the base editor.
+		if (overHelpButton(mx, my)) {
+			helpOpen = !helpOpen
+			return true
+		}
+		// A left click dismisses the help panel first; right-clicks pass through so the
+		// context menu stays reachable while the shortcuts are showing.
+		if (helpOpen && event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
+			helpOpen = false
+			return true
+		}
+		toolbarHit(mx, my)?.let { id ->
+			handleChip(id)
+			return true
+		}
 		val under = HudManager.getInstance().getEntryXY(mx.toInt(), my.toInt()).orElse(null)
 		if (event.button() == InputConstants.MOUSE_BUTTON_RIGHT) {
 			if (under != null) {
@@ -203,9 +407,15 @@ class ImperiumHudEditScreen : HudEditScreen {
 			if (event.isEscape) closeContextMenu()
 			return true
 		}
-		if (event.isEscape && selected != null && !isModificationActive()) {
-			selected = null
-			return true
+		if (event.isEscape) {
+			if (helpOpen) {
+				helpOpen = false
+				return true
+			}
+			if (selected != null && !isModificationActive()) {
+				selected = null
+				return true
+			}
 		}
 		if (ctrlDown(event)) {
 			if (!shiftDown(event) && event.key() == InputConstants.KEY_Z) {
@@ -216,6 +426,12 @@ class ImperiumHudEditScreen : HudEditScreen {
 				redo()
 				return true
 			}
+		}
+		// H toggles the help panel even mid-drag, so the shortcuts stay reachable while the
+		// mouse is busy moving an element.
+		if (event.key() == InputConstants.KEY_H && !ctrlDown(event) && !event.hasAltDown()) {
+			helpOpen = !helpOpen
+			return true
 		}
 		if (selected != null && !isModificationActive()) {
 			val entry = selected!!
@@ -350,41 +566,56 @@ class ImperiumHudEditScreen : HudEditScreen {
 		AxolotlClientConfig.getInstance().getConfigManager(entry.category).save()
 	}
 
-	/** The snap hint pill at the top centre while dragging. */
-	private fun drawSnapHint(graphics: GuiGraphicsExtractor) {
-		val entry = current ?: return
-		if (!mouseDown) return
-		val bounds = entry.trueBounds
-		val helper = snap
-		val xName: String
-		val yName: String
-		if (helper != null) {
-			helper.setCurrent(bounds)
-			xName = helper.rawXSnap.map { value -> snapName(value, true) }.orElse(bounds.x().toString())
-			yName = helper.rawYSnap.map { value -> snapName(value, false) }.orElse(bounds.y().toString())
-		} else {
-			xName = bounds.x().toString()
-			yName = bounds.y().toString()
+	// ── test hooks ────────────────────────────────────────────────────────────────────────────
+
+	@VisibleForTesting
+	fun selectedEntryId(): String? = selected?.id?.toString()
+
+	@VisibleForTesting
+	fun isHelpOpen(): Boolean = helpOpen
+
+	@VisibleForTesting
+	fun isContextMenuOpen(): Boolean = contextMenu != null
+
+	@VisibleForTesting
+	fun contextMenuEntryId(): String? = contextMenu?.entry?.id?.toString()
+
+	@VisibleForTesting
+	fun undoDepth(): Int = history.undoDepth()
+
+	@VisibleForTesting
+	fun redoDepth(): Int = history.redoDepth()
+
+	@VisibleForTesting
+	fun helpButtonCenter(): IntArray = intArrayOf(helpX() + HELP_SIZE / 2, helpY() + HELP_SIZE / 2)
+
+	@VisibleForTesting
+	fun chipCenter(id: String): IntArray? {
+		val chipId = when (id) {
+			"snapping" -> ChipId.SNAPPING
+			"undo" -> ChipId.UNDO
+			"redo" -> ChipId.REDO
+			"modules" -> ChipId.MODULES
+			"done" -> ChipId.DONE
+			else -> return null
 		}
-		val text = "x $xName $MIDDLE_DOT y $yName"
-		val w = font.width(text) + PILL_PAD * 2
-		val x = width / 2 - w / 2
-		Theme.roundRect(graphics, x, PILL_Y, w, PILL_H, Theme.OVERLAY_CONTROL, PILL_H / 2f)
-		Theme.roundOutline(graphics, x, PILL_Y, w, PILL_H, Theme.OVERLAY_BORDER, PILL_H / 2f)
-		graphics.text(
-			font, text, x + PILL_PAD, PILL_Y + (PILL_H - font.lineHeight + 1) / 2, Theme.OVERLAY_TEXT, false
-		)
+		val chip = chips().firstOrNull { it.id == chipId } ?: return null
+		return intArrayOf(chip.x + chip.w / 2, chip.y + CHIP_H / 2)
 	}
 
-	/** "centre" when the snap line is the screen centre, "edge" for element edges. */
-	private fun snapName(value: Int, horizontal: Boolean): String {
-		val centre = if (horizontal) width / 2 else height / 2
-		return if (value == centre) {
-			Component.translatable("imperium.hud_editor.snap.centre").string
-		} else {
-			Component.translatable("imperium.hud_editor.snap.edge").string
+	@VisibleForTesting
+	fun contextMenuActionCenter(action: String): IntArray? {
+		val menu = contextMenu ?: return null
+		return when (action) {
+			"settings" -> menu.actionCenter(HudEditorContextMenu.Action.Settings)
+			"reset" -> menu.actionCenter(HudEditorContextMenu.Action.Reset)
+			"hide" -> menu.actionCenter(HudEditorContextMenu.Action.Hide)
+			else -> null
 		}
 	}
+
+	@VisibleForTesting
+	fun contextMenuAnchorCenter(anchor: AnchorPoint): IntArray? = contextMenu?.anchorCenter(anchor)
 
 	companion object {
 		private const val HANDLE = 10
@@ -392,6 +623,25 @@ class ImperiumHudEditScreen : HudEditScreen {
 		private const val PILL_Y = 8
 		private const val PILL_PAD = 9
 		private const val MIDDLE_DOT = "·"
+
+		private const val TOOLBAR_MARGIN = 8
+		private const val CHIP_H = 16
+		private const val CHIP_GAP = 4
+		private const val CHIP_PAD = 8
+		private const val STATE_DOT = 5
+		private const val STATE_DOT_GAP = 4
+
+		private const val HELP_SIZE = 48
+		private const val HELP_MARGIN = 8
+		private const val HELP_PANEL_GAP = 6
+		private const val HELP_PAD = 8
+		private const val HELP_TITLE_H = 12
+		private const val HELP_GAP = 6
+		private const val HELP_MIN_W = 130
+		private const val HELP_R = 10f
+		private const val KEY_CHIP_H = 12
+		private const val KEY_CHIP_PAD = 5
+		private const val MIN_KEY_CHIP_W = 26
 
 		private const val NUDGE = 1
 		private const val NUDGE_BIG = 10
