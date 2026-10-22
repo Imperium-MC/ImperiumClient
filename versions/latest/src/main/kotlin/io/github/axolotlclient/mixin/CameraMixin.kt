@@ -1,0 +1,162 @@
+/*
+ * Copyright © 2024 moehreag <moehreag@gmail.com> & Contributors
+ *
+ * This file is part of AxolotlClient.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * For more information, see the LICENSE file.
+ */
+
+package io.github.axolotlclient.mixin
+
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation
+import io.github.axolotlclient.AxolotlClient
+import io.github.axolotlclient.modules.freelook.Freelook
+import io.github.axolotlclient.modules.snaplook.SnapLook
+import io.github.axolotlclient.modules.zoom.Zoom
+import io.github.axolotlclient.util.ClearWater
+import net.minecraft.client.Camera
+import net.minecraft.client.Minecraft
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.LivingEntity
+import org.jspecify.annotations.Nullable
+import org.spongepowered.asm.mixin.Final
+import org.spongepowered.asm.mixin.Mixin
+import org.spongepowered.asm.mixin.Shadow
+import org.spongepowered.asm.mixin.injection.At
+import org.spongepowered.asm.mixin.injection.Inject
+import org.spongepowered.asm.mixin.injection.ModifyArg
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
+
+@Mixin(Camera::class)
+abstract class CameraMixin {
+
+    @Shadow
+    protected abstract fun getMaxZoom(distance: Float): Float
+
+    @Shadow
+    private var yRot = 0f
+
+    @Shadow
+    private var xRot = 0f
+
+    @Shadow
+    @Final
+    private val minecraft: Minecraft? = null
+
+    @Shadow
+
+    private var entity: Entity? = null
+
+    @Shadow
+    private var isPanoramicMode = false
+
+    @WrapOperation(
+        method = ["calculateFov"],
+        at = [At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;lerp(FFF)F")]
+    )
+    private fun disableDynamicFov(delta: Float, start: Float, end: Float, original: Operation<Float>): Float {
+        if (!AxolotlClient.config().dynamicFOV.get()) {
+            return 1.0f
+        }
+        return original.call(delta, start, end)
+    }
+
+    /**
+     * clear_water/disable_liquid_fov (Alpine parity): the only `Mth.lerp` inside
+     * `modifyFovBasedOnDeathOrFluid` is the fluid shrink toward 0.857; returning the
+     * un-shrunk `start` (1.0) skips it while leaving the death-screen FOV zoom intact.
+     */
+    @WrapOperation(
+        method = ["modifyFovBasedOnDeathOrFluid"],
+        at = [At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;lerp(FFF)F")]
+    )
+    private fun `axolotlclient$noLiquidFov`(delta: Float, start: Float, end: Float, original: Operation<Float>): Float {
+        if (ClearWater.disablesLiquidFov()) {
+            return start
+        }
+        return original.call(delta, start, end)
+    }
+
+    @WrapMethod(method = ["calculateFov"])
+    private fun getFov(partialTicks: Float, original: Operation<Float>): Float {
+        if (this.isPanoramicMode) {
+            return original.call(partialTicks)
+        }
+        Zoom.getInstance().update()
+        return Zoom.getInstance().getFov(original.call(partialTicks), partialTicks)
+    }
+
+    @Inject(
+        method = ["alignWithEntity"],
+        at = [At(value = "INVOKE", target = "net/minecraft/client/Camera.move(FFF)V", ordinal = 0)]
+    )
+    private fun `axolotlclient$perspectiveUpdatePitchYaw`(partialTicks: Float, ci: CallbackInfo) {
+        val inverseView = minecraft!!.options.getCameraType().isMirrored
+        this.xRot = Freelook.getInstance().pitch(xRot) *
+            (if (inverseView && Freelook.getInstance().enabled.get() && Freelook.getInstance().isActive()) -1 else 1)
+        this.yRot = SnapLook.getInstance().yaw(
+            Freelook.getInstance().yaw(yRot) +
+                (if (inverseView && Freelook.getInstance().enabled.get() && Freelook.getInstance().isActive()) 180 else 0)
+        )
+    }
+
+    @WrapOperation(
+        method = ["alignWithEntity"],
+        at = [At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
+            ordinal = 0
+        )]
+    )
+    private fun `axolotlclient$perspectiveFixRotation`(instance: Camera, yawIn: Float, pitchIn: Float, original: Operation<Void>) {
+        var yaw = yawIn
+        var pitch = pitchIn
+        yaw = Freelook.getInstance().yaw(yaw)
+        pitch = Freelook.getInstance().pitch(pitch)
+        yaw = SnapLook.getInstance().yaw(yaw)
+        original.call(instance, yaw, pitch)
+    }
+
+    @WrapOperation(
+        method = ["alignWithEntity"],
+        at = [At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/client/Camera;setRotation(FF)V",
+            ordinal = 1
+        )]
+    )
+    private fun `axolotlclient$perspectiveFixRotation2`(instance: Camera, yaw: Float, pitch: Float, original: Operation<Void>) {
+        `axolotlclient$perspectiveFixRotation`(instance, yaw, pitch, original)
+    }
+
+    @ModifyArg(
+        method = ["alignWithEntity"],
+        at = [At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;move(FFF)V", ordinal = 0)],
+        index = 0
+    )
+    private fun `axolotlclient$correctDistance`(x: Float): Float {
+        if (Freelook.getInstance().enabled.get() && Freelook.getInstance().isActive()
+            && Minecraft.getInstance().options.getCameraType().isMirrored
+        ) {
+            val scale = if (entity is LivingEntity) (entity as LivingEntity).scale else 1.0f
+            return -getMaxZoom(4 * scale)
+        }
+        return x
+    }
+}
