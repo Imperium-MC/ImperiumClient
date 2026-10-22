@@ -31,6 +31,18 @@ void optional(String name) {
 }
 
 rootProject.name = "AxolotlClient-mod"
+
+// The common module compiles Kotlin, but its shadow artifact is consumed by the version
+// modules where the Kotlin runtime is provided by fabric-language-kotlin. Stop the Kotlin
+// Gradle plugin from auto-adding kotlin-stdlib to common's api configuration: it would leak
+// onto every consumer's compile classpath (dragging a transitive org.jetbrains:annotations
+// conflict with it). common declares the stdlib compileOnly itself instead.
+gradle.beforeProject { project ->
+	if (project.name == 'common') {
+		project.extensions.extraProperties.set('kotlin.stdlib.default.dependency', 'false')
+	}
+}
+
 include 'common'
 
 System.out.println("Adding submodules..")
