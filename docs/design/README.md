@@ -67,24 +67,29 @@ each page at 1920×1080 with headless Chrome.
 
 ## Theme tokens
 
-`imperium-ui.css` defines the **Imperium** theme using **Alpine's token names** (`--color-surface`,
+`imperium-ui.css` defines the **Romanica** theme using **Alpine's token names** (`--color-surface`,
 `--color-layer`, `--color-panel-base`, `--color-primary`, `--color-accent`, `--color-text-accent`,
 `--color-overlay-control`, `--color-overlay-border`, `--color-overlay-glow` …), so a theme is a single token
-file. Ship Imperium as the default, and keep a vanilla-neutral dark theme as the alternative. In the client,
+file. Ship Romanica as the default, and keep a vanilla-neutral dark theme as the alternative. In the client,
 these become one Kotlin `ImperiumTheme` object loaded from `assets/imperiumclient/themes/*.json`.
 
-| Token | Imperium value |
+| Token | Romanica value |
 |---|---|
-| `imp-accent` / `imp-accent-hot` | `#C39A58` / `#ECD6A6` |
-| `color-surface` | `#0B0907` at 88 % |
-| `color-layer` | `#17120C` at 42 % |
-| `color-primary` / `-hover` | accent at 25 % / 35 % |
-| `color-secondary` / `accent-soft` / `accent` | accent at 15 % / 30 % / 50 % |
-| `color-text-accent` | `#E0BF86` |
-| `color-text` / `-secondary` / `-tertiary` / `-disabled` | `#FFF8EE` / 78 % / 70 % / 75 % warm greys |
-| `color-overlay-control` / `-hover` | `#17120C` at 42 % / accent at 25 % |
-| `color-overlay-border` / `-hover` | `#ECD6A6` at 16 % / accent at 45 % |
+| `imp-accent` / `imp-accent-hot` | `#C0A479` / `#E8D3A6` (gold, sampled from the emblem; shade `#987C57`, shine `#F9EBC0`) |
+| `color-surface` | `#0A101E` at 90 % |
+| `color-layer` | `#161E2E` at 45 % |
+| `color-panel-base` / `-raised-base` | `#121A2C` / `#1C2740` |
+| `color-component-base` | `#8E97A8` (silver-blue, the laurel leaves) |
+| `color-primary` / `-hover` | gold at 25 % / 35 % |
+| `color-secondary` / `accent-soft` / `accent` | gold at 15 % / 30 % / 50 % |
+| `color-text-accent` | `#E0C896` |
+| `color-text` / `-secondary` / `-tertiary` / `-disabled` | `#F4F1EA` / cool greys at 80 % / 72 % / 75 % |
+| `color-overlay-control` / `-hover` | `#0E1628` at 45 % / gold at 25 % |
+| `color-overlay-border` / `-hover` | `#E8D3A6` at 18 % / gold at 45 % |
 | `color-success` / `color-error` | `#5BD06E` / `#E2603A` |
+
+Page background, store and launcher backdrops: emblem navy `#0E1628`. The theme is navy and gold from the
+Romanica emblem (owner decision, 2026-10-22), replacing the warm bronze-on-basalt palette.
 
 ## Type and icons
 

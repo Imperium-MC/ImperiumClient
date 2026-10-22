@@ -1,47 +1,47 @@
-/* Imperium Client UI v3.
-   Layout, sizes and motion follow Alpine Client's menus; colours are an "Imperium" theme that
+/* Romanica Client UI v3.
+   Layout, sizes and motion follow Alpine Client's menus; colours are the "Romanica" theme (navy and gold, sampled from the Romanica emblem) that
    uses the same token names as Alpine's theme files, so the shell is themeable the same way. */
 :root {
-  --imp-accent: #c39a58;
-  --imp-accent-hot: #ecd6a6;
+  --imp-accent: #c0a479;
+  --imp-accent-hot: #e8d3a6;
 
-  --color-surface: rgba(11, 9, 7, .88);
-  --color-layer: rgba(23, 18, 12, .42);
-  --color-panel-base: #15110c;
-  --color-panel-raised-base: #221a11;
-  --color-component-base: #9a8466;
-  --color-component: rgba(154, 132, 102, .2);
-  --color-component-bg: rgba(42, 33, 24, .55);
-  --color-field-base: #0d0a07;
-  --color-chip-base: #241c13;
-  --color-track: rgba(84, 69, 47, .6);
+  --color-surface: rgba(10, 16, 30, .90);
+  --color-layer: rgba(22, 30, 46, .45);
+  --color-panel-base: #121a2c;
+  --color-panel-raised-base: #1c2740;
+  --color-component-base: #8e97a8;
+  --color-component: rgba(142, 151, 168, .2);
+  --color-component-bg: rgba(28, 39, 64, .55);
+  --color-field-base: #0a1020;
+  --color-chip-base: #1a2438;
+  --color-track: rgba(60, 72, 96, .6);
 
-  --color-primary: rgba(195, 154, 88, .25);
-  --color-primary-hover: rgba(195, 154, 88, .35);
-  --color-secondary: rgba(195, 154, 88, .15);
-  --color-accent-soft: rgba(195, 154, 88, .3);
-  --color-accent: rgba(195, 154, 88, .5);
-  --color-text-accent: #e0bf86;
+  --color-primary: rgba(192, 164, 121, .25);
+  --color-primary-hover: rgba(192, 164, 121, .35);
+  --color-secondary: rgba(192, 164, 121, .15);
+  --color-accent-soft: rgba(192, 164, 121, .3);
+  --color-accent: rgba(192, 164, 121, .5);
+  --color-text-accent: #e0c896;
 
-  --color-text: #fff8ee;
-  --color-text-secondary: rgba(232, 220, 200, .78);
-  --color-text-tertiary: rgba(216, 204, 184, .7);
-  --color-text-disabled: rgba(176, 162, 140, .75);
+  --color-text: #f4f1ea;
+  --color-text-secondary: rgba(214, 220, 232, .80);
+  --color-text-tertiary: rgba(190, 198, 214, .72);
+  --color-text-disabled: rgba(150, 158, 176, .75);
 
   --color-overlay-text: #ffffff;
-  --color-overlay-text-secondary: rgba(235, 225, 210, .78);
-  --color-overlay-control: rgba(23, 18, 12, .42);
-  --color-overlay-control-hover: rgba(195, 154, 88, .25);
-  --color-overlay-border: rgba(236, 214, 166, .16);
-  --color-overlay-border-hover: rgba(195, 154, 88, .45);
-  --color-overlay-glow: rgba(195, 154, 88, .35);
+  --color-overlay-text-secondary: rgba(220, 226, 236, .80);
+  --color-overlay-control: rgba(14, 22, 40, .45);
+  --color-overlay-control-hover: rgba(192, 164, 121, .25);
+  --color-overlay-border: rgba(232, 211, 166, .18);
+  --color-overlay-border-hover: rgba(192, 164, 121, .45);
+  --color-overlay-glow: rgba(192, 164, 121, .35);
   --color-overlay-shadow: rgba(0, 0, 0, .5);
 
   --color-success: #5bd06e;
   --color-error: #e2603a;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { position: relative; width: 1920px; height: 1080px; overflow: hidden; font-family: Barlow, system-ui, sans-serif; color: var(--color-text); background: #0f0d0a url(mc/title-bg.jpg) center / cover; }
+body { position: relative; width: 1920px; height: 1080px; overflow: hidden; font-family: Barlow, system-ui, sans-serif; color: var(--color-text); background: #0e1628 url(mc/title-bg.jpg) center / cover; }
 .ms { font-family: 'Material Symbols Rounded'; font-weight: 400; font-style: normal; font-size: 24px; line-height: 1; letter-spacing: normal; text-transform: none; white-space: nowrap; direction: ltr; -webkit-font-feature-settings: 'liga'; font-feature-settings: 'liga'; font-variation-settings: 'FILL' 1, 'wght' 500; }
 .mc { image-rendering: pixelated; }
 
@@ -79,13 +79,13 @@ body { position: relative; width: 1920px; height: 1080px; overflow: hidden; font
 
 /* Module cards */
 .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.card { position: relative; height: 78px; border-radius: 22px; background: rgba(21, 17, 12, .32); border: 2px solid rgba(154, 132, 102, .16); }
-.card.hover { background: rgba(34, 26, 17, .65); border-color: var(--color-accent-soft); }
-.card.on { background: rgba(195, 154, 88, .13); border-color: rgba(195, 154, 88, .55); }
+.card { position: relative; height: 78px; border-radius: 22px; background: rgba(18, 26, 44, .32); border: 2px solid rgba(142, 151, 168, .16); }
+.card.hover { background: rgba(28, 39, 64, .65); border-color: var(--color-accent-soft); }
+.card.on { background: rgba(192, 164, 121, .13); border-color: rgba(192, 164, 121, .55); }
 .card.blocked { background: rgba(226, 96, 58, .1); border-color: rgba(226, 96, 58, .45); }
-.card .icon { position: absolute; left: 16px; top: 14px; width: 46px; height: 46px; border-radius: 14px; background: rgba(154, 132, 102, .14); display: grid; place-items: center; }
+.card .icon { position: absolute; left: 16px; top: 14px; width: 46px; height: 46px; border-radius: 14px; background: rgba(142, 151, 168, .14); display: grid; place-items: center; }
 .card .icon img { width: 32px; height: 32px; image-rendering: pixelated; }
-.card.on .icon { background: rgba(195, 154, 88, .22); }
+.card.on .icon { background: rgba(192, 164, 121, .22); }
 .card.blocked .icon { background: rgba(226, 96, 58, .16); }
 .card .name { position: absolute; left: 72px; right: 16px; top: 14px; text-align: right; font-size: 16px; font-weight: 600; color: var(--color-text-tertiary); }
 .card.on .name, .card.hover .name { color: var(--color-text); }
@@ -101,21 +101,21 @@ body { position: relative; width: 1920px; height: 1080px; overflow: hidden; font
 .rows { display: flex; flex-direction: column; gap: 8px; }
 .section { display: flex; align-items: center; gap: 12px; height: 20px; margin: 12px 0 2px; font-size: 14px; font-weight: 600; }
 .section i { width: 28px; height: 2px; border-radius: 1px; background: var(--color-text-accent); }
-.row { display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 11px 0 16px; border-radius: 12px; background: rgba(21, 17, 12, .38); border: 1px solid rgba(154, 132, 102, .14); }
-.row.hover { background: rgba(34, 26, 17, .6); border-color: var(--color-accent-soft); }
+.row { display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 11px 0 16px; border-radius: 12px; background: rgba(18, 26, 44, .38); border: 1px solid rgba(142, 151, 168, .14); }
+.row.hover { background: rgba(28, 39, 64, .6); border-color: var(--color-accent-soft); }
 .row.found { border-color: var(--color-accent); box-shadow: 0 0 0 3px var(--color-secondary); }
 .row .label { flex-grow: 1; font-size: 15px; color: var(--color-text-secondary); }
 .row.hover .label { color: var(--color-text); }
 .row .reset { font-size: 20px; color: var(--color-text-disabled); }
 .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .check { width: 22px; height: 22px; border-radius: 7px; background: var(--color-component-bg); border: 1.5px solid var(--color-component); display: grid; place-items: center; }
-.check.on { background: rgba(195, 154, 88, .2); border-color: var(--color-accent); color: var(--imp-accent-hot); }
+.check.on { background: rgba(192, 164, 121, .2); border-color: var(--color-accent); color: var(--imp-accent-hot); }
 .check .ms { font-size: 16px; font-variation-settings: 'FILL' 1, 'wght' 700; }
 .stepper { width: 46%; display: flex; align-items: center; gap: 8px; height: 32px; }
 .stepper .arr { width: 32px; height: 32px; border-radius: 9px; background: var(--color-primary); border: 1px solid var(--color-secondary); display: grid; place-items: center; }
 .stepper .arr .ms { font-size: 20px; }
 .stepper .val { flex-grow: 1; text-align: center; font-size: 14px; font-weight: 600; }
-.slider { width: 46%; height: 8px; border-radius: 4px; background: rgba(154, 132, 102, .3); position: relative; }
+.slider { width: 46%; height: 8px; border-radius: 4px; background: rgba(142, 151, 168, .3); position: relative; }
 .slider b { position: absolute; left: 0; top: 0; height: 8px; border-radius: 4px; background: var(--color-accent); }
 .slider i { position: absolute; top: -3px; width: 14px; height: 14px; border-radius: 7px; background: #fff; }
 .value { width: 72px; text-align: right; font-size: 14px; color: var(--color-text-secondary); }
