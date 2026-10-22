@@ -126,11 +126,11 @@ object ServerGating {
 			Tier.LOCKED -> locked = true
 		}
 		// LIMITED with budget left: same clearing path as GRANTED.
-		val ours = lockReasonKey == option.getReason() || rateReasonKey == option.getReason()
+		val ours = lockReasonKey == option.reason || rateReasonKey == option.reason
 		if (locked) {
 			// Also re-set when the reason changes (lock <-> rate): the option may already be
 			// force-off with our OTHER key from a previous tier.
-			if (!option.isForceOff || !ours || reason != option.getReason()) {
+			if (!option.isForceOff || !ours || reason != option.reason) {
 				option.setForceOff(true, reason)
 			}
 		} else if (option.isForceOff && ours) {
@@ -147,7 +147,7 @@ object ServerGating {
 	fun enforceQoL(option: ForceableBooleanOption, moduleId: String, lockReasonKey: String) {
 		val session = ImperiumClientSession.getInstance()
 		val denied = session.isDenied(moduleId)
-		val ours = lockReasonKey == option.getReason()
+		val ours = lockReasonKey == option.reason
 		if (denied) {
 			if (!option.isForceOff || !ours) {
 				option.setForceOff(true, lockReasonKey)

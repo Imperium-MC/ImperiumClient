@@ -28,7 +28,6 @@ import com.mojang.serialization.Codec;
 import io.github.axolotlclient.AxolotlClientCommon;
 import io.github.axolotlclient.util.options.ForceableBooleanOption;
 import io.netty.buffer.ByteBuf;
-import lombok.Getter;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -40,8 +39,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NullMarked;
 
 public class FeatureDisabler extends FeatureDisablerCommon {
-	@Getter
-	private static final FeatureDisablerCommon instance = new FeatureDisabler();
+	// Eagerly constructs the singleton (the base class stores it); referencing this class
+	// through the inherited FeatureDisablerCommon.getInstance() triggers this initializer.
+	private static final FeatureDisabler INSTANCE = new FeatureDisabler();
 
 	private static final CustomPacketPayload.Type<@NotNull FeaturePayload> CHANNEL_ID =
 		new CustomPacketPayload.Type<>((Identifier) CHANNEL_NAME);
