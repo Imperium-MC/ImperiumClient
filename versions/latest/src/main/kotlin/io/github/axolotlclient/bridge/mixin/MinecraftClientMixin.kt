@@ -59,25 +59,25 @@ import java.util.UUID
 @Mixin(Minecraft::class)
 abstract class MinecraftClientMixin : AxoMinecraftClient {
 	@Shadow
-	var player: LocalPlayer? = null
+	private var player: LocalPlayer? = null
 
 	@Shadow
-	var level: ClientLevel? = null
-
-	@Shadow
-	@field:Final
-	val font: Font? = null
+	private var level: ClientLevel? = null
 
 	@Shadow
 	@field:Final
-	val options: net.minecraft.client.Options? = null
+	private val font: Font? = null
+
+	@Shadow
+	@field:Final
+	private val options: net.minecraft.client.Options? = null
 
 	@Shadow
 	abstract fun getCurrentServer(): ServerData?
 
 	@Shadow
 	@field:Final
-	val gui: Gui? = null
+	private val gui: Gui? = null
 
 	@Shadow
 	@field:Final

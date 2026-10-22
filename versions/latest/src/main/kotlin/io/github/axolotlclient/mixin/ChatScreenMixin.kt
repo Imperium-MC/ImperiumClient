@@ -47,7 +47,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 abstract class ChatScreenMixin private constructor(title: Component) : Screen(title) {
 
     @Shadow
-    protected var input: EditBox? = null
+    private var input: EditBox? = null
 
     @Inject(method = ["init"], at = [At("TAIL")])
     private fun `axolotlclient$addChatScreenshotButton`(ci: CallbackInfo) {

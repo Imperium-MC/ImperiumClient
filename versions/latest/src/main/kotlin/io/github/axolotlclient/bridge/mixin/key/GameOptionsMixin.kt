@@ -37,19 +37,19 @@ import org.spongepowered.asm.mixin.Shadow
 abstract class GameOptionsMixin : AxoGameOptions {
 	@Shadow
 	@field:Final
-	val keySprint: KeyMapping? = null
+	private val keySprint: KeyMapping? = null
 
 	@Shadow
 	@field:Final
-	val keyShift: KeyMapping? = null
+	private val keyShift: KeyMapping? = null
 
 	@Shadow
 	@field:Final
-	val keyAttack: KeyMapping? = null
+	private val keyAttack: KeyMapping? = null
 
 	@Shadow
 	@field:Final
-	val keyUse: KeyMapping? = null
+	private val keyUse: KeyMapping? = null
 
 	@Shadow
 	abstract fun getCameraType(): CameraType
@@ -58,7 +58,7 @@ abstract class GameOptionsMixin : AxoGameOptions {
 	abstract fun setCameraType(pointOfView: CameraType)
 
 	@Shadow
-	var smoothCamera: Boolean = false
+	private var smoothCamera: Boolean = false
 
 	@Shadow
 	@field:Final

@@ -45,16 +45,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 abstract class InventorySearchMixin {
 
     @Shadow
-    protected var leftPos = 0
+    private var leftPos = 0
 
     @Shadow
-    protected var topPos = 0
+    private var topPos = 0
 
     @Shadow
-    protected var imageWidth = 0
+    private var imageWidth = 0
 
     @Shadow
-    protected var imageHeight = 0
+    private var imageHeight = 0
 
     @Inject(method = ["keyPressed"], at = [At("HEAD")], cancellable = true)
     private fun `axolotlclient$inventorySearchKey`(event: KeyEvent, cir: CallbackInfoReturnable<Boolean>) {

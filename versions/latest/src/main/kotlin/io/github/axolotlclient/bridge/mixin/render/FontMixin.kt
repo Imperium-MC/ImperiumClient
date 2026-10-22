@@ -37,7 +37,7 @@ abstract class FontMixin : AxoFont {
 
 	@Shadow
 	@field:Final
-	val lineHeight: Int = 0
+	private val lineHeight: Int = 0
 
 	@Shadow
 	abstract fun width(text: FormattedText): Int

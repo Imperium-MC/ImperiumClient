@@ -30,7 +30,7 @@ import org.spongepowered.asm.mixin.Shadow
 @Mixin(ServerData::class)
 abstract class ServerDataMixin : AxoServerData {
 	@Shadow
-	var ip: String? = null
+	private var ip: String? = null
 
 	override fun `br$getIp`(): String = ip!!
 }
