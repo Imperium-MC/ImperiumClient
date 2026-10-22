@@ -48,16 +48,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 abstract class ContainerCenteringMixin {
 
     @Shadow
-    protected var leftPos: Int = 0
+    private var leftPos: Int = 0
 
     @Shadow
-    protected var topPos: Int = 0
+    private var topPos: Int = 0
 
     @Shadow
-    protected var imageWidth: Int = 0
+    private var imageWidth: Int = 0
 
     @Shadow
-    protected var imageHeight: Int = 0
+    private var imageHeight: Int = 0
 
     @Inject(method = ["init"], at = [At("TAIL")])
     private fun `axolotlclient$keepContainerCentered`(ci: CallbackInfo) {

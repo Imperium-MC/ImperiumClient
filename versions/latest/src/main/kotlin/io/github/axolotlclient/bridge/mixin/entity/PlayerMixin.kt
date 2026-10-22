@@ -53,10 +53,10 @@ abstract class PlayerMixin : AxoPlayer {
 	abstract fun getProjectile(weaponStack: ItemStack): ItemStack
 
 	@Shadow
-	var experienceLevel: Int = 0
+	private var experienceLevel: Int = 0
 
 	@Shadow
-	var experienceProgress: Float = 0f
+	private var experienceProgress: Float = 0f
 
 	private val self: Entity
 		get() = this as Any as Entity
