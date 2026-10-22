@@ -59,6 +59,22 @@ object LowHpTint {
         return Mth.clamp((threshold - health) / span, 0.0f, 1.0f)
     }
 
+    /**
+     * The tint's effective alpha (0-255) below the threshold (Alpine `adaptive_opacity`
+     * + `min_opacity`). With adaptive opacity the alpha ramps with health, floored at
+     * `minOpacityPercent` of the base alpha; without it the tint draws at the base
+     * alpha the whole time. Pure function so both paths can be exercised directly.
+     */
+    @JvmStatic
+    fun alphaFor(health: Float, threshold: Int, adaptive: Boolean, minOpacityPercent: Int, baseAlpha: Int): Int {
+        if (!adaptive) {
+            return baseAlpha
+        }
+        val min = Mth.clamp(minOpacityPercent / 100.0f, 0.0f, 1.0f)
+        val factor = maxOf(min, intensityFor(health, threshold))
+        return (baseAlpha * factor).roundToInt()
+    }
+
     @JvmStatic
     fun render(graphics: GuiGraphicsExtractor, cameraEntity: net.minecraft.world.entity.Entity) {
         if (!AxolotlClient.config().lowHpTint.get()) {
@@ -78,7 +94,11 @@ object LowHpTint {
         }
 
         val base = AxolotlClient.config().lowHpTintColor.get().toInt()
-        val strength = (ARGB.alpha(base) * factor).roundToInt()
+        val strength = alphaFor(
+            living.health, AxolotlClient.config().lowHpThreshold.get(),
+            AxolotlClient.config().lowHpAdaptiveOpacity.get(),
+            AxolotlClient.config().lowHpMinOpacity.get(), ARGB.alpha(base)
+        )
         val width = graphics.guiWidth()
         val height = graphics.guiHeight()
         if (AxolotlClient.config().lowHpTintStyle.get() == LowHpTintStyle.VIGNETTE) {

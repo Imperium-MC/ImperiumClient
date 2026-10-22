@@ -45,8 +45,11 @@ object ChunkBorders {
      */
     const val REGION_SIZE: Int = 512
 
-    private const val CHUNK_LINE_WIDTH = 2.0f
-    private const val REGION_LINE_WIDTH = 3.0f
+    private const val REGION_EXTRA_WIDTH = 1.0f
+
+    /** Chunk line width from the `chunk_borders.line_thickness` option (>= 1). */
+    @JvmStatic
+    fun chunkLineWidth(): Float = maxOf(1.0f, AxolotlClient.config().chunkBorderThickness.get().toFloat())
 
     /**
      * Opens the module's own per-frame gizmo collection window. `BEFORE_GIZMOS` fires
@@ -96,13 +99,13 @@ object ChunkBorders {
 
         emitCell(
             chunkBase(blockX), chunkBase(blockZ), 16,
-            AxolotlClient.config().chunkBorderColor.get().toInt(), CHUNK_LINE_WIDTH, minY, maxY
+            AxolotlClient.config().chunkBorderColor.get().toInt(), chunkLineWidth(), minY, maxY
         )
 
         if (AxolotlClient.config().regionBorders.get()) {
             emitCell(
                 regionBase(blockX), regionBase(blockZ), REGION_SIZE,
-                AxolotlClient.config().regionBorderColor.get().toInt(), REGION_LINE_WIDTH, minY, maxY
+                AxolotlClient.config().regionBorderColor.get().toInt(), chunkLineWidth() + REGION_EXTRA_WIDTH, minY, maxY
             )
         }
     }
