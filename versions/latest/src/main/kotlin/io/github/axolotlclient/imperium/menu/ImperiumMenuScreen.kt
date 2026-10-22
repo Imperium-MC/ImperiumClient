@@ -224,7 +224,7 @@ class ImperiumMenuScreen(private val parent: Screen?) :
 	private fun openPendingHudEntrySettings() {
 		val hud = pendingHudEntry ?: return
 		pendingHudEntry = null
-		val index = visible.indexOfFirst { it.id() == "hud/" + hud.id.toString() }
+		val index = visible.indexOfFirst { it.id() == "hud/" + hud.getId().toString() }
 		if (index >= 0) {
 			openSettings(index)
 		}

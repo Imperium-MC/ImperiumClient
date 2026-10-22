@@ -29,6 +29,7 @@ import java.util.function.Consumer
 import io.github.axolotlclient.AxolotlClientCommon
 import io.github.axolotlclient.AxolotlClientConfig.api.options.OptionCategory
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.BooleanOption
+import io.github.axolotlclient.modules.hud.HudManagerCommon;
 import io.github.axolotlclient.modules.hud.HudManager
 import io.github.axolotlclient.bridge.util.AxoI18n
 
@@ -50,13 +51,13 @@ object MenuEntries {
 	@JvmStatic
 	fun build(): MutableList<MenuEntry> {
 		val entries = ArrayList<MenuEntry>()
-		for (hud in HudManager.getInstance().entries) {
-			val category = hud.category ?: continue
-			val resolved = CATEGORY_OVERRIDES[hud.id.toString()] ?: MenuCategory.HUD
+		for (hud in HudManagerCommon.getInstance()!!!!.getEntries()) {
+			val category = hud.getCategory() ?: continue
+			val resolved = CATEGORY_OVERRIDES[hud.getId().toString()] ?: MenuCategory.HUD
 			entries.add(
 				MenuEntry(
-					"hud/" + hud.id, hud.name, resolved, category,
-					BooleanSupplier { hud.isEnabled }, Consumer { value: Boolean ->
+					"hud/" + hud.getId(), hud.getName(), resolved, category,
+					BooleanSupplier { hud.isEnabled() }, Consumer { value: Boolean ->
 						hud.setEnabled(value)
 						hud.onBoundsUpdate()
 						AxolotlClientCommon.getInstance().saveConfig()

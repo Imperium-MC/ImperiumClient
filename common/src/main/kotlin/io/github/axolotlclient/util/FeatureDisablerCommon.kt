@@ -53,7 +53,7 @@ abstract class FeatureDisablerCommon protected constructor() {
         )
         setServers(SnapLook.getInstance().enabled, NONE, "hypixel", "mineplex", "gommehd", "nucleoid", "mccisland", "mcpvp.club")
         setServers(
-            (HudManagerCommon.getInstance().get(ToggleSprintHud.ID) as ToggleSprintHud).toggleSneak,
+            (HudManagerCommon.getInstance()!!.get(ToggleSprintHud.ID) as ToggleSprintHud).toggleSneak,
             NONE,
             "hypixel",
             "gommehd"
