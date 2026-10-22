@@ -1,0 +1,43 @@
+/*
+ * Copyright © 2024 moehreag <moehreag@gmail.com> & Contributors
+ *
+ * This file is part of AxolotlClient.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * For more information, see the LICENSE file.
+ */
+
+package io.github.axolotlclient.mixin
+
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
+import net.minecraft.world.inventory.Slot
+import org.spongepowered.asm.mixin.Mixin
+import org.spongepowered.asm.mixin.gen.Accessor
+
+@Mixin(AbstractContainerScreen::class)
+interface AbstractContainerScreenAccessor {
+
+    @Accessor("hoveredSlot")
+    fun getHoveredSlot(): Slot?
+
+    // keep_centered (wave 5 inventory_tweaks): read back the container position the centering
+    // mixin recomputes, for tests and debugging. Additive — the hoveredSlot accessor stays.
+    @Accessor("leftPos")
+    fun `axolotlclient$getLeftPos`(): Int
+
+    @Accessor("imageWidth")
+    fun `axolotlclient$getImageWidth`(): Int
+}
