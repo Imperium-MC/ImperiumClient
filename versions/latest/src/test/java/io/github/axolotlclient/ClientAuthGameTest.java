@@ -385,11 +385,15 @@ public class ClientAuthGameTest implements FabricClientGameTest {
 	private void legionFallbackRespectsChannelPriority() {
 		try {
 			ClientApi.LegionSnapshot snapshot = new ClientApi.LegionSnapshot(
-				"spartans", "Spartans", 3, 1200L, 20, "owner", 2);
+				"spartans", "Spartans", 3, 1200L, 20, "owner", 2, java.util.List.of("Owner", "Leonidas"));
 
-			// Channel owns the session (connected to ImperiumMC): never apply.
+			// Channel owns the session (connected to ImperiumMC): never apply the state…
 			ImperiumOnline.LegionApiFallback.applyIfVacant(snapshot, true);
 			check(LegionStateRegistry.get() == null, "the API value must never fight the live channel");
+			// …but member names are channel-absent data and still land (tab group highlight).
+			check(LegionStateRegistry.isMember("leonidas"), "member names apply even while the channel owns the session");
+			check(!LegionStateRegistry.isMember("stranger"), "non-members must not match");
+			LegionStateRegistry.clear();
 
 			// Not connected, registry vacant: the fallback fills it.
 			ImperiumOnline.LegionApiFallback.applyIfVacant(snapshot, false);
@@ -399,11 +403,12 @@ public class ClientAuthGameTest implements FabricClientGameTest {
 			check(state.onlineMembers() == 0, "presence is channel-only; the API cannot see it");
 			check(state.totalMembers() == 2 && state.level() == 3, "member count and level must round-trip");
 			check(state.power() == 0L, "war power is channel-only; the API cannot see it");
+			check(LegionStateRegistry.isMember("Owner"), "member names round-trip case-insensitively");
 
 			// Registry occupied (a channel push owns it): the fallback stands down.
 			LegionStateRegistry.set("Spartans", 3, 12, 4200L, 5);
 			ImperiumOnline.LegionApiFallback.applyIfVacant(
-				new ClientApi.LegionSnapshot("others", null, 9, 1L, 9, null, 9), false);
+				new ClientApi.LegionSnapshot("others", null, 9, 1L, 9, null, 9, java.util.List.of()), false);
 			check("Spartans".equals(LegionStateRegistry.get().name()), "an occupied registry must win over the API");
 		} finally {
 			LegionStateRegistry.clear();

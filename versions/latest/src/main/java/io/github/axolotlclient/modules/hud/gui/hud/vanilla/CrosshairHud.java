@@ -83,6 +83,12 @@ public class CrosshairHud extends AbstractHudEntry implements DynamicallyPositio
 	private final BooleanOption overrideF3 = new BooleanOption("overrideF3", false);
 	private final BooleanOption customAttackIndicator = new BooleanOption("crosshairhud.custom_attack_indicator", false);
 
+	// Alpine profile settings (M6): dynamic_color gates the target-based recolouring
+	// (off = always the default colour); friendly_color replaces the entity colour while
+	// the crosshair target is an ally (vanilla scoreboard team / isAlliedTo).
+	private final BooleanOption dynamicColor = new BooleanOption("crosshairhud.dynamic_color", true);
+	private final ColorOption friendlyColor = new ColorOption("crosshairhud.friendly_color", ClientColors.SELECTOR_GREEN);
+
 	private final GraphicsOption customTextureGraphics = new GraphicsOption("customTextureGraphics",
 		new int[][]{
 			new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -136,6 +142,8 @@ public class CrosshairHud extends AbstractHudEntry implements DynamicallyPositio
 		options.add(applyBlend);
 		options.add(defaultColor);
 		options.add(entityColor);
+		options.add(friendlyColor);
+		options.add(dynamicColor);
 		options.add(containerColor);
 		options.add(customAttackIndicator);
 		options.add(attackIndicatorBackgroundColor);
@@ -185,11 +193,7 @@ public class CrosshairHud extends AbstractHudEntry implements DynamicallyPositio
 		int x = getPos().x();
 		int y = getPos().y() + 1;
 		var mode = getMode();
-		Color color = (switch (mode) {
-			case DEFAULT -> defaultColor;
-			case ENTITY -> entityColor;
-			case CONTAINER -> containerColor;
-		}).get();
+		Color color = getModeColor(mode);
 		Crosshair defaultType = this.type.get();
 		var typeOption = (switch (mode) {
 			case DEFAULT -> this.type;
@@ -269,6 +273,29 @@ public class CrosshairHud extends AbstractHudEntry implements DynamicallyPositio
 			}
 		}
 		graphics.pose().popMatrix();
+	}
+
+	/**
+	 * Colour for the current aim mode: the default colour always, unless dynamic
+	 * recolouring is on — then the container colour over containers and the entity
+	 * colour over entities, with the friendly colour when that entity is an ally.
+	 */
+	private Color getModeColor(CrosshairMode mode) {
+		if (!dynamicColor.get()) {
+			return defaultColor.get();
+		}
+		if (mode == CrosshairMode.CONTAINER) {
+			return containerColor.get();
+		}
+		if (mode == CrosshairMode.ENTITY && client.player != null && client.crosshairPickEntity != null
+			&& client.player.isAlliedTo(client.crosshairPickEntity)) {
+			return friendlyColor.get();
+		}
+		return (switch (mode) {
+			case DEFAULT -> defaultColor;
+			case ENTITY -> entityColor;
+			case CONTAINER -> containerColor;
+		}).get();
 	}
 
 	public void renderDirectionCrosshair() {

@@ -306,7 +306,41 @@ public abstract class AxolotlClientConfigCommon {
 
 	public final BooleanOption compactChat = new BooleanOption("compact_chat", false);
 
+	// compact_chat sub-settings (Alpine profile M6): time-based stacking re-finds the
+	// earlier duplicate anywhere in the chat within the window instead of only at the
+	// head; ignore_blank keeps whitespace-only lines from ever stacking; ignoring line
+	// breaks normalizes embedded newlines before comparing.
+	public final BooleanOption compactTimeBased = new BooleanOption("compact_time_based", false);
+	public final IntegerOption compactTimeWindow = new IntegerOption("compact_time_window", 5, 1, 60);
+	public final BooleanOption compactIgnoreBlank = new BooleanOption("compact_ignore_blank", true);
+	public final BooleanOption compactIgnoreLineBreaks = new BooleanOption("compact_ignore_line_breaks", true);
+
 	public final BooleanOption chatTimestamps = new BooleanOption("chat_timestamps", false);
+
+	/** Chat timestamp layouts (Alpine "timestamp_format", M6). */
+	public enum ChatTimestampFormat {
+		HH_MM("HH:mm"),
+		HH_MM_SS("HH:mm:ss"),
+		HH_MM_12("h:mm a");
+
+		private final String pattern;
+
+		ChatTimestampFormat(String pattern) {
+			this.pattern = pattern;
+		}
+
+		public java.time.format.DateTimeFormatter formatter() {
+			return java.time.format.DateTimeFormatter.ofPattern(pattern, Locale.ROOT);
+		}
+
+		@Override
+		public String toString() {
+			return "chat_timestamps.format." + name().toLowerCase(Locale.ROOT);
+		}
+	}
+
+	public final EnumOption<ChatTimestampFormat> chatTimestampFormat =
+		new EnumOption<>("chat_timestamps.format", ChatTimestampFormat.class, ChatTimestampFormat.HH_MM);
 	public final BooleanOption chatEmptyFilter = new BooleanOption("empty_chat_filter", false);
 	public final BooleanOption chatNameHighlight = new BooleanOption("name_highlight", false);
 	public final BooleanOption chatNamePing = new BooleanOption("name_highlight_ping", true);
@@ -382,7 +416,10 @@ public abstract class AxolotlClientConfigCommon {
 		config.add(hidden);
 
 		chatSettings.add(compactChat);
+		chatSettings.add(compactTimeBased, compactTimeWindow);
+		chatSettings.add(compactIgnoreBlank, compactIgnoreLineBreaks);
 		chatSettings.add(chatTimestamps);
+		chatSettings.add(chatTimestampFormat);
 		chatSettings.add(chatEmptyFilter);
 		chatSettings.add(chatNameHighlight, chatNamePing);
 		chatSettings.add(chatHoverHighlight, chatHoverHighlightColor);

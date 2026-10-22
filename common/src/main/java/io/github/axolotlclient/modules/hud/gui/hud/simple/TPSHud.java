@@ -29,6 +29,7 @@ import java.text.NumberFormat;
 import io.github.axolotlclient.AxolotlClientConfig.api.options.Option;
 import io.github.axolotlclient.AxolotlClientConfig.api.util.Color;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.BooleanOption;
+import io.github.axolotlclient.AxolotlClientConfig.impl.options.ColorOption;
 import io.github.axolotlclient.bridge.events.Events;
 import io.github.axolotlclient.bridge.util.AxoIdentifier;
 import io.github.axolotlclient.modules.hud.gui.entry.SimpleTextHudEntry;
@@ -103,7 +104,12 @@ public class TPSHud extends SimpleTextHudEntry {
 	// ADAPTIVE COLOUR TIERS (Alpine parity M2): green when healthy, degrading through
 	// yellow and orange to red as the server struggles. When disabled (or while the
 	// first sample is still pending) the module's regular text colour option applies.
+	// The tier thresholds follow the Alpine profile's four colour settings (M6).
 	private final BooleanOption adaptiveColor = new BooleanOption("adaptivecolor", true);
+	private final ColorOption highTpsColor = new ColorOption("high_tps_color", new Color(53, 219, 103).immutable());
+	private final ColorOption mediumTpsColor = new ColorOption("medium_tps_color", new Color(232, 197, 99).immutable());
+	private final ColorOption lowTpsColor = new ColorOption("low_tps_color", new Color(234, 164, 100).immutable());
+	private final ColorOption criticalTpsColor = new ColorOption("critical_tps_color", new Color(191, 34, 34).immutable());
 
 	@Override
 	public Color getTextColor() {
@@ -111,21 +117,25 @@ public class TPSHud extends SimpleTextHudEntry {
 			return super.getTextColor();
 		}
 		if (tps >= 18.0) {
-			return new Color(53, 219, 103).immutable();   // green
+			return highTpsColor.get();
 		}
 		if (tps >= 15.0) {
-			return new Color(232, 197, 99).immutable();    // yellow
+			return mediumTpsColor.get();
 		}
 		if (tps >= 12.0) {
-			return new Color(234, 164, 100).immutable();   // orange
+			return lowTpsColor.get();
 		}
-		return new Color(191, 34, 34).immutable();         // red
+		return criticalTpsColor.get();
 	}
 
 	@Override
 	public List<Option<?>> getConfigurationOptions() {
 		List<Option<?>> options = super.getConfigurationOptions();
 		options.add(adaptiveColor);
+		options.add(highTpsColor);
+		options.add(mediumTpsColor);
+		options.add(lowTpsColor);
+		options.add(criticalTpsColor);
 		return options;
 	}
 }

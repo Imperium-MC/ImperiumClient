@@ -84,6 +84,15 @@ public class ScoreboardHud extends TextHudEntry {
 	private final ColorOption scoreColor = new ColorOption("scorecolor", new Color(0xFFFF5555));
 	private final IntegerOption textAlpha = new IntegerOption("text_alpha", 255, 0, 255);
 
+	/**
+	 * Alpine "server_hud_safety" (M6): when on, the vanilla sidebar is only suppressed
+	 * while this entry actually renders it (global HUDs on, entry enabled and not
+	 * hidden in F1) so a server sidebar can never double-render or vanish entirely.
+	 * Turning it off takes over aggressively: vanilla is suppressed whenever the entry
+	 * is enabled, even while the custom render is paused. Read by InGameHudMixin.
+	 */
+	public final BooleanOption serverHudSafety = new BooleanOption("server_hud_safety", true);
+
 	private final Minecraft client = (Minecraft) super.client;
 
 	public ScoreboardHud() {
@@ -231,6 +240,7 @@ public class ScoreboardHud extends TextHudEntry {
 		options.add(scores);
 		options.add(scoreColor);
 		options.add(topPadding);
+		options.add(serverHudSafety);
 		options.remove(textColor);
 		options.add(textAlpha);
 		return options;

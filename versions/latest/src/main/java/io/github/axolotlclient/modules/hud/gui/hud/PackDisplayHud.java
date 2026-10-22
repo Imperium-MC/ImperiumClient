@@ -55,6 +55,12 @@ public class PackDisplayHud extends TextHudEntry {
 	public static final Identifier ID = Identifier.fromNamespaceAndPath(AxolotlClientCommon.MODID, "packdisplayhud");
 	public final List<PackWidget> widgets = new ArrayList<>();
 	private final BooleanOption iconsOnly = new BooleanOption("iconsonly", false);
+
+	// Alpine profile settings (M6): display_description adds the pack.mcmeta description
+	// line under the name; trim_extension strips ".zip"/".mcpack" suffixes from titles.
+	public final BooleanOption displayDescription = new BooleanOption("packdisplay.display_description", false);
+	public final BooleanOption trimExtension = new BooleanOption("packdisplay.trim_extension", true);
+
 	private final Minecraft client = (Minecraft) super.client;
 	private PackWidget placeholder;
 
@@ -79,7 +85,7 @@ public class PackDisplayHud extends TextHudEntry {
 		int y = pos.y() + 1;
 		for (int i = widgets.size() - 1; i >= 0; i--) { // Badly reverse the order (I'm sure there are better ways to do this)
 			widgets.get(i).render(graphics, pos.x() + 1, y);
-			y += 17;
+			y += widgets.get(i).height();
 		}
 		if (y - pos.y() != getContentHeight()) {
 			setContentHeight(y - pos.y());
@@ -114,7 +120,7 @@ public class PackDisplayHud extends TextHudEntry {
 		});
 		setContentWidth(w.get());
 
-		setContentHeight(widgets.size() * 17 + 1);
+		setContentHeight(widgets.stream().mapToInt(PackWidget::height).sum() + 1);
 		onBoundsUpdate();
 	}
 
@@ -125,7 +131,39 @@ public class PackDisplayHud extends TextHudEntry {
 		Identifier id = Identifier.fromNamespaceAndPath(ID.getNamespace(), ID.getPath() + "/" + pack.packId());
 		client.getTextureManager().register(id, new DynamicTexture(id::toString, NativeImage.read(stream)));
 		stream.close();
-		return new PackWidget(displayName, id);
+		String name = displayName.getString();
+		if (trimExtension.get()) {
+			name = name.replaceFirst("(?i)\\.(zip|mcpack)$", "");
+		}
+		return new PackWidget(name, readDescription(pack), id);
+	}
+
+	/** Best-effort pack.mcmeta description line; null when absent or unreadable. */
+	private String readDescription(PackResources pack) {
+		if (!displayDescription.get()) {
+			return null;
+		}
+		IoSupplier<@NotNull InputStream> supplier = pack.getRootResource("pack.mcmeta");
+		if (supplier == null) {
+			return null;
+		}
+		try (InputStream meta = supplier.get()) {
+			var root = com.google.gson.JsonParser.parseReader(new java.io.InputStreamReader(meta, java.nio.charset.StandardCharsets.UTF_8));
+			if (!root.isJsonObject()) {
+				return null;
+			}
+			var description = root.getAsJsonObject().get("description");
+			if (description != null && description.isJsonPrimitive()) {
+				String text = description.getAsString();
+				return text.isBlank() ? null : text;
+			}
+			if (description != null && description.isJsonObject() && description.getAsJsonObject().has("text")) {
+				String text = description.getAsJsonObject().get("text").getAsString();
+				return text.isBlank() ? null : text;
+			}
+		} catch (Exception ignored) {
+		}
+		return null;
 	}
 
 	@Override
@@ -156,6 +194,8 @@ public class PackDisplayHud extends TextHudEntry {
 	public List<Option<?>> getConfigurationOptions() {
 		List<Option<?>> options = super.getConfigurationOptions();
 		options.add(iconsOnly);
+		options.add(displayDescription);
+		options.add(trimExtension);
 		return options;
 	}
 
@@ -173,11 +213,18 @@ public class PackDisplayHud extends TextHudEntry {
 
 		@Getter
 		public final String name;
+		private final String description;
 		private final Identifier texture;
 
-		public PackWidget(Component name, Identifier id) {
-			this.name = name.getString();
+		public PackWidget(String name, String description, Identifier id) {
+			this.name = name;
+			this.description = description;
 			texture = id;
+		}
+
+		/** Row height: 17 for an icon row, +9 when the description line is shown. */
+		public int height() {
+			return description != null ? 26 : 17;
 		}
 
 		public void render(GuiGraphicsExtractor graphics, int x, int y) {
@@ -185,6 +232,10 @@ public class PackDisplayHud extends TextHudEntry {
 				graphics.blit(RenderPipelines.GUI_TEXTURED, texture, x, y, 0, 0, 16, 16, 16, 16);
 			}
 			drawString(graphics, name, x + 18, y + 16 / 2 - 9 / 2, textColor.get().toInt(), shadow.get());
+			if (description != null) {
+				drawString(graphics, description, x + 18, y + 16 / 2 - 9 / 2 + 9,
+					textColor.get().withAlpha(170).toInt(), shadow.get());
+			}
 		}
 	}
 }

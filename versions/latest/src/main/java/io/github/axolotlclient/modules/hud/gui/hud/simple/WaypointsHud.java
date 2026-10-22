@@ -28,7 +28,10 @@ import java.util.Locale;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import io.github.axolotlclient.AxolotlClientConfig.api.options.Option;
+import io.github.axolotlclient.AxolotlClientConfig.api.util.Color;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.BooleanOption;
+import io.github.axolotlclient.AxolotlClientConfig.impl.options.ColorOption;
+import io.github.axolotlclient.AxolotlClientConfig.impl.options.IntegerOption;
 import io.github.axolotlclient.api.SimpleTextInputScreen;
 import io.github.axolotlclient.bridge.key.AxoKeybinding;
 import io.github.axolotlclient.bridge.render.AxoRenderContext;
@@ -68,6 +71,14 @@ public class WaypointsHud extends TextHudEntry {
 	public final BooleanOption showDistance = new BooleanOption("waypoints.show_distance", true);
 	public final BooleanOption showArrow = new BooleanOption("waypoints.show_arrow", true);
 	public final BooleanOption deathWaypoints = new BooleanOption("waypoints.death_points", true);
+
+	// Alpine profile settings (M6): cap the death-point history per dimension and pick
+	// the colour new death points get. Unbounded history keeps numbered names so the
+	// list stays readable.
+	public final BooleanOption limitDeathWaypoints = new BooleanOption("waypoints.limit_death_waypoints", true);
+	public final IntegerOption maxDeathWaypoints = new IntegerOption("waypoints.max_death_waypoints", 1, 1, 20);
+	public final ColorOption deathWaypointColor = new ColorOption("waypoints.death_waypoint_color",
+		new Color(Waypoint.DEATH_COLOR).immutable());
 
 	/**
 	 * 3D tracers (world-space markers projected onto the screen, see {@link io.github.axolotlclient.modules.waypoints.WaypointTracers});
@@ -116,7 +127,8 @@ public class WaypointsHud extends TextHudEntry {
 		boolean dead = player.isDeadOrDying();
 		if (dead && !wasDeadOrDying && deathWaypoints.get()) {
 			WaypointManager.getInstance().setDeathPoint(player.getX(), player.getY(), player.getZ(),
-				currentDimension(player));
+				currentDimension(player), deathWaypointColor.get().toInt(), limitDeathWaypoints.get(),
+				maxDeathWaypoints.get());
 			Util.addMessageToChatHud(Component.translatable("waypoints.death.set"));
 		}
 		wasDeadOrDying = dead;
@@ -285,6 +297,9 @@ public class WaypointsHud extends TextHudEntry {
 		options.add(showDistance);
 		options.add(showArrow);
 		options.add(deathWaypoints);
+		options.add(limitDeathWaypoints);
+		options.add(maxDeathWaypoints);
+		options.add(deathWaypointColor);
 		options.add(tracers);
 		options.add(new GenericOption("waypoints.open_list", "waypoints.open_list",
 			() -> client.execute(() -> client.gui.setScreen(new WaypointsScreen(null)))));

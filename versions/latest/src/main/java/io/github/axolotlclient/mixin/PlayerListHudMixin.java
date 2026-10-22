@@ -134,11 +134,17 @@ public abstract class PlayerListHudMixin {
 
 	@WrapOperation(method = "extractRenderState", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/PlayerTabOverlay;extractPingIcon(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IIILnet/minecraft/client/multiplayer/PlayerInfo;)V"))
 	private void axolotlclient$highlightSelfRow(PlayerTabOverlay instance, GuiGraphicsExtractor graphics, int slotWidth, int xo, int yo, PlayerInfo info, Operation<Void> original) {
-		if (minecraft.player != null && info.getProfile().equals(minecraft.player.getGameProfile())) {
-			var tablist = (PlayerTabOverlayHud) HudManagerCommon.getInstance().get(PlayerTabOverlayHud.ID);
+		var tablist = (PlayerTabOverlayHud) HudManagerCommon.getInstance().get(PlayerTabOverlayHud.ID);
+		boolean self = minecraft.player != null && info.getProfile().equals(minecraft.player.getGameProfile());
+		if (self) {
 			if (tablist != null && tablist.highlightSelf.get()) {
 				graphics.fill(xo, yo, xo + slotWidth, yo + 8, tablist.getSelfHighlightColor());
 			}
+		} else if (tablist != null && tablist.highlightGroupMembers.get()
+			&& io.github.axolotlclient.imperium.LegionStateRegistry.isMember(info.getProfile().name())) {
+			// Alpine "highlight_group_members" (M6): legion peers get their own row
+			// highlight; self keeps precedence so the two never stack.
+			graphics.fill(xo, yo, xo + slotWidth, yo + 8, tablist.getGroupHighlightColor());
 		}
 		original.call(instance, graphics, slotWidth, xo, yo, info);
 	}

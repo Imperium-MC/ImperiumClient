@@ -111,10 +111,31 @@ public final class WaypointManager {
 		}
 	}
 
-	/** Replaces any existing death point in that dimension with a fresh one. */
-	public void setDeathPoint(double x, double y, double z, String dimension) {
-		waypoints.removeIf(wp -> wp.death() && wp.dimension().equals(dimension));
-		waypoints.add(0, new Waypoint(Waypoint.DEATH_NAME, x, y, z, dimension, Waypoint.DEATH_COLOR, true, true));
+	/**
+	 * Records a death point (Alpine parity M6). With limiting enabled the newest
+	 * {@code max} death points of the dimension are kept (oldest evicted, matching the
+	 * pre-M6 single-slot behaviour at max=1); with limiting off the history grows
+	 * unbounded and entries are numbered so they stay distinguishable in the list.
+	 *
+	 * @param color ARGB colour for the new death point (the HUD's death_waypoint_color)
+	 * @param limit whether to cap the per-dimension death point history
+	 * @param max   how many death points to keep while limiting
+	 */
+	public void setDeathPoint(double x, double y, double z, String dimension, int color, boolean limit, int max) {
+		long existing = waypoints.stream().filter(wp -> wp.death() && wp.dimension().equals(dimension)).count();
+		if (limit) {
+			// Evict oldest beyond max-1 so the new point fits; max<=1 reproduces the
+			// classic single-slot replace.
+			while (existing >= Math.max(1, max)) {
+				waypoints.stream()
+					.filter(wp -> wp.death() && wp.dimension().equals(dimension))
+					.reduce((first, second) -> second)
+					.ifPresent(waypoints::remove);
+				existing--;
+			}
+		}
+		String name = existing > 0 ? Waypoint.DEATH_NAME + " " + (existing + 1) : Waypoint.DEATH_NAME;
+		waypoints.add(0, new Waypoint(name, x, y, z, dimension, color, true, true));
 		save();
 	}
 

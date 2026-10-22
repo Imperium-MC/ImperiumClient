@@ -25,7 +25,9 @@ package io.github.axolotlclient.modules.hud.gui.hud.simple;
 import java.util.List;
 
 import io.github.axolotlclient.AxolotlClientConfig.api.options.Option;
+import io.github.axolotlclient.AxolotlClientConfig.api.util.Color;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.BooleanOption;
+import io.github.axolotlclient.AxolotlClientConfig.impl.options.ColorOption;
 import io.github.axolotlclient.bridge.render.AxoRenderContext;
 import io.github.axolotlclient.imperium.BoostRegistry;
 import io.github.axolotlclient.modules.hud.gui.entry.TextHudEntry;
@@ -45,6 +47,12 @@ public class BoostsHud extends TextHudEntry {
 
 	/** Show the remaining time after each boost name. */
 	public final BooleanOption showRemaining = new BooleanOption("show_remaining", true);
+
+	// Alpine profile settings (M6): the remaining-time text gets its own colour when
+	// override_color is on (off = the entry's regular text colour).
+	public final BooleanOption overrideColor = new BooleanOption("boosts.override_color", false);
+	public final ColorOption durationColor = new ColorOption("boosts.duration_color",
+		new Color(232, 197, 99).immutable());
 
 	private final Minecraft client = (Minecraft) super.client;
 
@@ -70,11 +78,14 @@ public class BoostsHud extends TextHudEntry {
 		int line_height = client.font.lineHeight + 1;
 		int width = 0;
 		for (BoostRegistry.ActiveBoost boost : boosts) {
-			String label = showRemaining.get()
-				? boost.name() + " " + formatRemaining(boost.endsAtEpochMs() - System.currentTimeMillis())
-				: boost.name();
-			graphics.br$drawString(label, x, y, textColor.get().toInt(), shadow.get());
-			width = Math.max(width, client.font.width(label));
+			int cursor = graphics.br$drawString(boost.name(), x, y, textColor.get().toInt(), shadow.get());
+			int end = cursor;
+			if (showRemaining.get()) {
+				long remaining = boost.endsAtEpochMs() - System.currentTimeMillis();
+				int secondsColor = overrideColor.get() ? durationColor.get().toInt() : textColor.get().toInt();
+				end = graphics.br$drawString(" " + formatRemaining(remaining), cursor, y, secondsColor, shadow.get());
+			}
+			width = Math.max(width, end - x);
 			y += line_height;
 		}
 		if (width != getContentWidth() || boosts.size() * line_height != getContentHeight()) {
@@ -121,6 +132,8 @@ public class BoostsHud extends TextHudEntry {
 		List<Option<?>> options = super.getConfigurationOptions();
 		options.add(hide);
 		options.add(showRemaining);
+		options.add(overrideColor);
+		options.add(durationColor);
 		return options;
 	}
 }

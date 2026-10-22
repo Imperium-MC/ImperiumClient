@@ -22,6 +22,8 @@
 
 package io.github.axolotlclient.imperium
 
+import java.util.Locale
+
 /**
  * The player's current ImperiumMC legion (Alpine "factions status HUD" parity, reimplemented
  * for Legions — see docs/legions-tooling.md). ImperiumMC has no legion wire protocol yet, so
@@ -76,11 +78,31 @@ object LegionStateRegistry {
 	@Volatile
 	private var state: LegionState? = null
 
+	/**
+	 * Member usernames of the current legion, lower-cased for lookup. Populated from
+	 * the API fallback's `members` array (and from the channel's full packet when it
+	 * starts carrying them); empty means "unknown" and the tab-list group highlight
+	 * simply matches nobody. Kept beside [state] because it changes on a different
+	 * cadence than the counts.
+	 */
+	@Volatile
+	private var memberNames: Set<String> = emptySet()
+
 	/** Test-friendly setter; also the exact entry point a future channel receiver will call. */
 	@JvmStatic
 	fun set(name: String, onlineMembers: Int, totalMembers: Int, power: Long, level: Int) {
 		state = LegionState(name, onlineMembers, totalMembers, power, level)
 	}
+
+	/** Replaces the member-name set (API snapshot or a channel full push with names). */
+	@JvmStatic
+	fun setMembers(names: Collection<String>) {
+		memberNames = names.mapTo(HashSet(names.size)) { it.lowercase(Locale.ROOT) }
+	}
+
+	/** True when [username] is a member of the current legion (case-insensitive). */
+	@JvmStatic
+	fun isMember(username: String): Boolean = memberNames.contains(username.lowercase(Locale.ROOT))
 
 	/** Updates only the fields a delta push carries, keeping the rest of the snapshot. */
 	@JvmStatic
@@ -101,5 +123,6 @@ object LegionStateRegistry {
 	@JvmStatic
 	fun clear() {
 		state = null
+		memberNames = emptySet()
 	}
 }

@@ -134,6 +134,16 @@ object ImperiumChannels {
 	private fun JsonObject.longOrNull(key: String): Long? =
 		get(key)?.takeIf { it.isJsonPrimitive }?.let { runCatching { it.asLong }.getOrNull() }
 
+	/** Optional `members` username array of a full legion push; empty when absent. */
+	private fun JsonObject.memberNames(): List<String> {
+		val arr = get("members")?.takeIf { it.isJsonArray }?.asJsonArray ?: return emptyList()
+		val names = ArrayList<String>(arr.size())
+		for (element in arr) {
+			element.takeIf { it.isJsonObject }?.asJsonObject?.string("username")?.let { names.add(it) }
+		}
+		return names
+	}
+
 	/** The legion packet's exact registry mapping (visible for tests). */
 	@JvmStatic
 	fun applyLegion(json: String) = applyJson(json, "legion") { obj ->
@@ -147,6 +157,12 @@ object ImperiumChannels {
 					obj.longOrNull("power") ?: 0L,
 					obj.intOr("level", 0),
 				)
+				// Member names ride the full push when the server includes them (the
+				// plugin may add them later); absent = keep whatever the API fallback set.
+				val members = obj.memberNames()
+				if (members.isNotEmpty()) {
+					LegionStateRegistry.setMembers(members)
+				}
 			}
 			"delta" -> LegionStateRegistry.update(obj.intOrNull("onlineMembers"), obj.longOrNull("power"))
 			"none" -> LegionStateRegistry.clear()

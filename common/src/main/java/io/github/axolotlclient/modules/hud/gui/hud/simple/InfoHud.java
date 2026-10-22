@@ -30,6 +30,7 @@ import io.github.axolotlclient.AxolotlClientCommon;
 import io.github.axolotlclient.AxolotlClientConfig.api.options.Option;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.BooleanOption;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.ColorOption;
+import io.github.axolotlclient.AxolotlClientConfig.impl.options.EnumOption;
 import io.github.axolotlclient.bridge.AxoMinecraftClient;
 import io.github.axolotlclient.bridge.Platform;
 import io.github.axolotlclient.bridge.events.Events;
@@ -71,6 +72,49 @@ public class InfoHud extends TextHudEntry {
 	private final BooleanOption showDay = new BooleanOption("infohud.show_day", false);
 	private final BooleanOption showPlaytime = new BooleanOption("infohud.show_playtime", false);
 	private final ColorOption labelColor = new ColorOption("infohud.label_color", ClientColors.SELECTOR_BLUE);
+
+	// Alpine profile settings (M6): a title line above the rows, a header colour for it,
+	// and a brace style for how each row's label is set off from its value. The row label
+	// colour stays the existing labelColor option (the profile's primary_color) and the
+	// value colour the inherited textColor option (the profile's secondary_color).
+	private final BooleanOption displayTitle = new BooleanOption("infohud.display_title", false);
+	private final ColorOption headerColor = new ColorOption("infohud.header_color", ClientColors.SELECTOR_BLUE);
+	private final EnumOption<BraceStyle> braceStyle = new EnumOption<>("infohud.brace_style", BraceStyle.class, BraceStyle.COLON);
+
+	/** How a row's label is separated from its value (Alpine "brace_style"). */
+	public enum BraceStyle {
+		COLON {
+			@Override
+			public String wrap(String label) {
+				return label + ": ";
+			}
+		},
+		BRACKETS {
+			@Override
+			public String wrap(String label) {
+				return "[" + label + "] ";
+			}
+		},
+		DASH {
+			@Override
+			public String wrap(String label) {
+				return label + " - ";
+			}
+		},
+		NONE {
+			@Override
+			public String wrap(String label) {
+				return label + " ";
+			}
+		};
+
+		public abstract String wrap(String label);
+
+		@Override
+		public String toString() {
+			return "infohud.brace_style." + name().toLowerCase(java.util.Locale.ROOT);
+		}
+	}
 
 	private long sessionStart = -1;
 
@@ -181,13 +225,19 @@ public class InfoHud extends TextHudEntry {
 		int lineHeight = client.br$getFont().br$getFontHeight() + 1;
 		int width = 0;
 		int y = pos.y();
+		if (displayTitle.get()) {
+			String title = AxoI18n.translate("infohud.title");
+			int end = context.br$drawString(title, pos.x(), y, headerColor.get(), shadow.get());
+			width = Math.max(width, end - pos.x());
+			y += lineHeight;
+		}
 		for (InfoLine line : lines) {
-			int cursor = context.br$drawString(line.label() + " ", pos.x(), y, labelColor.get(), shadow.get());
+			int cursor = context.br$drawString(braceStyle.get().wrap(line.label()), pos.x(), y, labelColor.get(), shadow.get());
 			int end = context.br$drawString(line.value(), cursor, y, textColor.get(), shadow.get());
 			width = Math.max(width, end - pos.x());
 			y += lineHeight;
 		}
-		int height = lines.size() * lineHeight - 1;
+		int height = y - pos.y() - 1;
 
 		if (width + 1 != getContentWidth() || height != getContentHeight()) {
 			setContentWidth(width + 1);
@@ -207,6 +257,9 @@ public class InfoHud extends TextHudEntry {
 		options.add(showDay);
 		options.add(showPlaytime);
 		options.add(labelColor);
+		options.add(displayTitle);
+		options.add(headerColor);
+		options.add(braceStyle);
 		return options;
 	}
 
