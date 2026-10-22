@@ -20,15 +20,11 @@
  * For more information, see the LICENSE file.
  */
 
-package io.github.axolotlclient.modules;
+package io.github.axolotlclient.modules
 
-import net.minecraft.client.Minecraft;
+import net.minecraft.client.Minecraft
 
-public abstract class AbstractModule implements Module {
-
-	protected final Minecraft client;
-
-	public AbstractModule() {
-		client = Minecraft.getInstance();
-	}
+abstract class AbstractModule : Module {
+    @JvmField
+    protected val client: Minecraft = Minecraft.getInstance()
 }
