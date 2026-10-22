@@ -1,0 +1,67 @@
+/*
+ * Copyright © 2025 moehreag <moehreag@gmail.com> & Contributors
+ *
+ * This file is part of AxolotlClient.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * For more information, see the LICENSE file.
+ */
+
+package io.github.axolotlclient.bridge.impl
+
+import com.mojang.brigadier.CommandDispatcher
+import io.github.axolotlclient.AxolotlClientCommon
+import io.github.axolotlclient.bridge.commands.AxoClientCmdSrcStack
+import io.github.axolotlclient.bridge.commands.Commands
+import io.github.axolotlclient.bridge.events.Events
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
+import net.fabricmc.fabric.api.resource.v1.ResourceLoader
+import net.minecraft.resources.Identifier
+import net.minecraft.server.packs.PackType
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener
+
+object Bridge {
+	@JvmStatic
+	fun init() {
+		ClientLifecycleEvents.CLIENT_STARTED.register { _: net.minecraft.client.Minecraft? -> Events.CLIENT_START.invoker().run() }
+		ClientLifecycleEvents.CLIENT_STOPPING.register { _: net.minecraft.client.Minecraft? -> Events.CLIENT_STOP.invoker().run() }
+		ClientTickEvents.END_CLIENT_TICK.register { _: net.minecraft.client.Minecraft? -> Events.TICK.invoker().run() }
+		ResourceLoader.get(PackType.CLIENT_RESOURCES).registerReloadListener(
+			Identifier.fromNamespaceAndPath(AxolotlClientCommon.MODID, "bridge/resource_listener"),
+			ResourceManagerReloadListener { _: net.minecraft.server.packs.resources.ResourceManager? ->
+				Events.END_RESOURCE_RELOAD.invoker().run()
+			}
+		)
+
+		ClientPlayConnectionEvents.JOIN.register { clientPlayNetworkHandler, _, _ ->
+			Events.CONNECTION_PLAY_READY.invoker().accept(clientPlayNetworkHandler.serverData)
+		}
+		ClientPlayConnectionEvents.DISCONNECT.register { _, _ -> Events.DISCONNECT.invoker().run() }
+
+		ClientCommandRegistrationCallback.EVENT.register { commandDispatcher, _ ->
+			Events.COMMAND_REGISTER.invoker().accept(
+				Commands {
+					// Interface injection into FAPI doesn't work, therefore this has to be a bit ugly.
+					@Suppress("UNCHECKED_CAST")
+					commandDispatcher as CommandDispatcher<AxoClientCmdSrcStack>
+				}
+			)
+		}
+	}
+}
