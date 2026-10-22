@@ -34,7 +34,7 @@ jobs:
       - name: Upload mod jar
         uses: actions/upload-artifact@v4
         with:
-          name: ImperiumClient-jar
+          name: RomanicaClient-jar
           path: versions/latest/build/libs/*.jar
 
   # The client gametest spins a real Minecraft client. GitHub's ubuntu runners
