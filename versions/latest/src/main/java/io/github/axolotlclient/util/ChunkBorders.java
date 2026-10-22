@@ -47,8 +47,12 @@ public class ChunkBorders {
 	 */
 	public static final int REGION_SIZE = 512;
 
-	private static final float CHUNK_LINE_WIDTH = 2.0F;
-	private static final float REGION_LINE_WIDTH = 3.0F;
+	private static final float REGION_EXTRA_WIDTH = 1.0F;
+
+	/** Chunk line width from the {@code chunk_borders.line_thickness} option (>= 1). */
+	private static float chunkLineWidth() {
+		return Math.max(1.0F, AxolotlClient.config().chunkBorderThickness.get());
+	}
 
 	/**
 	 * Opens the module's own per-frame gizmo collection window. {@code BEFORE_GIZMOS} fires
@@ -95,11 +99,11 @@ public class ChunkBorders {
 		int maxY = level.getMaxY() + 1;
 
 		emitCell(chunkBase(blockX), chunkBase(blockZ), 16,
-			AxolotlClient.config().chunkBorderColor.get().toInt(), CHUNK_LINE_WIDTH, minY, maxY);
+			AxolotlClient.config().chunkBorderColor.get().toInt(), chunkLineWidth(), minY, maxY);
 
 		if (AxolotlClient.config().regionBorders.get()) {
 			emitCell(regionBase(blockX), regionBase(blockZ), REGION_SIZE,
-				AxolotlClient.config().regionBorderColor.get().toInt(), REGION_LINE_WIDTH, minY, maxY);
+				AxolotlClient.config().regionBorderColor.get().toInt(), chunkLineWidth() + REGION_EXTRA_WIDTH, minY, maxY);
 		}
 	}
 

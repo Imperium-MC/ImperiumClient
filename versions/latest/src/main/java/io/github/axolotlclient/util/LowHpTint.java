@@ -58,6 +58,21 @@ public class LowHpTint {
 		return Mth.clamp((threshold - health) / span, 0.0F, 1.0F);
 	}
 
+	/**
+	 * The tint's effective alpha (0-255) below the threshold (Alpine {@code adaptive_opacity}
+	 * + {@code min_opacity}). With adaptive opacity the alpha ramps with health, floored at
+	 * {@code minOpacityPercent} of the base alpha; without it the tint draws at the base
+	 * alpha the whole time. Pure function so both paths can be exercised directly.
+	 */
+	public static int alphaFor(float health, int threshold, boolean adaptive, int minOpacityPercent, int baseAlpha) {
+		if (!adaptive) {
+			return baseAlpha;
+		}
+		float min = Mth.clamp(minOpacityPercent / 100.0F, 0.0F, 1.0F);
+		float factor = Math.max(min, intensityFor(health, threshold));
+		return Math.round(baseAlpha * factor);
+	}
+
 	public static void render(GuiGraphicsExtractor graphics, Entity cameraEntity) {
 		if (!AxolotlClient.config().lowHpTint.get()) {
 			return;
@@ -69,13 +84,17 @@ public class LowHpTint {
 			return;
 		}
 
-		float factor = intensityFor(living.getHealth(), AxolotlClient.config().lowHpThreshold.get());
-		if (factor <= 0.0F) {
+		if (intensityFor(living.getHealth(), AxolotlClient.config().lowHpThreshold.get()) <= 0.0F) {
 			return;
 		}
 
 		int base = AxolotlClient.config().lowHpTintColor.get().toInt();
-		int strength = Math.round(ARGB.alpha(base) * factor);
+		int strength = alphaFor(living.getHealth(), AxolotlClient.config().lowHpThreshold.get(),
+			AxolotlClient.config().lowHpAdaptiveOpacity.get(),
+			AxolotlClient.config().lowHpMinOpacity.get(), ARGB.alpha(base));
+		if (strength <= 0) {
+			return;
+		}
 		int width = graphics.guiWidth();
 		int height = graphics.guiHeight();
 		if (AxolotlClient.config().lowHpTintStyle.get() == LowHpTintStyle.VIGNETTE) {

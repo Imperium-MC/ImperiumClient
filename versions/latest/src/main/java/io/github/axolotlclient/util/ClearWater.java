@@ -24,6 +24,7 @@ package io.github.axolotlclient.util;
 
 import io.github.axolotlclient.AxolotlClient;
 import net.minecraft.client.renderer.fog.FogData;
+import net.minecraft.util.Mth;
 
 /**
  * clear_water (Alpine parity): lowers the underwater fog density by pushing the water fog
@@ -56,5 +57,26 @@ public class ClearWater {
 		data.environmentalStart = data.environmentalEnd * START_DISTANCE_FRACTION;
 		data.skyEnd = data.environmentalEnd;
 		data.cloudEnd = data.environmentalEnd;
+	}
+
+	/**
+	 * clear_water/disable_liquid_fov (Alpine parity): whether vanilla's fluid FOV shrink
+	 * (the {@code Mth.lerp(fovEffectScale, 1, 0.857)} in {@code Camera#modifyFovBasedOnDeathOrFluid})
+	 * must be skipped while the camera is in water or lava.
+	 */
+	public static boolean disablesLiquidFov() {
+		return AxolotlClient.config().clearWater.get() && AxolotlClient.config().clearWaterDisableLiquidFov.get();
+	}
+
+	/**
+	 * clear_water/overlay_transparency: the alpha of the underwater screen overlay quad.
+	 * Returns the vanilla alpha when the module is off; otherwise the configured percent
+	 * (10 = vanilla 0.1, 0 = no overlay).
+	 */
+	public static float waterOverlayAlpha(float vanillaAlpha) {
+		if (!AxolotlClient.config().clearWater.get()) {
+			return vanillaAlpha;
+		}
+		return Mth.clamp(AxolotlClient.config().waterOverlayTransparency.get() / 100.0F, 0.0F, 1.0F);
 	}
 }

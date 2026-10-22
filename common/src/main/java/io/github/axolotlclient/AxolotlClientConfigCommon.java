@@ -238,6 +238,8 @@ public abstract class AxolotlClientConfigCommon {
 	public final ForceableBooleanOption lowFire = new ForceableBooleanOption("lowFire", false);
 	public final ColorOption hitColor = new ColorOption("hitColor", new Color(0x4DFF0000), this::updateHitColor);
 	public final BooleanOption hitColorOnArmor = new BooleanOption("hit_color_on_armor", false);
+	// hit_color/color_trim (Alpine parity): also flash armour TRIMS with the hit colour.
+	public final BooleanOption hitColorOnTrims = new BooleanOption("hit_color_on_trims", false);
 
 	public final BooleanOption minimalViewBob = new BooleanOption("minimalViewBob", false);
 	public final EnumOption<HurtCamMode> hurtCam = new EnumOption<>("hurt_cam", HurtCamMode.class, HurtCamMode.FULL);
@@ -245,6 +247,11 @@ public abstract class AxolotlClientConfigCommon {
 
 	// clear_water (Alpine parity): push the underwater fog out towards the render distance.
 	public final BooleanOption clearWater = new BooleanOption("clear_water", false);
+	// clear_water/disable_liquid_fov: skip vanilla's fluid FOV shrink while underwater.
+	public final BooleanOption clearWaterDisableLiquidFov = new BooleanOption("clear_water.disable_liquid_fov", false);
+	// clear_water/overlay_transparency: alpha of the underwater screen overlay, in percent
+	// (10 matches vanilla's 0.1; 0 removes the overlay entirely). Gated by clear_water.
+	public final IntegerOption waterOverlayTransparency = new IntegerOption("clear_water.overlay_transparency", 10, 0, 100);
 
 	// low_hp_tint (Alpine parity): red vignette/tint when below a health threshold.
 	// The tint colour's alpha is the peak intensity reached at 1 hp.
@@ -252,6 +259,11 @@ public abstract class AxolotlClientConfigCommon {
 	public final IntegerOption lowHpThreshold = new IntegerOption("low_hp_threshold", 6, 1, 19);
 	public final EnumOption<LowHpTintStyle> lowHpTintStyle = new EnumOption<>("low_hp_tint_style", LowHpTintStyle.class, LowHpTintStyle.VIGNETTE);
 	public final ColorOption lowHpTintColor = new ColorOption("low_hp_tint_color", new Color(0x66FF0000));
+	// low_hp_tint/adaptive_opacity: ramp the intensity with health (threshold -> 1 hp); when
+	// off, the tint draws at the colour's full alpha the whole time it is below the threshold.
+	// min_opacity floors the ramped alpha, in percent of the tint colour's alpha.
+	public final BooleanOption lowHpAdaptiveOpacity = new BooleanOption("low_hp_tint.adaptive_opacity", true);
+	public final IntegerOption lowHpMinOpacity = new IntegerOption("low_hp_tint.min_opacity", 0, 0, 100);
 
 	// farming (Alpine parity): crop growth stage overlay near the crosshair.
 	public final BooleanOption farmingOverlay = new BooleanOption("enabled", false);
@@ -263,6 +275,9 @@ public abstract class AxolotlClientConfigCommon {
 	public final BooleanOption regionBorders = new BooleanOption("chunk_borders.regions", false);
 	public final ColorOption chunkBorderColor = new ColorOption("chunk_borders.color", new Color(0x80FFFF00));
 	public final ColorOption regionBorderColor = new ColorOption("chunk_borders.region_color", new Color(0x80FF5555));
+	// chunk_borders/line_thickness: gizmo line width of the chunk cell (region lines are one
+	// pixel heavier so they stay distinguishable at any thickness).
+	public final IntegerOption chunkBorderThickness = new IntegerOption("chunk_borders.line_thickness", 2, 1, 10);
 
 	// light_level (Photon parity): keybind-toggled spawn-safety overlay tinting block tops by
 	// effective light level (green = light > 7 after the sky-darkening scale, red = mobs can spawn).
@@ -470,16 +485,21 @@ public abstract class AxolotlClientConfigCommon {
 			minimalViewBob,
 			hurtCam,
 			clearWater,
+			clearWaterDisableLiquidFov,
+			waterOverlayTransparency,
 			noRain,
 			hideChat,
 			hitColor,
-			hitColorOnArmor
+			hitColorOnArmor,
+			hitColorOnTrims
 		);
 
 		lowHpTintCategory.add(lowHpTint);
 		lowHpTintCategory.add(lowHpThreshold);
 		lowHpTintCategory.add(lowHpTintStyle);
 		lowHpTintCategory.add(lowHpTintColor);
+		lowHpTintCategory.add(lowHpAdaptiveOpacity);
+		lowHpTintCategory.add(lowHpMinOpacity);
 		rendering.add(lowHpTintCategory);
 
 		farming.add(farmingOverlay);
@@ -489,6 +509,7 @@ public abstract class AxolotlClientConfigCommon {
 
 		chunkBordersCategory.add(chunkBorders);
 		chunkBordersCategory.add(regionBorders);
+		chunkBordersCategory.add(chunkBorderThickness);
 		chunkBordersCategory.add(chunkBorderColor);
 		chunkBordersCategory.add(regionBorderColor);
 		rendering.add(chunkBordersCategory);

@@ -52,7 +52,7 @@ an HTML comment. `gen:` comments flag rows worth a human look; they are regenera
 | **titles** | TitleHud (PR #1, fixed on `review/pr-1`) | 🟡 needs merge <!-- gen: TitleHud registered; re-review partial note --> <!-- gen: TitleHud registered; re-review partial note --> <!-- gen: TitleHud registered; re-review partial note --> |
 | **info_hud** | InfoHud | ✅ configurable multi-line info lines: coords/facing/biome/fps/time/day/playtime (M2) plus title line, brace style and header colour (M6) |
 | **cooldowns** | — | ✅ <!-- gen: CooldownsHud registered --> <!-- gen: CooldownsHud registered --> <!-- gen: CooldownsHud registered --> |
-| **toggle_sneak_sprint** (+ status HUD) | ToggleSprintHud | ✅ double-tap sneak toggle (window ms), fly boost via sprint key while flying |
+| **toggle_sneak_sprint** (+ status HUD) | ToggleSprintHud | ✅ double-tap sneak toggle (window ms), fly boost via sprint key while flying, fly_boost_hold (boost without hold), vertical_boost (climb/sink impulse via LocalPlayer), fly_while_swimming (boosted swim movement) |
 | **fullbright** | `fullBright` option | ✅ add keybind toggle |
 | **environment** | `timeChanger` option | ✅ fixed time, weather state/intensity override, time multiplier |
 | **chat_settings** | ChatHud (partial) | ? smooth chat, timestamps, persistent chat, hover highlight, peek, screenshot, IGN highlight/ping, empty filter <!-- gen: no mapping to the registry or the code found --> |
@@ -61,36 +61,36 @@ an HTML comment. `gen:` comments flag rows worth a human look; they are regenera
 | **nametag_editor** | `nametagOptions` | ✅ own nametag, shadow, background (none/translucent/opaque), scale; client icon via existing badges |
 | **waypoints** | WaypointsHud + WaypointManager | 🟡 per-dimension waypoints, death points (limit/max/colour, M6), add keybind (B), list screen; on-screen arrows not 3D tracers (no projection math in codebase) <!-- gen: WaypointsHud registered; re-review partial note --> <!-- gen: WaypointsHud registered; re-review partial note --> <!-- gen: WaypointsHud registered; re-review partial note --> |
 | **inventory_tweaks/inventory_search** | InventorySearch | ✅ search bar with slot highlight |
-| **inventory_tweaks/scrollable_tooltips** | ScrollableTooltips | ✅ add smooth scroll, activation key |
+| **inventory_tweaks/scrollable_tooltips** | ScrollableTooltips | ✅ smooth scroll (eased offsets), activation key (none/shift/control/alt) |
 | inventory_tweaks | InventoryTweaks | ✅ hide potion effects (`hide_vanilla_potion_hud`, HUD corner + inventory panel), keep centred (`keep_centered`, panel suppressed + leftPos recompute), compact item counts (1.2k) |
 | **factions** (+ breadcrumbs, cannon_playback, cannon_view, explosion_boxes, patchcrumbs, status HUD) | Legions tooling: LegionHud + LegionStateRegistry, BreadcrumbsHud + BreadcrumbManager, ExplosionBoxes | 🟡 reimplemented for ImperiumMC Legions (docs/legions-tooling.md): status HUD shell (waits on `imperiumclient:legion` channel), breadcrumbs with age/auto-expire, explosion boxes; cannon_view/cannon_playback built (M5: `CannonTrajectory` — vanilla-accurate TNT arc while holding TNT + live primed-TNT prediction, blast box at the landing site), patchcrumbs ride the breadcrumb mechanism once sieges exist <!-- gen: BreadcrumbsHud, LegionHud registered; re-review partial note --> <!-- gen: BreadcrumbsHud, LegionHud registered; re-review partial note --> <!-- gen: BreadcrumbsHud, LegionHud registered; re-review partial note --> |
 | **enchantedmc** / boosts | BoostsHud + BoostRegistry | 🟡 HUD shell (registry waits on the server boost channel) <!-- gen: BoostsHud registered; re-review partial note --> <!-- gen: BoostsHud registered; re-review partial note --> <!-- gen: BoostsHud registered; re-review partial note --> |
 | **enchantedmc/fishing** | AutoFish | ✅ server-gated (`auto_fish`) |
 | enchantedmc/clicking | AutoClick | ✅ server-gated (`auto_click`) |
 | zoom | Zoom | ✅ scroll, cinematic, smooth, sensitivity |
-| keystrokes | KeystrokeHud | ✅ |
-| armor_status | ArmorHud | ✅ durability formats/colours |
-| potion_status | PotionsHud | ✅ blink/collapsed/dynamic colour |
-| coordinates | CoordsHud | ✅ add biome, cardinal, shout keybind |
+| keystrokes | KeystrokeHud | ✅ display_space, full_space (filled bar), display_mouse_buttons, display_cps, key_size (default grid unit) |
+| armor_status | ArmorHud | ✅ durability formats (number/max/percent/bars) and colours incl. gradient (start/end + bar base), display_name + name_color, low_effect tint with threshold |
+| potion_status | PotionsHud | ✅ blink/collapsed/dynamic colour, show_icon (text-only override), display_vanilla (keep the vanilla effect HUD) |
+| coordinates | CoordsHud | ✅ biome, cardinal, direction colour, axis-label toggle, dynamic biome colour (stable per-biome hue), middle-click pick-block announcement (chat + clipboard) |
 | block_coordinates | — | ✅ <!-- gen: BlockCoordinatesHud registered --> <!-- gen: BlockCoordinatesHud registered --> <!-- gen: BlockCoordinatesHud registered --> |
 | ping, memory, speed, reach_display, combo_count, pack_display, server_display | PingHud, MemoryHud, SpeedHud, ReachHud, ComboHud, PackDisplayHud, IPHud | ✅ |
 | clock, day_counter | IRLTimeHud, DayCounterHud | ✅ |
 | playtime, stopwatch, entity_count, potion_count, obsidian_count | — | ✅ <!-- gen: EntityCountHud, ObsidianCountHud, PlaytimeHud, PotionCountHud, StopwatchHud registered --> <!-- gen: EntityCountHud, ObsidianCountHud, PlaytimeHud, PotionCountHud, StopwatchHud registered --> <!-- gen: EntityCountHud, ObsidianCountHud, PlaytimeHud, PotionCountHud, StopwatchHud registered --> |
 | crosshair | CrosshairHud | ✅ friendly/enemy dynamic colour (M6): dynamic_color gate + friendly colour on allied targets |
 | block_overlay | block outline options | ✅ highlight fill mode |
-| hit_color | `hitColor` option | ✅ armour/trim toggles |
+| hit_color | `hitColor` option | ✅ armour toggle, trim toggle (`hit_color_on_trims` — the trim submitModel in EquipmentLayerRenderer) |
 | tnt_timer | TntTime | ✅ fuse colour stages |
 | particles | Particles | ✅ disabled list, crit/sharpness multipliers |
 | perspective_mod | Freelook | ✅ hold mode, invert pitch, smooth |
-| snap_look | SnapLook | ✅ hold + toggle modes, composes with Freelook |
+| snap_look | SnapLook | ✅ hold + toggle modes, composes with Freelook, smooth_transition with animation_duration (cosine ease in/out, interruption-safe) |
 | minimap | MinimapHud (M3) | 🟡 chunk-colour square/circle map, north-lock/follow-camera rotation, zoom, waypoint dots; fullscreen map view built (M5: `FullscreenMap`/`FullscreenMapScreen` — M keybind, shared sampler at coarser zoom, drag pan, scroll zoom, waypoint dots + labels) <!-- gen: MinimapHud registered; re-review partial note --> <!-- gen: MinimapHud registered; re-review partial note --> <!-- gen: MinimapHud registered; re-review partial note --> |
 | hurt_cam | `hurt_cam` option (M3) | ✅ FULL/SUBTLE (30%)/OFF enum replacing `noHurtCam` (V11 config migration), composes with the vanilla damage-tilt accessibility slider |
-| low_hp_tint | `lowHpTint` options (M3) | ✅ vignette-texture or flat tint, linear ramp from threshold (default 6 hp) to 1 hp, colour alpha = peak intensity |
-| clear_water | `clear_water` option (M3) | ✅ water fog start/end pushed to the render distance in `WaterFogEnvironment` |
+| low_hp_tint | `lowHpTint` options (M3) | ✅ vignette-texture or flat tint, linear ramp from threshold (default 6 hp) to 1 hp, colour alpha = peak intensity, adaptive_opacity gate + min_opacity floor |
+| clear_water | `clear_water` option (M3) | ✅ water fog start/end pushed to the render distance in `WaterFogEnvironment`, disable_liquid_fov (Camera fluid-FOV lerp skipped), overlay_transparency (underwater overlay alpha, 10 = vanilla) |
 | farming | `farming` options (M3) | ✅ crop growth stage as "3/8" text or progress bar near the crosshair, optional hoe-only mode (hoes are data-driven in 26.3, detected by vanilla `*_hoe` ids) |
-| chunk_borders | `chunkBorders` options (M3) | ✅ world-space gizmo lines (the vanilla F3+G path): current chunk 16x16 outline plus optional 512-block region outline, configurable colours, toggle keybind |
+| chunk_borders | `chunkBorders` options (M3) | ✅ world-space gizmo lines (the vanilla F3+G path): current chunk 16x16 outline plus optional 512-block region outline, configurable colours and line thickness, toggle keybind |
 | worldedit_cui | WorldEditCui module | ✅ `worldedit:cui` protocol client (cuboid + ellipsoid), gizmo-rendered grid; server guide: docs/wecui-server.md |
-| spotify_state | NowPlayingHud (W5-B) | 🟡 registry shell + best-effort Spotify desktop local-endpoint poller (default off, loopback only, no OAuth); docs/media-and-emotes.md <!-- gen: NowPlayingHud registered; re-review partial note --> <!-- gen: NowPlayingHud registered; re-review partial note --> <!-- gen: NowPlayingHud registered; re-review partial note --> |
+| spotify_state | NowPlayingHud (W5-B) | 🟡 registry shell + best-effort Spotify desktop local-endpoint poller (default off, loopback only, no OAuth); display_timestamp (elapsed/total) and scrolling track name (marquee, configurable speed); docs/media-and-emotes.md <!-- gen: NowPlayingHud registered; re-review partial note --> <!-- gen: NowPlayingHud registered; re-review partial note --> <!-- gen: NowPlayingHud registered; re-review partial note --> |
 | discord_rpc | DiscordRPC | ✅ server IP toggle |
 | emotes | Emote wheel (W5-A) | 🟡 full client shell: carved radial wheel, 8 config slots, 4 built-ins, dispatcher seam; animation + broadcast wait on the `imperiumclient:cosmetics` channel |
 | motion_blur | MotionBlur | ✅ |

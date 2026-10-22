@@ -27,6 +27,7 @@ import java.text.DecimalFormat;
 import java.util.List;
 
 import io.github.axolotlclient.AxolotlClientConfig.api.options.Option;
+import io.github.axolotlclient.AxolotlClientConfig.api.util.Color;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.BooleanOption;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.ColorOption;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.IntegerOption;
@@ -70,6 +71,13 @@ public class CoordsHud extends TextHudEntry {
 	private final StringOption separator = new StringOption("coordshud.separator", ", ");
 	private final ColorOption separatorColor = new ColorOption("coordshud.separator.color", firstColor.getDefault());
 	private final BooleanOption showNetherConversions = new BooleanOption("coordshud.show_nether_conversions", false);
+	// Alpine parity (coordinates module): the N/NE/... readout gets its own colour, the
+	// X/Y/Z axis prefixes can be hidden, and the biome name can be tinted per biome.
+	private final ColorOption directionColor = new ColorOption("coordshud.direction_color", firstColor.getDefault());
+	private final BooleanOption displayAxis = new BooleanOption("coordshud.display_axis", true);
+	private final BooleanOption dynamicBiomeColor = new BooleanOption("coordshud.dynamic_biome_color", false);
+	/** Read by the pick-block mixin (latest) — announce the targeted block's coordinates. */
+	public final BooleanOption middleClickLookingAt = new BooleanOption("coordshud.middle_click_looking_at", false);
 
 	private DecimalFormat format = new DecimalFormat("0");
 
@@ -155,7 +163,9 @@ public class CoordsHud extends TextHudEntry {
 		if (minimal.get()) {
 			int currPos = xStart;
 			String separator = this.separator.get();
-			currPos = context.br$drawString("XYZ" + del, currPos, pos.y() + 2, firstColor.get(), shadow.get());
+			if (displayAxis.get()) {
+				currPos = context.br$drawString("XYZ" + del, currPos, pos.y() + 2, firstColor.get(), shadow.get());
+			}
 			currPos = context.br$drawString(fx, currPos, pos.y() + 2, secondColor.get(),
 				shadow.get());
 			currPos = context.br$drawString(separator, currPos, pos.y() + 2, separatorColor.get(), shadow.get());
@@ -165,7 +175,7 @@ public class CoordsHud extends TextHudEntry {
 			currPos = context.br$drawString(fz, currPos, pos.y() + 2, secondColor.get(),
 				shadow.get());
 			if (cardinal.get()) {
-				currPos = context.br$drawString(" " + direction, currPos, pos.y() + 2, firstColor.get(), shadow.get());
+				currPos = context.br$drawString(" " + direction, currPos, pos.y() + 2, directionColor.get(), shadow.get());
 			}
 			width = currPos - pos.x() + 2;
 			height = 11;
@@ -174,7 +184,9 @@ public class CoordsHud extends TextHudEntry {
 				var factor = isNether ? 8f : 1 / 8f;
 				currPos = xStart;
 				currPos = context.br$drawString(name + del, currPos, pos.y() + 2, firstColor.get(), shadow.get());
-				currPos = context.br$drawString("XYZ" + del, currPos, pos.y() + 2, firstColor.get(), shadow.get());
+				if (displayAxis.get()) {
+					currPos = context.br$drawString("XYZ" + del, currPos, pos.y() + 2, firstColor.get(), shadow.get());
+				}
 				currPos = context.br$drawString(format.format(playerPos.x() * factor), currPos, pos.y() + 2, secondColor.get(), shadow.get());
 				currPos = context.br$drawString(format.format(playerPos.y() * factor), currPos, pos.y() + 2, secondColor.get(), shadow.get());
 				currPos = context.br$drawString(format.format(playerPos.z() * factor), currPos, pos.y() + 2, secondColor.get(), shadow.get());
@@ -184,18 +196,18 @@ public class CoordsHud extends TextHudEntry {
 		} else {
 			int xEnd;
 			int yEnd = pos.y() + 2;
-			int nextX = context.br$drawString("X" + del, xStart, yEnd, firstColor.get(), shadow.get());
+			int nextX = context.br$drawString(displayAxis.get() ? "X" + del : "", xStart, yEnd, firstColor.get(), shadow.get());
 			xEnd = context.br$drawString(fx, nextX, yEnd,
 				secondColor.get(), shadow.get());
 			yEnd += 10;
 
-			nextX = context.br$drawString("Y" + del, xStart, yEnd, firstColor.get(), shadow.get());
+			nextX = context.br$drawString(displayAxis.get() ? "Y" + del : "", xStart, yEnd, firstColor.get(), shadow.get());
 			xEnd = Math.max(xEnd, context.br$drawString(fy, nextX, yEnd,
 				secondColor.get(), shadow.get()));
 
 			yEnd += 10;
 
-			nextX = context.br$drawString("Z" + del, xStart, yEnd, firstColor.get(), shadow.get());
+			nextX = context.br$drawString(displayAxis.get() ? "Z" + del : "", xStart, yEnd, firstColor.get(), shadow.get());
 
 			xEnd = Math.max(xEnd, context.br$drawString(fz, nextX, yEnd, secondColor.get(), shadow.get()));
 
@@ -204,7 +216,7 @@ public class CoordsHud extends TextHudEntry {
 			xEnd = Math.max(pos.x() + 60, xEnd + 4);
 
 			if (cardinal.get()) {
-				context.br$drawString(direction, xEnd, pos.y() + 12, firstColor.get(), shadow.get());
+				context.br$drawString(direction, xEnd, pos.y() + 12, directionColor.get(), shadow.get());
 
 				context.br$drawString(getXDir(dir), xEnd, pos.y() + 2, secondColor.get(),
 					shadow.get());
@@ -236,7 +248,8 @@ public class CoordsHud extends TextHudEntry {
 
 		if (biome.get()) {
 			int bX = context.br$drawString(AxoI18n.translate("coordshud.biome") + del, xStart, height + pos.y(), firstColor.get(), shadow.get());
-			width = Math.max(width + pos.x() - 1, context.br$drawString(biomeName, bX, height + pos.y(), secondColor.get(), shadow.get())) - pos.x() + 1;
+			Color biomeValueColor = dynamicBiomeColor.get() ? biomeColor(biomeName) : secondColor.get();
+			width = Math.max(width + pos.x() - 1, context.br$drawString(biomeName, bX, height + pos.y(), biomeValueColor, shadow.get())) - pos.x() + 1;
 			height += 10;
 		}
 
@@ -292,15 +305,30 @@ public class CoordsHud extends TextHudEntry {
 		options.remove(textColor);
 		options.add(firstColor);
 		options.add(secondColor);
+		options.add(directionColor);
 		options.add(decimalPlaces);
 		options.add(minimal);
 		options.add(biome);
+		options.add(dynamicBiomeColor);
 		options.add(cardinal);
+		options.add(displayAxis);
+		options.add(middleClickLookingAt);
 		options.add(showNetherConversions);
 		options.add(delimiter);
 		options.add(separator);
 		options.add(separatorColor);
 		return options;
+	}
+
+	/**
+	 * A stable colour per biome name (Alpine {@code dynamic_biome_color}): the name's hash
+	 * picks a hue on a fixed saturation/brightness, so each biome always reads in its own
+	 * colour without needing the biome's actual grass/foliage tint. Pure function so the
+	 * distribution can be exercised directly.
+	 */
+	public static Color biomeColor(String biomeName) {
+		float hue = ((biomeName.hashCode() & 0xFFFF) / 65535.0F + 0.6180339887F) % 1.0F;
+		return Color.fromHSB(hue, 0.55F, 0.9F);
 	}
 
 	@Override
