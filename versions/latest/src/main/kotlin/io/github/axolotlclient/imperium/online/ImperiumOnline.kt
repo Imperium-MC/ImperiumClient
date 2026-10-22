@@ -205,6 +205,12 @@ object ImperiumOnline : ClientModInitializer {
 
 		@JvmStatic
 		fun applyIfVacant(snapshot: ClientApi.LegionSnapshot, imperiumChannelOwnsSession: Boolean) {
+			// Member names never fight the channel (it does not carry them yet), so they
+			// are applied regardless of ownership — the tab-list group highlight depends
+			// on them even while the channel owns the counts.
+			if (snapshot.memberNames.isNotEmpty()) {
+				LegionStateRegistry.setMembers(snapshot.memberNames)
+			}
 			if (imperiumChannelOwnsSession) {
 				return
 			}

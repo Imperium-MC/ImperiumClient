@@ -69,11 +69,16 @@ public class Particles extends AbstractModule {
 		this::updateDisabledParticles);
 	private final FloatOption critMultiplier = new FloatOption("crit_multiplier", 1.0F, 0.0F, 2.0F);
 	private final FloatOption sharpnessMultiplier = new FloatOption("sharpness_multiplier", 1.0F, 0.0F, 2.0F);
+
+	// Alpine profile settings (M6): a global scale across every particle type (on top of
+	// the per-type counts and the crit/sharpness multipliers above).
+	private final BooleanOption multiplierEnabled = new BooleanOption("multiplier_enabled", false);
+	private final FloatOption multiplier = new FloatOption("multiplier", 1.0F, 0.0F, 2.0F);
 	private final Set<String> disabledParticleNames = new HashSet<>();
 
 	@Override
 	public void init() {
-		cat.add(enabled, disabledParticles, critMultiplier, sharpnessMultiplier);
+		cat.add(enabled, disabledParticles, critMultiplier, sharpnessMultiplier, multiplierEnabled, multiplier);
 
 		addParticleOptions();
 		AxolotlClient.config().rendering.add(cat);
@@ -126,7 +131,12 @@ public class Particles extends AbstractModule {
 		if (enabled.get() && particleOptions.containsKey(type)) {
 			HashMap<String, Option<?>> options = particleOptions.get(type);
 
-			return ((IntegerOption) options.get("count")).get();
+			int count = ((IntegerOption) options.get("count")).get();
+			if (multiplierEnabled.get()) {
+				// Global scale on top of the per-type count; clamped at 0 (0 kills the type).
+				return Math.max(0, Math.round(count * multiplier.get()));
+			}
+			return count;
 		}
 		return 1;
 	}

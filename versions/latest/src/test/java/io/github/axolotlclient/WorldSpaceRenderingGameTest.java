@@ -214,7 +214,8 @@ public class WorldSpaceRenderingGameTest implements FabricClientGameTest {
 			entry.tracers.set(true);
 			manager.add(new Waypoint("Look Target", feet.getX() + 0.5, feet.getY(), feet.getZ() + 12,
 				dimension, 0xFF55FF55, true, false));
-			manager.setDeathPoint(feet.getX() - 8, feet.getY(), feet.getZ() - 6, dimension);
+			manager.setDeathPoint(feet.getX() - 8, feet.getY(), feet.getZ() - 6, dimension,
+				Waypoint.DEATH_COLOR, true, 1);
 		});
 		check(manager.getForDimension(dimension).size() == 2, "both waypoints must be in the current dimension");
 

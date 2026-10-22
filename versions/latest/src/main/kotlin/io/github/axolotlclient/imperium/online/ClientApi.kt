@@ -78,6 +78,8 @@ class ClientApi(
 		val maxMembers: Int,
 		val ownerUuid: String?,
 		val memberCount: Int,
+		/** Member usernames from the `members` array; feeds the tab-list group highlight. */
+		val memberNames: List<String>,
 	)
 
 	/** /api/player/cosmetics (shape contract in routes.ts cosmeticsPayload). */
@@ -203,6 +205,11 @@ class ClientApi(
 		val legion = root.get("legion")?.takeIf { it.isJsonObject }?.asJsonObject ?: return null
 		val name = legion.string("name") ?: return null
 		val members = root.get("members")?.takeIf { it.isJsonArray }?.asJsonArray
+		val memberNames = ArrayList<String>(members?.size() ?: 0)
+		members?.forEach { element ->
+			val username = element.takeIf { it.isJsonObject }?.asJsonObject?.string("username") ?: return@forEach
+			memberNames.add(username)
+		}
 		return LegionSnapshot(
 			name = name,
 			displayName = legion.string("displayName"),
@@ -211,6 +218,7 @@ class ClientApi(
 			maxMembers = legion.intOr("maxMembers", 0),
 			ownerUuid = legion.string("ownerUuid"),
 			memberCount = members?.size() ?: 0,
+			memberNames = memberNames,
 		)
 	}
 

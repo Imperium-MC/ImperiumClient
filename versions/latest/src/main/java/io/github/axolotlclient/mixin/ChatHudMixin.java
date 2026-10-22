@@ -23,7 +23,6 @@
 package io.github.axolotlclient.mixin;
 
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
@@ -107,8 +106,12 @@ public abstract class ChatHudMixin implements ChatHudExtension {
 	@Unique
 	private int axolotlclient$compactStreakCount = 0;
 
+	/**
+	 * Wall clock of the last stacked instance; drives compact_time_based stacking
+	 * (Alpine profile M6). 0 = no live streak.
+	 */
 	@Unique
-	private static final DateTimeFormatter axolotlclient$TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("HH:mm", Locale.ROOT);
+	private long axolotlclient$compactStreakAt = 0L;
 
 	// ── Smooth chat (smooth_chat) state ─────────────────────────────────────────
 	//
@@ -156,7 +159,7 @@ public abstract class ChatHudMixin implements ChatHudExtension {
 
 		if (AxolotlClient.config().chatTimestamps.get()) {
 			MutableComponent stamped = Component.empty();
-			stamped.append(Component.literal("[" + LocalTime.now().format(axolotlclient$TIMESTAMP_FORMAT) + "] ").withStyle(ChatFormatting.GRAY));
+			stamped.append(Component.literal("[" + LocalTime.now().format(AxolotlClient.config().chatTimestampFormat.get().formatter()) + "] ").withStyle(ChatFormatting.GRAY));
 			stamped.append(contents);
 			contents = stamped;
 		}
@@ -164,9 +167,8 @@ public abstract class ChatHudMixin implements ChatHudExtension {
 		if (axolotlclient$compactChatShouldStack(contents)) {
 			// Cancel-and-re-add: drop the previous entry of the streak, then let the vanilla add
 			// path re-insert the last instance's components with the counter appended.
-			GuiMessage previous = allMessages.removeFirst();
-			while (!trimmedMessages.isEmpty() && trimmedMessages.getFirst().parent() == previous) {
-				trimmedMessages.removeFirst();
+			if (!axolotlclient$compactRemoveStackedInstance()) {
+				return; // streak bookkeeping said stack, but the entry vanished underneath us
 			}
 			contents = contents.copy()
 				.append(Component.literal(" x" + axolotlclient$compactStreakCount).withStyle(ChatFormatting.GRAY));
@@ -206,31 +208,108 @@ public abstract class ChatHudMixin implements ChatHudExtension {
 	 * Decides whether the incoming message continues the live duplicate streak; maintains the streak
 	 * state either way. Equality is on the plain visible text only — styling and click/hover events of
 	 * the last instance are what end up rendered.
+	 *
+	 * <p>Alpine profile M6 sub-settings: {@code compact_time_based} also stacks a duplicate that
+	 * arrives within {@code compact_time_window} seconds even when other messages landed in between
+	 * (the earlier instance is then re-found mid-list instead of expected at the head);
+	 * {@code compact_ignore_line_breaks} normalizes embedded newlines before comparing;
+	 * {@code compact_ignore_blank} keeps whitespace-only lines from stacking.</p>
 	 */
 	@Unique
 	private boolean axolotlclient$compactChatShouldStack(Component incoming) {
 		if (AxolotlClient.config() == null || !AxolotlClient.config().compactChat.get()) {
 			axolotlclient$compactStreakBase = null;
 			axolotlclient$compactStreakCount = 0;
+			axolotlclient$compactStreakAt = 0L;
 			return false;
 		}
 
-		String text = incoming.getString();
+		String text = axolotlclient$compactNormalize(incoming.getString());
 		if (text.isBlank()) {
-			// Blank lines never stack (an " x2" on an empty line is noise) and break any streak.
-			axolotlclient$compactStreakBase = null;
-			axolotlclient$compactStreakCount = 0;
+			// compact_ignore_blank (default): blank lines are ignored noise — they neither
+			// stack nor break a live streak, so duplicates split only by a blank line still
+			// compact. With it off, a blank line resets the streak like any other message.
+			if (!AxolotlClient.config().compactIgnoreBlank.get()) {
+				axolotlclient$compactStreakBase = null;
+				axolotlclient$compactStreakCount = 0;
+				axolotlclient$compactStreakAt = 0L;
+			}
 			return false;
 		}
 
-		if (text.equals(axolotlclient$compactStreakBase) && axolotlclient$compactStreakIsHeadOfChat()) {
+		if (text.equals(axolotlclient$compactStreakBase) && axolotlclient$compactStreakEligible()) {
 			axolotlclient$compactStreakCount++;
+			axolotlclient$compactStreakAt = System.currentTimeMillis();
 			return true;
 		}
 
 		axolotlclient$compactStreakBase = text;
 		axolotlclient$compactStreakCount = 1;
+		axolotlclient$compactStreakAt = System.currentTimeMillis();
 		return false;
+	}
+
+	/** Normalized comparison form of a chat line (compact_ignore_line_breaks). */
+	@Unique
+	private String axolotlclient$compactNormalize(String text) {
+		if (AxolotlClient.config().compactIgnoreLineBreaks.get()) {
+			return text.replace("\n", " ").replace("\r", " ").trim();
+		}
+		return text;
+	}
+
+	/**
+	 * Whether the live streak may still be extended by a duplicate: consecutive mode
+	 * requires the compacted message to still be the newest one — anything that
+	 * reshuffles the chat behind our back (clear, server-side delete, state restore,
+	 * another mod) shows up as a mismatch and safely breaks the streak. Time-based
+	 * mode instead only requires arrival within the window; the removal pass then
+	 * re-finds the entry mid-list, breaking the streak itself if it is gone.
+	 */
+	@Unique
+	private boolean axolotlclient$compactStreakEligible() {
+		if (AxolotlClient.config().compactTimeBased.get()) {
+			return axolotlclient$compactStreakAt > 0
+				&& System.currentTimeMillis() - axolotlclient$compactStreakAt
+				<= AxolotlClient.config().compactTimeWindow.get() * 1000L;
+		}
+		return axolotlclient$compactStreakIsHeadOfChat();
+	}
+
+	/**
+	 * Removes the previously stacked instance from the chat. Consecutive mode: it is the
+	 * head (as verified by {@link #axolotlclient$compactStreakIsHeadOfChat()}); time-based
+	 * mode: it is searched for anywhere in the history. Returns false when the entry is
+	 * gone (the caller then leaves the message unstacked).
+	 */
+	@Unique
+	private boolean axolotlclient$compactRemoveStackedInstance() {
+		String expected = axolotlclient$compactStreakCount > 1
+			? axolotlclient$compactStreakBase + " x" + axolotlclient$compactStreakCount
+			: axolotlclient$compactStreakBase;
+		if (AxolotlClient.config().compactTimeBased.get()) {
+			for (int i = 0; i < allMessages.size(); i++) {
+				GuiMessage candidate = allMessages.get(i);
+				if (axolotlclient$compactNormalize(candidate.content().getString()).equals(expected)) {
+					allMessages.remove(i);
+					trimmedMessages.removeIf(line -> line.parent() == candidate);
+					return true;
+				}
+			}
+			return false;
+		}
+		if (allMessages.isEmpty()) {
+			return false;
+		}
+		GuiMessage previous = allMessages.getFirst();
+		if (!axolotlclient$compactNormalize(previous.content().getString()).equals(expected)) {
+			return false;
+		}
+		allMessages.removeFirst();
+		while (!trimmedMessages.isEmpty() && trimmedMessages.getFirst().parent() == previous) {
+			trimmedMessages.removeFirst();
+		}
+		return true;
 	}
 
 	/**
@@ -247,7 +326,7 @@ public abstract class ChatHudMixin implements ChatHudExtension {
 		String expected = axolotlclient$compactStreakCount > 1
 			? axolotlclient$compactStreakBase + " x" + axolotlclient$compactStreakCount
 			: axolotlclient$compactStreakBase;
-		return allMessages.getFirst().content().getString().equals(expected);
+		return axolotlclient$compactNormalize(allMessages.getFirst().content().getString()).equals(expected);
 	}
 
 	/**

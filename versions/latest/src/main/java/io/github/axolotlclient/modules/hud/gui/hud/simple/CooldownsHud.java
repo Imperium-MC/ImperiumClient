@@ -60,6 +60,13 @@ public class CooldownsHud extends TextHudEntry {
 	/** Bar thickness in pixels; the line height is this + 2. */
 	public final IntegerOption barThickness = new IntegerOption("barthickness", 2, 1, 6);
 
+	// Alpine profile settings (M6): dedicated colour for the remaining-seconds text
+	// (override_color + duration_color; off = the entry's regular text colour) and a
+	// blink flash for rows about to expire (PotionsHud blink idiom, ~250 ms cycle).
+	public final BooleanOption overrideColor = new BooleanOption("cooldowns.override_color", false);
+	public final ColorOption durationColor = new ColorOption("cooldowns.duration_color", new Color(232, 197, 99).immutable());
+	public final BooleanOption blink = new BooleanOption("cooldowns.blink", false);
+
 	private static final int LINE_SPACING = 1;
 	private final Minecraft client = (Minecraft) super.client;
 
@@ -85,10 +92,14 @@ public class CooldownsHud extends TextHudEntry {
 		for (ActiveCooldown cd : active) {
 			int lineY = y;
 			if (showItemName.get()) {
-				String label = showSeconds.get() && cd.remainingSeconds() >= 0.05f
-					? cd.name() + " (" + String.format("%.1f", cd.remainingSeconds()) + "s)"
-					: cd.name();
-				graphics.br$drawString(label, x, lineY, textColor.get().toInt(), shadow.get());
+				int cursor = graphics.br$drawString(cd.name(), x, lineY, textColor.get().toInt(), shadow.get());
+				if (showSeconds.get() && cd.remainingSeconds() >= 0.05f) {
+					String suffix = " (" + String.format("%.1f", cd.remainingSeconds()) + "s)";
+					int secondsColor = overrideColor.get() ? durationColor.get().toInt() : textColor.get().toInt();
+					if (!isBlinkingOff(cd)) {
+						graphics.br$drawString(suffix, cursor, lineY, secondsColor, shadow.get());
+					}
+				}
 				lineY += client.font.lineHeight + 1;
 			}
 			// Background track (subtle) then the filled portion draining with the cooldown.
@@ -100,6 +111,20 @@ public class CooldownsHud extends TextHudEntry {
 			}
 			y = lineY + thickness + LINE_SPACING;
 		}
+	}
+
+	/**
+	 * Whether a row's seconds text is currently in its "off" blink phase: rows with
+	 * under three seconds left toggle the suffix on a ~250 ms cycle (PotionsHud blink
+	 * idiom). Only server-pushed cooldowns know their exact remaining time; hotbar
+	 * items only expose a percent, so they blink for the final 15% of the cooldown.
+	 */
+	private boolean isBlinkingOff(ActiveCooldown cd) {
+		if (!blink.get()) {
+			return false;
+		}
+		boolean expiring = cd.remainingSeconds() >= 0 ? cd.remainingSeconds() < 3.0F : cd.percent() < 0.15F;
+		return expiring && (System.currentTimeMillis() / 250L) % 2L == 0L;
 	}
 
 	/** Hotbar slots 0-8; items on cooldown become render rows. Cheap: 9 checks/frame. */
@@ -183,6 +208,9 @@ public class CooldownsHud extends TextHudEntry {
 		options.add(hide);
 		options.add(showItemName);
 		options.add(showSeconds);
+		options.add(overrideColor);
+		options.add(durationColor);
+		options.add(blink);
 		options.add(barColor);
 		options.add(barThickness);
 		return options;

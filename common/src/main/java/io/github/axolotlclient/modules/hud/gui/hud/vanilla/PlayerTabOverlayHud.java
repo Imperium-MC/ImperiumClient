@@ -47,6 +47,13 @@ public class PlayerTabOverlayHud extends TextHudEntry {
 	public final BooleanOption numericalPing = new BooleanOption("numericalPing", true);
 	public final BooleanOption highlightSelf = new BooleanOption("highlightSelf", true);
 	private final ColorOption selfHighlightColor = new ColorOption("selfHighlightColor", Color.parse("#40408CFF"));
+
+	// Alpine profile settings (M6): rows of the player's group (their ImperiumMC legion)
+	// get their own row highlight. The member-name set is owned by the version side
+	// (LegionStateRegistry via the API fallback / legion channel); when it is empty —
+	// no legion or names not delivered — no row matches and nothing changes.
+	public final BooleanOption highlightGroupMembers = new BooleanOption("highlight_group_members", false);
+	private final ColorOption groupHighlightColor = new ColorOption("highlight_color_group", Color.parse("#4040AA55"));
 	private final BooleanOption smallPingText = new BooleanOption("tablist.small_ping_text", false);
 	private final ColorOption pingColor0 = new ColorOption("pingColor0", Color.parse("#FF00FFFF"));
 	private final ColorOption pingColor1 = new ColorOption("pingColor1", Color.parse("#FF00FF00"));
@@ -116,6 +123,10 @@ public class PlayerTabOverlayHud extends TextHudEntry {
 		return selfHighlightColor.get().toInt();
 	}
 
+	public int getGroupHighlightColor() {
+		return groupHighlightColor.get().toInt();
+	}
+
 	@Override
 	public void render(AxoRenderContext ctx, float delta) {
 		// done in mixins with transformations
@@ -138,8 +149,8 @@ public class PlayerTabOverlayHud extends TextHudEntry {
 		options.add(enabled);
 		Collections.addAll(options, background, customBackgroundColor, backgroundColor, roundBackground, backgroundRounding, backgroundPadding, outline, outlineColor);
 		options.add(anchor);
-		Collections.addAll(options, numericalPing, smallPingText, showPlayerHeads, shadow, showHeader, showFooter, alwaysShowHeadLayer, highlightSelf);
-		Collections.addAll(options, pingColor0, pingColor1, pingColor2, pingColor3, pingColor4, pingColor5, selfHighlightColor);
+		Collections.addAll(options, numericalPing, smallPingText, showPlayerHeads, shadow, showHeader, showFooter, alwaysShowHeadLayer, highlightSelf, highlightGroupMembers);
+		Collections.addAll(options, pingColor0, pingColor1, pingColor2, pingColor3, pingColor4, pingColor5, selfHighlightColor, groupHighlightColor);
 		return options;
 	}
 

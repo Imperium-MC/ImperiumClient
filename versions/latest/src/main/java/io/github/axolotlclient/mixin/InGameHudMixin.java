@@ -128,12 +128,14 @@ public abstract class InGameHudMixin {
 		ScoreboardHud hud = (ScoreboardHud) HudManager.getInstance().get(ScoreboardHud.ID);
 		ScoreboardRenderEvent event = new ScoreboardRenderEvent(objective);
 		Events.SCOREBOARD_RENDER_EVENT.invoker().accept(event);
-		// Server-HUD-safety (Alpine parity M2): only suppress the vanilla sidebar while the
+		// Server-HUD-safety (Alpine parity M2/M6): only suppress the vanilla sidebar while the
 		// custom entry actually renders it — otherwise a server sidebar either double-renders
 		// or disappears entirely (global HUD toggle off / hide-in-F3). Mirrors the BossBarHud
 		// null-safe pattern plus the hudsEnabled/isHidden guards the other vanilla cancels use.
+		// With the entry's server_hud_safety option off, suppression is unconditional while
+		// the entry is enabled (aggressive takeover, Alpine's old behaviour).
 		if (event.isCancelled() || (hud != null && HudManager.getInstance().hudsEnabled()
-			&& hud.isEnabled() && !hud.isHidden())) {
+			&& hud.isEnabled() && (hud.serverHudSafety.get() || !hud.isHidden()))) {
 			ci.cancel();
 		}
 	}

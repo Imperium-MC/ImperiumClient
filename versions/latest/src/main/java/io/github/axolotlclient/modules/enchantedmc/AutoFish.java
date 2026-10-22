@@ -29,6 +29,8 @@ import io.github.axolotlclient.AxolotlClientConfig.api.options.OptionCategory;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.BooleanOption;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.IntegerOption;
 import io.github.axolotlclient.bridge.events.Events;
+import io.github.axolotlclient.bridge.key.AxoKeybinding;
+import io.github.axolotlclient.bridge.key.AxoKeys;
 import io.github.axolotlclient.imperium.ServerGating;
 import io.github.axolotlclient.mixin.FishingHookAccessor;
 import io.github.axolotlclient.mixin.MinecraftClientAccessor;
@@ -70,6 +72,13 @@ public class AutoFish extends AbstractModule {
 	public final IntegerOption delayMax = new IntegerOption("delay_max", 2000, 100, 5000);
 	public final BooleanOption autoRecast = new BooleanOption("auto_recast", true);
 
+	// Alpine profile settings (M6): whether an open screen pauses the automation (the
+	// pre-M6 behaviour, still the default) and a keybind flipping the module toggle.
+	// The keybind cannot bypass the server gate — every tick re-runs
+	// ServerGating#enforce, which re-locks a denied module immediately.
+	public final BooleanOption pauseInMenus = new BooleanOption("pause_in_menus", true);
+	public final AxoKeybinding toggleKey = AxoKeybinding.create(AxoKeys.KEY_UNKNOWN, "key.autofish.toggle");
+
 	private final OptionCategory category = OptionCategory.create("autofish");
 	private final Random random = new Random();
 
@@ -87,8 +96,13 @@ public class AutoFish extends AbstractModule {
 
 	@Override
 	public void init() {
-		category.add(enabled, delayMin, delayMax, autoRecast);
+		category.add(enabled, delayMin, delayMax, autoRecast, pauseInMenus);
 		AxolotlClientCommon.getInstance().getConfig().addCategory(category);
+		toggleKey.br$registerOnConsumeClick(() -> {
+			if (ServerGating.granted(ServerGating.AUTO_FISH)) {
+				enabled.toggle();
+			}
+		});
 		// Server-denyable through the block_mods channel too (FeatureDisabler pattern).
 		FeatureDisablerCommon.registerDeniable(ServerGating.AUTO_FISH, enabled);
 		Events.DISCONNECT.register(this::resetState);
@@ -109,7 +123,7 @@ public class AutoFish extends AbstractModule {
 			resetState();
 			return;
 		}
-		if (client.gui.screen() != null) {
+		if (pauseInMenus.get() && client.gui.screen() != null) {
 			return; // menu/chat open: hold state, do not click through screens
 		}
 

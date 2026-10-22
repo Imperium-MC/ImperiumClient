@@ -45,21 +45,21 @@ an HTML comment. `gen:` comments flag rows worth a human look; they are regenera
 |---|---|---|
 | **cps** | CPSHud | ✅ add right-click toggle |
 | **fps** | FPSHud | ✅ |
-| **tps** | TPSHud | ✅ add adaptive colour tiers |
+| **tps** | TPSHud | ✅ adaptive colour tiers, configurable per-tier colours (M6) |
 | **compass** | CompassHud | ✅ waypoint markers, direction arrow, yaw degrees (M2) |
 | **scoreboard** | ScoreboardHud | ✅ server-HUD-safety, score toggle (M2) |
 | **boss_bar** | BossBarHud | ✅ add health/text toggles |
 | **titles** | TitleHud (PR #1, fixed on `review/pr-1`) | 🟡 needs merge <!-- gen: TitleHud registered; re-review partial note --> <!-- gen: TitleHud registered; re-review partial note --> <!-- gen: TitleHud registered; re-review partial note --> |
-| **info_hud** | InfoHud | ✅ configurable multi-line info lines: coords/facing/biome/fps/time/day/playtime (M2) |
+| **info_hud** | InfoHud | ✅ configurable multi-line info lines: coords/facing/biome/fps/time/day/playtime (M2) plus title line, brace style and header colour (M6) |
 | **cooldowns** | — | ✅ <!-- gen: CooldownsHud registered --> <!-- gen: CooldownsHud registered --> <!-- gen: CooldownsHud registered --> |
 | **toggle_sneak_sprint** (+ status HUD) | ToggleSprintHud | ✅ double-tap sneak toggle (window ms), fly boost via sprint key while flying |
 | **fullbright** | `fullBright` option | ✅ add keybind toggle |
 | **environment** | `timeChanger` option | ✅ fixed time, weather state/intensity override, time multiplier |
 | **chat_settings** | ChatHud (partial) | ? smooth chat, timestamps, persistent chat, hover highlight, peek, screenshot, IGN highlight/ping, empty filter <!-- gen: no mapping to the registry or the code found --> |
 | chat_settings/compact_chat | `compactChat` option | ✅ stack duplicate messages |
-| **tab_editor** | — | ❌ numeric ping, self/group highlight |
+| **tab_editor** | — | ❌ numeric ping + self highlight pre-exist in PlayerTabOverlayHud; group highlight built (M6) from legion member names (API `members` + optional channel `members` array via LegionStateRegistry) |
 | **nametag_editor** | `nametagOptions` | ✅ own nametag, shadow, background (none/translucent/opaque), scale; client icon via existing badges |
-| **waypoints** | WaypointsHud + WaypointManager | 🟡 per-dimension waypoints, death points, add keybind (B), list screen; on-screen arrows not 3D tracers (no projection math in codebase) <!-- gen: WaypointsHud registered; re-review partial note --> <!-- gen: WaypointsHud registered; re-review partial note --> <!-- gen: WaypointsHud registered; re-review partial note --> |
+| **waypoints** | WaypointsHud + WaypointManager | 🟡 per-dimension waypoints, death points (limit/max/colour, M6), add keybind (B), list screen; on-screen arrows not 3D tracers (no projection math in codebase) <!-- gen: WaypointsHud registered; re-review partial note --> <!-- gen: WaypointsHud registered; re-review partial note --> <!-- gen: WaypointsHud registered; re-review partial note --> |
 | **inventory_tweaks/inventory_search** | InventorySearch | ✅ search bar with slot highlight |
 | **inventory_tweaks/scrollable_tooltips** | ScrollableTooltips | ✅ add smooth scroll, activation key |
 | inventory_tweaks | InventoryTweaks | ✅ hide potion effects (`hide_vanilla_potion_hud`, HUD corner + inventory panel), keep centred (`keep_centered`, panel suppressed + leftPos recompute), compact item counts (1.2k) |
@@ -76,7 +76,7 @@ an HTML comment. `gen:` comments flag rows worth a human look; they are regenera
 | ping, memory, speed, reach_display, combo_count, pack_display, server_display | PingHud, MemoryHud, SpeedHud, ReachHud, ComboHud, PackDisplayHud, IPHud | ✅ |
 | clock, day_counter | IRLTimeHud, DayCounterHud | ✅ |
 | playtime, stopwatch, entity_count, potion_count, obsidian_count | — | ✅ <!-- gen: EntityCountHud, ObsidianCountHud, PlaytimeHud, PotionCountHud, StopwatchHud registered --> <!-- gen: EntityCountHud, ObsidianCountHud, PlaytimeHud, PotionCountHud, StopwatchHud registered --> <!-- gen: EntityCountHud, ObsidianCountHud, PlaytimeHud, PotionCountHud, StopwatchHud registered --> |
-| crosshair | CrosshairHud | ✅ add friendly/enemy dynamic colour |
+| crosshair | CrosshairHud | ✅ friendly/enemy dynamic colour (M6): dynamic_color gate + friendly colour on allied targets |
 | block_overlay | block outline options | ✅ highlight fill mode |
 | hit_color | `hitColor` option | ✅ armour/trim toggles |
 | tnt_timer | TntTime | ✅ fuse colour stages |

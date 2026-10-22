@@ -29,6 +29,7 @@ import java.util.Objects;
 
 import io.github.axolotlclient.AxolotlClientConfig.api.options.Option;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.BooleanOption;
+import io.github.axolotlclient.AxolotlClientConfig.impl.options.EnumOption;
 import io.github.axolotlclient.bridge.entity.AxoEntity;
 import io.github.axolotlclient.bridge.entity.AxoPlayer;
 import io.github.axolotlclient.bridge.math.Vec3;
@@ -46,6 +47,29 @@ public class SpeedHud extends SimpleTextHudEntry {
 	private final static NumberFormat FORMATTER = new DecimalFormat("#0.00");
 	private final BooleanOption horizontal = new BooleanOption("horizontal", true);
 
+	/** Display units (Alpine "unit", M6). Blocks are metres, so BPS and MPS differ only in label. */
+	public enum SpeedUnit {
+		BPS("BPS", 20.0),
+		MPS("m/s", 20.0),
+		KMH("km/h", 72.0),
+		MPH("mph", 44.7387);
+
+		public final String label;
+		public final double perTickToUnit;
+
+		SpeedUnit(String label, double perTickToUnit) {
+			this.label = label;
+			this.perTickToUnit = perTickToUnit;
+		}
+
+		@Override
+		public String toString() {
+			return "speedhud.unit." + name().toLowerCase(java.util.Locale.ROOT);
+		}
+	}
+
+	private final EnumOption<SpeedUnit> unit = new EnumOption<>("speedhud.unit", SpeedUnit.class, SpeedUnit.BPS);
+
 	public SpeedHud() {
 		super(true);
 	}
@@ -59,6 +83,7 @@ public class SpeedHud extends SimpleTextHudEntry {
 	public List<Option<?>> getConfigurationOptions() {
 		List<Option<?>> options = super.getConfigurationOptions();
 		options.add(horizontal);
+		options.add(unit);
 		return options;
 	}
 
@@ -77,7 +102,7 @@ public class SpeedHud extends SimpleTextHudEntry {
 			vec = vec.y(0);
 		}
 
-		return FORMATTER.format(vec.len() * 20);
+		return FORMATTER.format(vec.len() * unit.get().perTickToUnit);
 	}
 
 	@Override
@@ -87,6 +112,6 @@ public class SpeedHud extends SimpleTextHudEntry {
 
 	@Override
 	public String getLabel() {
-		return "BPS";
+		return unit.get().label;
 	}
 }
