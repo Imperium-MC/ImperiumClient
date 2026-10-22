@@ -28,5 +28,7 @@ interface StatusUpdateProvider {
 
     fun initialize()
 
-    fun getStatus(): Request
+    // nullable: the Java implementations (StatusUpdateProviderImpl and the game state
+    // providers it delegates to) legitimately return null when no status applies
+    fun getStatus(): Request?
 }
