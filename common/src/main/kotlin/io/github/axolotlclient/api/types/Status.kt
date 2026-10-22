@@ -64,7 +64,7 @@ class Status(
         return lastOnline?.let {
             AxoI18n.translate(
                 "api.status.last_online",
-                it.atZone(ZoneId.systemDefault()).format(AxolotlClientCommon.getInstance().config.dateTimeFormatter)
+                it.atZone(ZoneId.systemDefault()).format(AxolotlClientCommon.getInstance().getConfig().dateTimeFormatter)
             )
         }
     }

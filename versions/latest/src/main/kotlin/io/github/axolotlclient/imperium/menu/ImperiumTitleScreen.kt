@@ -87,7 +87,7 @@ class ImperiumTitleScreen : TitleScreen(false) {
 	private fun accountY(): Int = INSET
 
 	private fun accountName(): String {
-		val account = Auth.getInstance().current ?: return "Offline"
+		val account = Auth.getInstance().getCurrent() ?: return "Offline"
 		return account.name
 	}
 
@@ -161,7 +161,7 @@ class ImperiumTitleScreen : TitleScreen(false) {
 		// left half so it never runs into the centred line on narrow windows
 		val copyright = Component.translatable("imperium.title.copyright").string
 		val copyrightW = ImperiumFonts.width(font, copyright)
-		val version = ImperiumFonts.truncate(font, "Romanica Client " + AxolotlClient.VERSION, width / 2 - copyrightW / 2 - 8)
+		val version = ImperiumFonts.truncate(font, "Romanica Client " + AxolotlClientCommon.VERSION, width / 2 - copyrightW / 2 - 8)
 		graphics.text(
 			font, ImperiumFonts.label(version), INSET, height - FOOTER_H,
 			Theme.OVERLAY_TEXT_SECONDARY, false
@@ -183,7 +183,7 @@ class ImperiumTitleScreen : TitleScreen(false) {
 
 		// the player's head (default skin texture until the signed skin is loaded)
 		val uuid = try {
-			UUID.fromString(Auth.getInstance().current?.uuid)
+			UUID.fromString(Auth.getInstance().getCurrent()?.uuid)
 		} catch (e: IllegalArgumentException) {
 			UUID(0L, 0L)
 		}

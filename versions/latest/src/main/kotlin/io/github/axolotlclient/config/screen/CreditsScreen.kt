@@ -23,6 +23,7 @@
 package io.github.axolotlclient.config.screen
 
 import io.github.axolotlclient.AxolotlClient
+import io.github.axolotlclient.AxolotlClientCommon
 import io.github.axolotlclient.credits.Credits
 import io.github.axolotlclient.util.ClientColors
 import io.github.axolotlclient.util.DrawUtil
@@ -88,7 +89,7 @@ class CreditsScreen(private val parent: Screen?) :
                     .append(Component.translatable(if (AxolotlClient.config().creditsBGM.get()) "options.on" else "options.off"))
             ) { buttonWidget ->
                 AxolotlClient.config().creditsBGM.toggle()
-                AxolotlClient.getInstance().saveConfig()
+                AxolotlClientCommon.getInstance().saveConfig()
                 stopBGM()
                 buttonWidget.setMessage(
                     Component.translatable("creditsBGM").append(": ").append(

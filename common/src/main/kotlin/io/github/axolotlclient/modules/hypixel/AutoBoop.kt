@@ -83,7 +83,7 @@ class AutoBoop : AbstractHypixelMod {
                     CompletableFuture.runAsync(
                         {
                             AxoMinecraftClient.getInstance().`br$sendToServer`("/boop $player")
-                            AxolotlClientCommon.getInstance().getLogger().info("Booped $player")
+                            AxolotlClientCommon.getInstance().logger.info("Booped $player")
                         },
                         CompletableFuture.delayedExecutor(1, TimeUnit.SECONDS, AxoMinecraftClient.getInstance())
                     )

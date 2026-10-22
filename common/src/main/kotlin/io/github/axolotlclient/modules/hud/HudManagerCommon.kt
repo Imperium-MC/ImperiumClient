@@ -120,10 +120,10 @@ abstract class HudManagerCommon : AbstractCommonModule(), ProfileAware {
             enabled.toggle()
             AxolotlClientCommon.getInstance().saveConfig()
         })
-        AxolotlClientCommon.getInstance().config.addCategory(hudCategory)
+        AxolotlClientCommon.getInstance().getConfig().addCategory(hudCategory)
         hudCategory.add(enabled, grabCornerColor, hudLinkCreationEnabled, hudLinkLineWidth)
         hudEditScreenCategory.add(snapping)
-        AxolotlClientCommon.getInstance().config.hidden.add(hudEditScreenCategory)
+        AxolotlClientCommon.getInstance().getConfig().hidden.add(hudEditScreenCategory)
         add(PingHud())
         add(FPSHud())
         add(CPSHud())
@@ -153,10 +153,10 @@ abstract class HudManagerCommon : AbstractCommonModule(), ProfileAware {
 
         addExtraHud()
 
-        addNonConfigured(BedwarsMod.getInstance().getUpgradesOverlay())
-        addNonConfigured(BedwarsMod.getInstance().getResourceOverlay())
-        addNonConfigured(BedwarsMod.getInstance().getStatsOverlay())
-        addNonConfigured(BedwarsMod.getInstance().getSessionStatsOverlay())
+        addNonConfigured(BedwarsMod.getInstance().upgradesOverlay)
+        addNonConfigured(BedwarsMod.getInstance().resourceOverlay)
+        addNonConfigured(BedwarsMod.getInstance().statsOverlay)
+        addNonConfigured(BedwarsMod.getInstance().sessionStatsOverlay)
 
         entries.values.forEach { it.init() }
 
@@ -232,7 +232,7 @@ abstract class HudManagerCommon : AbstractCommonModule(), ProfileAware {
                 }
             }
         } catch (e: Exception) {
-            AxolotlClientCommon.getInstance().getLogger().warn("Failed to load hud dependency links!", e)
+            AxolotlClientCommon.getInstance().logger.warn("Failed to load hud dependency links!", e)
         }
     }
 
@@ -269,7 +269,7 @@ abstract class HudManagerCommon : AbstractCommonModule(), ProfileAware {
             json.endObject()
             json.close()
         } catch (e: Exception) {
-            AxolotlClientCommon.getInstance().getLogger().warn("Failed to save hud dependency links!", e)
+            AxolotlClientCommon.getInstance().logger.warn("Failed to save hud dependency links!", e)
         }
     }
 
@@ -300,7 +300,7 @@ abstract class HudManagerCommon : AbstractCommonModule(), ProfileAware {
                 }
             }
         } catch (e: IOException) {
-            AxolotlClientCommon.getInstance().getLogger().warn("Failed to load custom hud modules!", e)
+            AxolotlClientCommon.getInstance().logger.warn("Failed to load custom hud modules!", e)
         }
     }
 
@@ -329,7 +329,7 @@ abstract class HudManagerCommon : AbstractCommonModule(), ProfileAware {
             json.endArray()
             json.close()
         } catch (e: IOException) {
-            AxolotlClientCommon.getInstance().getLogger().warn("Failed to save custom hud modules!", e)
+            AxolotlClientCommon.getInstance().logger.warn("Failed to save custom hud modules!", e)
         }
     }
 
