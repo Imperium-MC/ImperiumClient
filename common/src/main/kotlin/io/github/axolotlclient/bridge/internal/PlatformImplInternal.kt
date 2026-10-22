@@ -156,7 +156,7 @@ class PlatformImplInternal {
 
 		@RequiresImpl
 		@JvmStatic
-		fun setTabListHeader(text: AxoText) {
+		fun setTabListHeader(text: AxoText?) {
 			throw BridgeUtil.noImpl()
 		}
 

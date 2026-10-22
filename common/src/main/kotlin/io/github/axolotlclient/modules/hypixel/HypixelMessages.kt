@@ -44,14 +44,14 @@ class HypixelMessages : Runnable {
         languageMessageMap.clear()
         messageLanguageMap.clear()
 
-        AxolotlClientCommon.getInstance().getLogger().debug("Loading Hypixel Messages")
+        AxolotlClientCommon.getInstance().logger.debug("Loading Hypixel Messages")
         AxoMinecraftClient.getInstance().`br$getResourceManager`().`br$listResources`(
             "", "lang"
         ) { id -> id.`br$getPath`().endsWith(".hypixel.json") }
             .forEach { id, resource ->
                 val i = id.`br$getPath`().lastIndexOf("/") + 1
                 val lang = id.`br$getPath`().substring(i, i + 5)
-                AxolotlClientCommon.getInstance().getLogger().debug("Found message file: $id")
+                AxolotlClientCommon.getInstance().logger.debug("Found message file: $id")
                 val lines: Map<String, String> = try {
                     @Suppress("UNCHECKED_CAST")
                     GsonHelper.read(resource.`br$asStream`()) as Map<String, String>

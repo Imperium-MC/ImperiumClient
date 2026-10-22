@@ -337,7 +337,7 @@ abstract class PlayerListHudMixin {
         if (!BedwarsMod.getInstance().customTabHeader.get()) {
             return
         }
-        this.header = BedwarsMod.getInstance().game.orElseThrow().getTopBarText() as Component
+        this.header = BedwarsMod.getInstance().game.orElseThrow().topBarText as Component
         ci.cancel()
     }
 
@@ -349,7 +349,7 @@ abstract class PlayerListHudMixin {
         if (!BedwarsMod.getInstance().customTabFooter.get()) {
             return
         }
-        this.footer = BedwarsMod.getInstance().game.orElseThrow().getBottomBarText() as Component
+        this.footer = BedwarsMod.getInstance().game.orElseThrow().bottomBarText as Component
         ci.cancel()
     }
 

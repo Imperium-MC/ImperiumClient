@@ -205,7 +205,7 @@ abstract class PlatformImplInternalMixin {
 	 * @reason Implement bridge platform.
 	 */
 	@Overwrite
-	fun setTabListHeader(text: AxoText) {
+	fun setTabListHeader(text: AxoText?) {
 		Minecraft.getInstance().gui.hud.tabList.setHeader(text as Component)
 	}
 

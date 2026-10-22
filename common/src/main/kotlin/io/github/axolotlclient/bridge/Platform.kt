@@ -42,6 +42,6 @@ interface Platform {
 		fun getTabNameFor(player: AxoPlayerListEntry): String = PlatformImplInternal.getTabNameFor(player)
 
 		@JvmStatic
-		fun setTabListHeader(text: AxoText) = PlatformImplInternal.setTabListHeader(text)
+		fun setTabListHeader(text: AxoText?) = PlatformImplInternal.setTabListHeader(text)
 	}
 }

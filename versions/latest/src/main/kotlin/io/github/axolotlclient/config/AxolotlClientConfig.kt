@@ -128,9 +128,9 @@ class AxolotlClientConfig : AxolotlClientConfigCommon() {
                         }
                     }
                 )
-                AxolotlClient.getInstance().configManager.load()
+                AxolotlClientCommon.getInstance().configManager.load()
             } else {
-                AxolotlClient.getInstance().configManager.load()
+                AxolotlClientCommon.getInstance().configManager.load()
             }
         }
 

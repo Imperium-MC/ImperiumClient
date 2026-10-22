@@ -28,6 +28,7 @@ import com.llamalad7.mixinextras.sugar.Local
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef
 import com.mojang.realmsclient.gui.screens.RealmsNotificationsScreen
 import io.github.axolotlclient.AxolotlClient
+import io.github.axolotlclient.AxolotlClientCommon
 import io.github.axolotlclient.AxolotlClientConfigCommon
 import io.github.axolotlclient.api.API
 import io.github.axolotlclient.api.APIOptions
@@ -108,7 +109,7 @@ abstract class TitleScreenMixin protected constructor() : Screen(Component.empty
                 var buttonY = 10
                 if (APIOptions.getInstance().updateNotifications.get() &&
                     data.success &&
-                    data.latestVersion.isNewerThan(AxolotlClient.VERSION)
+                    data.latestVersion.isNewerThan(AxolotlClientCommon.VERSION)
                 ) {
                     addRenderableWidget(
                         Button.builder(
@@ -189,7 +190,7 @@ abstract class TitleScreenMixin protected constructor() : Screen(Component.empty
     )
     private fun `axolotlclient$setVersionText`(s: String): String {
         return "Minecraft " + SharedConstants.getCurrentVersion().name() + "/Romanica Client " +
-            AxolotlClient.VERSION
+            AxolotlClientCommon.VERSION
     }
 
     @Inject(method = ["realmsNotificationsEnabled"], at = [At("HEAD")], cancellable = true)
@@ -227,8 +228,9 @@ abstract class TitleScreenMixin protected constructor() : Screen(Component.empty
 
     @Inject(method = ["init"], at = [At("HEAD")])
     private fun checkAPIStart(ci: CallbackInfo) {
-        if (!API.getInstance().isSocketConnected() && !Auth.getInstance().getCurrent().isOffline()) {
-            API.getInstance().startup(Auth.getInstance().getCurrent())
+        val account = Auth.getInstance().getCurrent()
+        if (!API.getInstance().isSocketConnected() && account != null && !account.isOffline) {
+            API.getInstance().startup(account)
         }
     }
 }

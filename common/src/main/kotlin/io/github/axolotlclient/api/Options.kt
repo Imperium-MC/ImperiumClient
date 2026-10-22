@@ -175,7 +175,7 @@ abstract class Options : Module {
         pluralkit.add(pkToken, false)
         pluralkit.add(autoproxy, autoproxyMode, autoproxyMember)
         account.add(showRegistered, retainUsernames, showLastOnline, showActivity, allowFriendsImageAccess)
-        val globalConfig = AxolotlClientCommon.getInstance().config
+        val globalConfig = AxolotlClientCommon.getInstance().getConfig()
         badgeOptions.add(globalConfig.showBadges, globalConfig.customBadge, globalConfig.badgeText, globalConfig.tabBadgeMode)
         category.add(pluralkit, badgeOptions)
         category.add(account, false)

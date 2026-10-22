@@ -241,7 +241,7 @@ abstract class InGameHudMixin {
         //noinspection OptionalGetWithoutIsPresent
         val hardcoreMod = BedwarsMod.getInstance().isEnabled && BedwarsMod.getInstance().inGame() &&
             BedwarsMod.getInstance().hardcoreHearts.get() &&
-            !BedwarsMod.getInstance().game.get().getSelf().isBed()
+            BedwarsMod.getInstance().game.get().self?.bed != true
         original.call(instance, graphics, type, x, y, hardcoreMod || hardcore, blinking, half)
     }
 
