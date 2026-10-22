@@ -44,7 +44,7 @@ class StatusUpdateProviderImpl : StatusUpdateProvider {
                     .firstOrNull { it.address.matcher(entry.ip).matches() }
                 if (server != null) {
                     if (server == StatusUpdate.SupportedServer.HYPIXEL) {
-                        return HypixelMods.getInstance().status
+                        return HypixelMods.getInstance().getStatus()!!
                     } else if (server == StatusUpdate.SupportedServer.MCC_ISLAND) {
                         return MccIslandMods.getInstance().mccIStatus
                     }

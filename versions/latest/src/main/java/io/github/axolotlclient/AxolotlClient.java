@@ -52,7 +52,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.FeatureRendererRegistry;
 public class AxolotlClient extends AxolotlClientCommon implements ClientModInitializer {
 
 	private void addBuiltinModules() {
-		registerModule(HudManager.getInstance());
+		registerModule(HudManager.construct());
 		registerModule(HypixelMods.getInstance());
 		registerModule(MotionBlur.getInstance());
 		registerModule(io.github.axolotlclient.modules.blur.HudBlur.getInstance());

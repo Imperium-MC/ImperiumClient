@@ -38,11 +38,11 @@ data class PlayerData(
 
     @JvmRecord
     data class Bedwars(
-        val level: Int, val all: GameData, val core: CombinedGameData, val solo: GameData, val doubles: GameData,
-        val trios: GameData, val fours: GameData, val fourVFour: GameData, val dreams: CombinedGameData,
-        val castle: GameData, val doublesLucky: GameData, val foursLucky: GameData, val doublesUltimate: GameData,
-        val foursUltimate: GameData, val doublesArmed: GameData, val foursArmed: GameData, val doublesRush: GameData,
-        val foursRush: GameData, val doublesSwap: GameData, val foursSwap: GameData
+        val level: Int, val all: GameData, val core: CombinedGameData, val solo: GameData?, val doubles: GameData?,
+        val trios: GameData?, val fours: GameData?, val fourVFour: GameData?, val dreams: CombinedGameData?,
+        val castle: GameData?, val doublesLucky: GameData?, val foursLucky: GameData?, val doublesUltimate: GameData?,
+        val foursUltimate: GameData?, val doublesArmed: GameData?, val foursArmed: GameData?, val doublesRush: GameData?,
+        val foursRush: GameData?, val doublesSwap: GameData?, val foursSwap: GameData?
     ) {
         @JvmRecord
         data class GameData(

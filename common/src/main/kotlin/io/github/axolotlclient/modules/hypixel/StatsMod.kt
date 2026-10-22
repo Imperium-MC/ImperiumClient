@@ -123,7 +123,8 @@ class StatsMod : AbstractHypixelMod {
                 }.toArray()
             )
 
-        private fun buildBedwarsGameMode(key: String, data: PlayerData.Bedwars.BedwarsGameData): AxoText {
+        private fun buildBedwarsGameMode(key: String, data: PlayerData.Bedwars.BedwarsGameData?): AxoText {
+            if (data == null) return literal("")
             val text = statText(key)
 
             val hover = literal("")

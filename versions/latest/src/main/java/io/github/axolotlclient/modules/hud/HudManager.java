@@ -47,6 +47,16 @@ public class HudManager extends HudManagerCommon {
 	@SuppressWarnings("unused")
 	private final static HudManager instance = new HudManager();
 
+	/**
+	 * Class-loading accessor: touching this method runs the eager static above. The inherited
+	 * companion getInstance() resolves against HudManagerCommon WITHOUT loading this class, so
+	 * callers that must guarantee construction (module registration) go through here instead -
+	 * the FeatureDisabler/Kotlin-companion trap, third sighting.
+	 */
+	public static HudManager construct() {
+		return instance;
+	}
+
 	@Override
 	protected void openScreen() {
 		Minecraft.getInstance().gui.setScreen(new ImperiumMenuScreen(null));
