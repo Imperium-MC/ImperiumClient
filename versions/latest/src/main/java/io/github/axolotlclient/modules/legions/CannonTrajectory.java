@@ -32,6 +32,8 @@ import io.github.axolotlclient.AxolotlClientConfig.impl.options.BooleanOption;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.ColorOption;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.FloatOption;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.IntegerOption;
+import io.github.axolotlclient.bridge.key.AxoKeybinding;
+import io.github.axolotlclient.bridge.key.AxoKeys;
 import io.github.axolotlclient.modules.AbstractModule;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.minecraft.client.Minecraft;
@@ -90,6 +92,9 @@ public class CannonTrajectory extends AbstractModule {
 	public final ColorOption landingColor = new ColorOption("cannontrajectory.landing_color",
 		new Color(255, 85, 85, 200));
 	public final FloatOption lineWidth = new FloatOption("cannontrajectory.line_width", 2.0F, 0.5F, 8.0F);
+	// factions/cannon_view (wave 3): a dedicated toggle keybind, Alpine-style — flip the
+	// prediction on and off without opening the config (AutoFish toggle-key idiom).
+	public final AxoKeybinding toggleKey = AxoKeybinding.create(AxoKeys.KEY_UNKNOWN, "key.cannon_view.toggle");
 
 	private final OptionCategory category = OptionCategory.create("cannontrajectory");
 
@@ -108,6 +113,10 @@ public class CannonTrajectory extends AbstractModule {
 		category.add(enabled, launchPower, maxTicks, predictLiveTnt, range, showLandingBox, arcColor,
 			landingColor, lineWidth);
 		AxolotlClientCommon.getInstance().getConfig().addCategory(category);
+		toggleKey.br$registerOnConsumeClick(() -> {
+			enabled.toggle();
+			AxolotlClientCommon.getInstance().saveConfig();
+		});
 
 		LevelRenderEvents.BEFORE_GIZMOS.register(context -> {
 			if (!enabled.get()) {

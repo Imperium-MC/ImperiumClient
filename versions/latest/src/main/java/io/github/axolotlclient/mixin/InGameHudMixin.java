@@ -27,6 +27,7 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import io.github.axolotlclient.AxolotlClient;
 import io.github.axolotlclient.bridge.AxoMinecraftClient;
 import io.github.axolotlclient.bridge.events.Events;
@@ -39,6 +40,7 @@ import io.github.axolotlclient.modules.hypixel.bedwars.BedwarsMod;
 import io.github.axolotlclient.modules.waypoints.WaypointTracers;
 import io.github.axolotlclient.util.FarmingOverlay;
 import io.github.axolotlclient.util.LowHpTint;
+import io.github.axolotlclient.util.OverlayOpacity;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -47,6 +49,8 @@ import net.minecraft.client.gui.Hud;
 import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.client.gui.components.PlayerTabOverlay;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.scores.Objective;
@@ -225,6 +229,53 @@ public abstract class InGameHudMixin {
 		if (AxolotlClient.config().removeVignette.get()) {
 			ci.cancel();
 		}
+	}
+
+	// pumpkin_opacity (Alpine grab-bag, wave 3): the equipment camera-overlay branch of
+	// extractCameraOverlays (carved pumpkin & friends) — the first extractTextureOverlay
+	// call site — draws with ARGB.white(alpha); scaling that alpha scales the overlay.
+	@WrapOperation(method = "extractCameraOverlays", at = @At(value = "INVOKE",
+		target = "Lnet/minecraft/client/gui/Hud;extractTextureOverlay(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/resources/Identifier;F)V", ordinal = 0))
+	private void axolotlclient$pumpkinOverlayOpacity(Hud instance, GuiGraphicsExtractor graphics, Identifier texture,
+													 float alpha, Operation<Void> original) {
+		original.call(instance, graphics, texture,
+			OverlayOpacity.scaleAlpha(alpha, AxolotlClient.config().pumpkinOpacity.get()));
+	}
+
+	// frost_opacity: the powder-snow branch — the second extractTextureOverlay call site,
+	// whose alpha is the freeze-percentage ramp.
+	@WrapOperation(method = "extractCameraOverlays", at = @At(value = "INVOKE",
+		target = "Lnet/minecraft/client/gui/Hud;extractTextureOverlay(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/resources/Identifier;F)V", ordinal = 1))
+	private void axolotlclient$frostOverlayOpacity(Hud instance, GuiGraphicsExtractor graphics, Identifier texture,
+												   float alpha, Operation<Void> original) {
+		original.call(instance, graphics, texture,
+			OverlayOpacity.scaleAlpha(alpha, AxolotlClient.config().frostOpacity.get()));
+	}
+
+	// spyglass_opacity: the scope itself is drawn with the colorless 10-arg blit, so the
+	// wrap re-submits through the 11-arg overload with a white color whose alpha is the
+	// configured percent; at 100% it keeps the vanilla call verbatim.
+	@WrapOperation(method = "extractSpyglassOverlay", at = @At(value = "INVOKE",
+		target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;blit(Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIFFIIII)V"))
+	private void axolotlclient$spyglassScopeOpacity(GuiGraphicsExtractor instance, RenderPipeline pipeline,
+													Identifier texture, int x, int y, float u, float v, int width,
+													int height, int uWidth, int uHeight, Operation<Void> original) {
+		float factor = OverlayOpacity.factor(AxolotlClient.config().spyglassOpacity.get());
+		if (factor >= 1.0F) {
+			original.call(instance, pipeline, texture, x, y, u, v, width, height, uWidth, uHeight);
+		} else {
+			instance.blit(pipeline, texture, x, y, u, v, width, height, uWidth, uHeight, ARGB.white(factor));
+		}
+	}
+
+	// spyglass_opacity, mask half: the opaque black bars around the scope draw through
+	// fill(color); scaling that color's alpha makes the whole overlay translucent.
+	@WrapOperation(method = "extractSpyglassOverlay", at = @At(value = "INVOKE",
+		target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;fill(Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;IIIII)V"))
+	private void axolotlclient$spyglassMaskOpacity(GuiGraphicsExtractor instance, RenderPipeline pipeline, int x1,
+												   int y1, int x2, int y2, int color, Operation<Void> original) {
+		original.call(instance, pipeline, x1, y1, x2, y2,
+			OverlayOpacity.scaleArgb(color, AxolotlClient.config().spyglassOpacity.get()));
 	}
 
 	@WrapOperation(method = "extractPlayerHealth", at = @At(value = "INVOKE",

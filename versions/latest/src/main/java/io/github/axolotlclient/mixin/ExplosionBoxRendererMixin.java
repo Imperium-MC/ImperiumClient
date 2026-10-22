@@ -57,6 +57,6 @@ public abstract class ExplosionBoxRendererMixin extends EntityRenderer<PrimedTnt
 		method = "submit(Lnet/minecraft/client/renderer/entity/state/TntRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/state/level/CameraRenderState;)V",
 		at = @At(value = "TAIL"))
 	private void axolotlclient$explosionBox(TntRenderState state, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CameraRenderState camera, CallbackInfo ci) {
-		ExplosionBoxes.getInstance().submitBox(poseStack, submitNodeCollector);
+		ExplosionBoxes.getInstance().submitBox(state, poseStack, submitNodeCollector);
 	}
 }

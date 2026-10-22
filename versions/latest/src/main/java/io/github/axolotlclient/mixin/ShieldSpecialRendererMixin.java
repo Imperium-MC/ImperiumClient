@@ -40,7 +40,9 @@ public abstract class ShieldSpecialRendererMixin {
 	private void axolotlclient$lowShield(DataComponentMap components, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int lightCoords, int overlayCoords, boolean hasFoil, int outlineColor, CallbackInfo ci) {
 		if (AxolotlClient.config().lowShield.get()
 			&& Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
-			poseStack.translate(0, 0.2F, 0);
+			// shield_height (Alpine grab-bag, wave 3): the nudge distance is configurable;
+			// 0.2 (the default) is the offset the old fixed version used.
+			poseStack.translate(0, AxolotlClient.config().shieldHeight.get(), 0);
 		}
 	}
 }

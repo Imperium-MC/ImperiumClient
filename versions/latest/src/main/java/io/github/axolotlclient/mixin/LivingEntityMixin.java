@@ -61,15 +61,19 @@ public abstract class LivingEntityMixin extends Entity {
 	 * call, gated to the local player, touches nothing else in the water physics. (The call
 	 * site's owner is LivingEntity even though moveRelative is declared on Entity — javac
 	 * emits the enclosing class as the invoke owner.)
+	 *
+	 * <p>Wave-3 note: MixinExtras 0.5.5 requires the call's receiver as the handler's first
+	 * argument for this wrap (it crashed startup otherwise — "expected LivingEntity at
+	 * index 0"), and the receiver is also the first argument of {@code Operation.call}.</p>
 	 */
 	@WrapOperation(method = "travelInWater", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;moveRelative(FLnet/minecraft/world/phys/Vec3;)V"))
-	private void axolotlclient$swimBoost(float speed, Vec3 input, Operation<Void> original) {
+	private void axolotlclient$swimBoost(LivingEntity self, float speed, Vec3 input, Operation<Void> original) {
 		if ((Object) this == Minecraft.getInstance().player) {
 			ToggleSprintHud hud = (ToggleSprintHud) HudManager.getInstance().get(ToggleSprintHud.ID);
 			if (hud != null && hud.flyWhileSwimming.get() && hud.flyBoostActive()) {
 				speed *= hud.flyBoostMultiplier.get();
 			}
 		}
-		original.call(speed, input);
+		original.call(self, speed, input);
 	}
 }

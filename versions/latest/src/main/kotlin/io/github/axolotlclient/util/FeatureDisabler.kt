@@ -67,9 +67,17 @@ class FeatureDisabler : FeatureDisablerCommon() {
     }
 
     companion object {
-        // Eagerly constructs the singleton (the base class stores it); referencing this class
-        // through the inherited FeatureDisablerCommon.getInstance() triggers this initializer.
+        // Eagerly constructs the singleton (the base class stores it). NOTE: the static
+        // accessor below is what makes that happen — invoking an *inherited* static
+        // (FeatureDisablerCommon.getInstance()) only initializes the declaring class, so
+        // before this accessor existed the companion never ran and the singleton stayed
+        // null, crashing client startup with an NPE in AxolotlClientCommon.init.
         private val INSTANCE = FeatureDisabler()
+
+        // Declared IN this class on purpose (JvmStatic): invoking it initializes
+        // FeatureDisabler, which runs the companion initializer above.
+        @JvmStatic
+        fun getInstance(): FeatureDisabler = INSTANCE
 
         private val CHANNEL_ID = CustomPacketPayload.Type<FeaturePayload>(CHANNEL_NAME as Identifier)
     }
