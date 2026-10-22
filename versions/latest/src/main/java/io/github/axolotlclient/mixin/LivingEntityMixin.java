@@ -22,13 +22,19 @@
 
 package io.github.axolotlclient.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.github.axolotlclient.bridge.events.Events;
+import io.github.axolotlclient.modules.hud.HudManager;
+import io.github.axolotlclient.modules.hud.gui.hud.simple.ToggleSprintHud;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -46,5 +52,24 @@ public abstract class LivingEntityMixin extends Entity {
 		if ((Entity)this instanceof Player p) {
 			Events.PLAYER_HURT.invoker().accept(p, damageSource.getEntity());
 		}
+	}
+
+	/**
+	 * toggle_sneak_sprint/fly_while_swimming (Alpine parity): while swimming, the same fly
+	 * boost multiplier applies to the swim impulse. {@code travelInWater} (declared here on
+	 * LivingEntity) hands the water speed straight to {@code moveRelative}; scaling that one
+	 * call, gated to the local player, touches nothing else in the water physics. (The call
+	 * site's owner is LivingEntity even though moveRelative is declared on Entity — javac
+	 * emits the enclosing class as the invoke owner.)
+	 */
+	@WrapOperation(method = "travelInWater", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;moveRelative(FLnet/minecraft/world/phys/Vec3;)V"))
+	private void axolotlclient$swimBoost(float speed, Vec3 input, Operation<Void> original) {
+		if ((Object) this == Minecraft.getInstance().player) {
+			ToggleSprintHud hud = (ToggleSprintHud) HudManager.getInstance().get(ToggleSprintHud.ID);
+			if (hud != null && hud.flyWhileSwimming.get() && hud.flyBoostActive()) {
+				speed *= hud.flyBoostMultiplier.get();
+			}
+		}
+		original.call(speed, input);
 	}
 }

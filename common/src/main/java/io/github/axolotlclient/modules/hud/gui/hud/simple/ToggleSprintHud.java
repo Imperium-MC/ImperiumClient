@@ -61,6 +61,13 @@ public class ToggleSprintHud extends SimpleTextHudEntry {
 	private final BooleanOption hideInsteadOfPlaceholder = new BooleanOption("togglesprint.hide_instead_of_placeholder", true);
 	public final BooleanOption flyBoost = new BooleanOption("fly_boost", true);
 	public final FloatOption flyBoostMultiplier = new FloatOption("fly_boost_multiplier", 2.0F, 1.0F, 2.5F);
+	// Alpine parity (toggle_sneak_sprint): fly_boost_hold keeps the boost on the sprint key
+	// (the pre-existing behaviour); off applies it the whole time you fly. vertical_boost
+	// extends it to the climb/sink impulse, and fly_while_swimming applies it to swim
+	// movement (both consumed by the Player/LocalPlayer mixins).
+	public final BooleanOption flyBoostHold = new BooleanOption("fly_boost_hold", true);
+	public final BooleanOption verticalBoost = new BooleanOption("vertical_boost", false);
+	public final BooleanOption flyWhileSwimming = new BooleanOption("fly_while_swimming", false);
 	private final BooleanOption doubleTap = new BooleanOption("double_tap", true);
 	private final IntegerOption doubleTapWindow = new IntegerOption("double_tap_window_ms", 250, 50, 1000);
 
@@ -117,6 +124,18 @@ public class ToggleSprintHud extends SimpleTextHudEntry {
 		return true;
 	}
 
+	/**
+	 * Whether the fly-boost multiplier currently applies (read by the Player/LocalPlayer
+	 * mixins): the module and the boost toggle must be on, and — while
+	 * {@code fly_boost_hold} is on — the sprint key must be held.
+	 */
+	public boolean flyBoostActive() {
+		if (!isEnabled() || !flyBoost.get()) {
+			return false;
+		}
+		return !flyBoostHold.get() || client.br$getGameOptions().br$getSprintKeybind().br$isPressed();
+	}
+
 	@Override
 	public List<Option<?>> getConfigurationOptions() {
 		List<Option<?>> options = super.getConfigurationOptions();
@@ -126,6 +145,9 @@ public class ToggleSprintHud extends SimpleTextHudEntry {
 		options.add(doubleTapWindow);
 		options.add(flyBoost);
 		options.add(flyBoostMultiplier);
+		options.add(flyBoostHold);
+		options.add(verticalBoost);
+		options.add(flyWhileSwimming);
 		options.add(randomPlaceholder);
 		options.add(placeholder);
 		options.add(hideInsteadOfPlaceholder);

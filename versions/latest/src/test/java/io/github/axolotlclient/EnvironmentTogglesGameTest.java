@@ -212,6 +212,19 @@ public class EnvironmentTogglesGameTest implements FabricClientGameTest {
 		});
 		float grounded = flySpeed(context);
 		check(Math.abs(grounded - base) > 1.0E-4F, "sanity: the non-flying speed should differ from the flying speed");
+
+		// fly_boost_hold off: the boost applies the whole time you fly, sprint key or not.
+		context.runOnClient(mc -> {
+			mc.options.keySprint.setDown(false);
+			mc.player.getAbilities().flying = true;
+			toggleSprintHud().flyBoostHold.set(false);
+		});
+		float unheld = flySpeed(context);
+		check(Math.abs(unheld - base * 2.0F) < 1.0E-4F, "with fly_boost_hold off the boost must apply without the sprint key");
+		context.runOnClient(mc -> toggleSprintHud().flyBoostHold.set(true));
+		float heldAgain = flySpeed(context);
+		check(Math.abs(heldAgain - base) < 1.0E-4F, "restoring fly_boost_hold must re-require the sprint key");
+		context.runOnClient(mc -> mc.player.getAbilities().flying = false);
 	}
 
 	private float flySpeed(ClientGameTestContext context) {

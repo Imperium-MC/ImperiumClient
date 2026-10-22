@@ -25,6 +25,8 @@ package io.github.axolotlclient.modules.snaplook;
 import io.github.axolotlclient.AxolotlClientCommon;
 import io.github.axolotlclient.AxolotlClientConfig.api.options.OptionCategory;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.BooleanOption;
+import io.github.axolotlclient.AxolotlClientConfig.impl.options.IntegerOption;
+import io.github.axolotlclient.bridge.Platform;
 import io.github.axolotlclient.bridge.events.Events;
 import io.github.axolotlclient.bridge.key.AxoKeybinding;
 import io.github.axolotlclient.modules.AbstractCommonModule;
@@ -53,7 +55,15 @@ public class SnapLook extends AbstractCommonModule {
 	public final ForceableBooleanOption enabled = new ForceableBooleanOption("enabled", false);
 	private final OptionCategory category = OptionCategory.create("snaplook");
 	private final BooleanOption returnOnRelease = new BooleanOption("returnOnRelease", true);
+	// Alpine parity: smooth_transition eases the 180-degree snap in and out over
+	// animation_duration milliseconds (0 ms snaps instantly, the previous behaviour).
+	public final BooleanOption smoothTransition = new BooleanOption("smooth_transition", false);
+	public final IntegerOption animationDuration = new IntegerOption("animation_duration", 200, 0, 1000);
+	private static final float SNAP_DEGREES = 180.0F;
 	private boolean active;
+	/** Offset the in/out animation started from, so an interrupted snap continues from it. */
+	private float animationFromOffset;
+	private long animationStartMs;
 
 	public static SnapLook getInstance() {
 		return INSTANCE;
@@ -61,9 +71,12 @@ public class SnapLook extends AbstractCommonModule {
 
 	@Override
 	public void init() {
-		category.add(enabled, returnOnRelease);
+		category.add(enabled, returnOnRelease, smoothTransition, animationDuration);
 		AxolotlClientCommon.getInstance().getConfig().addCategory(category);
-		Events.DISCONNECT.register(() -> active = false);
+		Events.DISCONNECT.register(() -> {
+			active = false;
+			animationFromOffset = 0.0F;
+		});
 	}
 
 	@Override
@@ -89,21 +102,25 @@ public class SnapLook extends AbstractCommonModule {
 
 	private void start() {
 		active = true;
+		animationFromOffset = snapOffset();
+		animationStartMs = Platform.getMeasuringTimeMs();
 		client.br$notifyLevelRenderer();
 	}
 
 	private void stop() {
 		active = false;
+		animationFromOffset = snapOffset();
+		animationStartMs = Platform.getMeasuringTimeMs();
 		client.br$notifyLevelRenderer();
 	}
 
 	/**
 	 * Mirrors {@link Freelook#consumeRotation(double, double)} in the entity
-	 * rotation intercept: while snapping, the mouse deltas are consumed (and
-	 * discarded) so the entity never turns and the snapped view stays locked.
+	 * rotation intercept: while the snap owns the camera (snapping, or still easing
+	 * back after release), the mouse deltas are consumed so the entity never turns.
 	 */
 	public boolean consumeRotation() {
-		return isSnapping();
+		return ownsCamera();
 	}
 
 	/**
@@ -111,15 +128,44 @@ public class SnapLook extends AbstractCommonModule {
 	 * overrides. No-op while an active Freelook (freelook mode) owns the camera.
 	 */
 	public float yaw(float defaultYaw) {
-		if (!isSnapping()) {
+		if (!ownsCamera()) {
 			return defaultYaw;
 		}
 
-		return defaultYaw + 180;
+		return defaultYaw + snapOffset();
 	}
 
+	/**
+	 * Whether this module currently overrides the camera yaw: the key is held, or a
+	 * smooth transition is still easing the previous snap out.
+	 */
 	public boolean isSnapping() {
-		return active && enabled.get() && !freelookOverridesCamera();
+		return ownsCamera();
+	}
+
+	private boolean ownsCamera() {
+		return enabled.get() && !freelookOverridesCamera()
+			&& (active || Math.abs(snapOffset()) > 0.5F);
+	}
+
+	/**
+	 * The current extra yaw in degrees. With smooth_transition off this is the plain
+	 * 0/180 step; with it on, a cosine ease between the offset the animation started
+	 * from and its target (180 while snapping, 0 after release), so an interrupted
+	 * snap continues from wherever it got to.
+	 */
+	private float snapOffset() {
+		if (!smoothTransition.get()) {
+			return active ? SNAP_DEGREES : 0.0F;
+		}
+		long duration = animationDuration.get();
+		if (duration <= 0) {
+			return active ? SNAP_DEGREES : 0.0F;
+		}
+		float progress = Math.min(1.0F, (Platform.getMeasuringTimeMs() - animationStartMs) / (float) duration);
+		float eased = (1.0F - (float) Math.cos(progress * Math.PI)) / 2.0F;
+		float target = active ? SNAP_DEGREES : 0.0F;
+		return animationFromOffset + (target - animationFromOffset) * eased;
 	}
 
 	private static boolean freelookOverridesCamera() {

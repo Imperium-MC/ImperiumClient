@@ -22,6 +22,9 @@
 
 package io.github.axolotlclient.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import io.github.axolotlclient.util.ClearWater;
 import io.github.axolotlclient.util.PerformanceHides;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.extract.LevelExtractor;
@@ -46,5 +49,15 @@ public abstract class LevelExtractorMixin {
 		if (PerformanceHides.shouldSkipEntity(entity, camX, camZ)) {
 			cir.setReturnValue(false);
 		}
+	}
+
+	/**
+	 * clear_water/overlay_transparency (Alpine parity): the one {@code ARGB.colorFromFloat}
+	 * in {@code extractPlayerState} builds the underwater overlay quad's colour with
+	 * vanilla's fixed 0.1 alpha; scale that alpha to the configured percent.
+	 */
+	@WrapOperation(method = "extractPlayerState", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/ARGB;colorFromFloat(FFFF)I"))
+	private int axolotlclient$waterOverlayTransparency(float alpha, float red, float green, float blue, Operation<Integer> original) {
+		return original.call(ClearWater.waterOverlayAlpha(alpha), red, green, blue);
 	}
 }

@@ -72,9 +72,13 @@ public class RenderTweaksGameTest implements FabricClientGameTest {
 			context.runOnClient(mc -> {
 				AxolotlClient.config().hurtCam.set(HurtCamMode.FULL);
 				AxolotlClient.config().clearWater.set(false);
+				AxolotlClient.config().clearWaterDisableLiquidFov.set(false);
+				AxolotlClient.config().waterOverlayTransparency.set(10);
 				AxolotlClient.config().lowHpTint.set(false);
 				AxolotlClient.config().lowHpThreshold.set(6);
 				AxolotlClient.config().lowHpTintStyle.set(AxolotlClientConfigCommon.LowHpTintStyle.VIGNETTE);
+				AxolotlClient.config().lowHpAdaptiveOpacity.set(true);
+				AxolotlClient.config().lowHpMinOpacity.set(0);
 				AxolotlClient.config().farmingOverlay.set(false);
 				AxolotlClient.config().farmingHoeOnly.set(false);
 				AxolotlClient.config().farmingStyle.set(AxolotlClientConfigCommon.FarmingOverlayStyle.TEXT);
@@ -143,6 +147,13 @@ public class RenderTweaksGameTest implements FabricClientGameTest {
 		check(LowHpTint.intensityFor(0.5F, 6) == 1.0F, "below 1 hp the intensity must clamp to full");
 		check(LowHpTint.intensityFor(0.5F, 1) == 0.5F, "a threshold of 1 must ramp within a single half-heart");
 
+		// adaptive_opacity/min_opacity: the effective alpha ramps with health (floored by
+		// min_opacity) and, with adaptive off, stays at the colour's full alpha throughout.
+		check(LowHpTint.alphaFor(5.0F, 6, true, 0, 102) == Math.round(102 * 0.2F), "adaptive alpha must follow the ramp");
+		check(LowHpTint.alphaFor(5.0F, 6, true, 50, 102) == 51, "min_opacity must floor the ramped alpha (50% of 102)");
+		check(LowHpTint.alphaFor(5.0F, 6, false, 0, 102) == 102, "with adaptive off the alpha must stay at the base");
+		check(LowHpTint.alphaFor(1.0F, 6, true, 50, 102) == 102, "full ramp must not be capped below the base alpha");
+
 		// Live: enable the tint and set the player's health server-side (a client-side set
 		// gets resynced away), then render frames in both styles.
 		context.runOnClient(mc -> {
@@ -192,6 +203,21 @@ public class RenderTweaksGameTest implements FabricClientGameTest {
 		FogData small = vanillaWaterFog();
 		ClearWater.apply(small, 32.0F);
 		check(small.environmentalEnd == 96.0F, "clear_water must not shrink the fog below the vanilla end");
+
+		// disable_liquid_fov and overlay_transparency are clear_water sub-settings: they only
+		// act while the module itself is on (clear_water is on from the block above).
+		context.runOnClient(mc -> {
+			AxolotlClient.config().clearWaterDisableLiquidFov.set(true);
+			AxolotlClient.config().waterOverlayTransparency.set(0);
+		});
+		check(ClearWater.disablesLiquidFov(), "disable_liquid_fov must act while clear_water and its own toggle are on");
+		check(ClearWater.waterOverlayAlpha(0.1F) == 0.0F, "an overlay transparency of 0 must remove the overlay");
+		context.runOnClient(mc -> AxolotlClient.config().waterOverlayTransparency.set(100));
+		check(ClearWater.waterOverlayAlpha(0.1F) == 1.0F, "an overlay transparency of 100 must be solid");
+		context.runOnClient(mc -> AxolotlClient.config().clearWater.set(false));
+		check(!ClearWater.disablesLiquidFov(), "disable_liquid_fov must stay off while clear_water is off");
+		check(Math.abs(ClearWater.waterOverlayAlpha(0.1F) - 0.1F) < 1.0E-6F, "overlay alpha must stay vanilla while clear_water is off");
+		context.runOnClient(mc -> AxolotlClient.config().waterOverlayTransparency.set(10));
 
 		// Live: submerge the camera so WaterFogEnvironment.setupFog (and the mixin) runs each frame.
 		// Block changes must go through the server thread (setBlockAndUpdate on the render

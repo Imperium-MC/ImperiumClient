@@ -24,6 +24,7 @@ package io.github.axolotlclient.util
 
 import io.github.axolotlclient.AxolotlClient
 import net.minecraft.client.renderer.fog.FogData
+import net.minecraft.util.Mth
 import kotlin.math.max
 
 /**
@@ -58,5 +59,27 @@ object ClearWater {
         data.environmentalStart = data.environmentalEnd * START_DISTANCE_FRACTION
         data.skyEnd = data.environmentalEnd
         data.cloudEnd = data.environmentalEnd
+    }
+
+    /**
+     * clear_water/disable_liquid_fov (Alpine parity): whether vanilla's fluid FOV shrink
+     * (the `Mth.lerp(fovEffectScale, 1, 0.857)` in `Camera#modifyFovBasedOnDeathOrFluid`)
+     * must be skipped while the camera is in water or lava.
+     */
+    @JvmStatic
+    fun disablesLiquidFov(): Boolean =
+        AxolotlClient.config().clearWater.get() && AxolotlClient.config().clearWaterDisableLiquidFov.get()
+
+    /**
+     * clear_water/overlay_transparency: the alpha of the underwater screen overlay quad.
+     * Returns the vanilla alpha when the module is off; otherwise the configured percent
+     * (10 = vanilla 0.1, 0 = no overlay).
+     */
+    @JvmStatic
+    fun waterOverlayAlpha(vanillaAlpha: Float): Float {
+        if (!AxolotlClient.config().clearWater.get()) {
+            return vanillaAlpha
+        }
+        return Mth.clamp(AxolotlClient.config().waterOverlayTransparency.get() / 100.0f, 0.0f, 1.0f)
     }
 }

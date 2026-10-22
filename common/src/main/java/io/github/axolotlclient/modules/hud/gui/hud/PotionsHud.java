@@ -58,6 +58,11 @@ public class PotionsHud extends TextHudEntry {
 
 	private final EnumOption<Mode> mode = new EnumOption<>("mode", Mode.class, Mode.ICONS_AND_TEXT);
 	private final BooleanOption showEffectName = new BooleanOption("showEffectNames", true);
+	// Alpine parity: show_icon forces the icons off even in icon modes (a text-only override
+	// of the display mode); display_vanilla keeps the vanilla effect HUD drawn alongside this
+	// HUD instead of cancelling it (read by the InGameHudMixin cancel guard).
+	private final BooleanOption showIcon = new BooleanOption("potionshud.show_icon", true);
+	public final BooleanOption displayVanilla = new BooleanOption("potionshud.display_vanilla", false);
 	private final ColorOption timerTextColor = new ColorOption("potionshud.timer_text_color", Color.parse("#7F7F7F"));
 	private final BooleanOption collapsed = new BooleanOption("potionshud.collapsed", false);
 	private final IntegerOption blinkLastSeconds = new IntegerOption("potionshud.blink_last_seconds", 0, 0, 60);
@@ -225,8 +230,12 @@ public class PotionsHud extends TextHudEntry {
 		}
 	}
 
+	/**
+	 * Icons show in icon modes and while collapsed, unless {@code show_icon} is switched off
+	 * (a text-only override that wins over every icon mode).
+	 */
 	private boolean showIcons() {
-		return collapsed.get() || mode.get().hasIcons;
+		return showIcon.get() && (collapsed.get() || mode.get().hasIcons);
 	}
 
 	private boolean showText() {
@@ -289,6 +298,8 @@ public class PotionsHud extends TextHudEntry {
 		options.add(order);
 		options.add(mode);
 		options.add(collapsed);
+		options.add(showIcon);
+		options.add(displayVanilla);
 		options.add(blinkLastSeconds);
 		options.add(dynamicColor);
 		options.add(showEffectName);

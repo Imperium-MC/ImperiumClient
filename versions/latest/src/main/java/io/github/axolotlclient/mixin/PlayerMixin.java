@@ -24,7 +24,6 @@ package io.github.axolotlclient.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import io.github.axolotlclient.bridge.AxoMinecraftClient;
 import io.github.axolotlclient.bridge.events.Events;
 import io.github.axolotlclient.modules.hud.HudManager;
 import io.github.axolotlclient.modules.hud.gui.hud.simple.ToggleSprintHud;
@@ -81,13 +80,10 @@ public abstract class PlayerMixin extends Avatar {
 		}
 
 		ToggleSprintHud hud = (ToggleSprintHud) HudManager.getInstance().get(ToggleSprintHud.ID);
-		if (hud == null || !hud.isEnabled() || !hud.flyBoost.get()) {
+		if (hud == null || !hud.flyBoostActive()) {
 			return speed;
 		}
 
-		if (AxoMinecraftClient.getInstance().br$getGameOptions().br$getSprintKeybind().br$isPressed()) {
-			return speed * hud.flyBoostMultiplier.get();
-		}
-		return speed;
+		return speed * hud.flyBoostMultiplier.get();
 	}
 }

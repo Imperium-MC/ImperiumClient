@@ -29,6 +29,7 @@ import io.github.axolotlclient.AxolotlClient;
 import io.github.axolotlclient.modules.freelook.Freelook;
 import io.github.axolotlclient.modules.snaplook.SnapLook;
 import io.github.axolotlclient.modules.zoom.Zoom;
+import io.github.axolotlclient.util.ClearWater;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
@@ -68,6 +69,19 @@ public abstract class CameraMixin {
 	private float disableDynamicFov(float delta, float start, float end, Operation<Float> original) {
 		if (!AxolotlClient.config().dynamicFOV.get()) {
 			return 1.0f;
+		}
+		return original.call(delta, start, end);
+	}
+
+	/**
+	 * clear_water/disable_liquid_fov (Alpine parity): the only {@code Mth.lerp} inside
+	 * {@code modifyFovBasedOnDeathOrFluid} is the fluid shrink toward 0.857; returning the
+	 * un-shrunk {@code start} (1.0) skips it while leaving the death-screen FOV zoom intact.
+	 */
+	@WrapOperation(method = "modifyFovBasedOnDeathOrFluid", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;lerp(FFF)F"))
+	private float axolotlclient$noLiquidFov(float delta, float start, float end, Operation<Float> original) {
+		if (ClearWater.disablesLiquidFov()) {
+			return start;
 		}
 		return original.call(delta, start, end);
 	}

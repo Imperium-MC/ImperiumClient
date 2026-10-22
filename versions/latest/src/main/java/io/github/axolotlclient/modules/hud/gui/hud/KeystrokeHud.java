@@ -32,6 +32,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import io.github.axolotlclient.AxolotlClientCommon;
 import io.github.axolotlclient.AxolotlClientConfig.api.options.Option;
 import io.github.axolotlclient.AxolotlClientConfig.api.util.Color;
+import io.github.axolotlclient.AxolotlClientConfig.impl.options.BooleanOption;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.ColorOption;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.GraphicsOption;
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.IntegerOption;
@@ -86,6 +87,15 @@ public class KeystrokeHud extends TextHudEntry implements ProfileAware {
 	private final GenericOption configurePositions = new GenericOption("keystrokes.positions", "keystrokes.positions.configure",
 		() -> client.gui.setScreen(new KeystrokePositioningScreen(client.gui.screen(), this)));
 	private final IntegerOption animationTime = new IntegerOption("keystrokes.animation_time", 100, 0, 500);
+	// Alpine parity (keystrokes): which default keys are laid out, whether the mouse-key
+	// strokes carry their CPS readout, the space bar's style, and the default grid size.
+	// Each toggle rebuilds the layout (keystrokes == null -> re-derived next tick) so the
+	// change is visible immediately, saved customizations excepted.
+	private final BooleanOption displaySpace = new BooleanOption("keystrokes.display_space", true, val -> keystrokes = null);
+	private final BooleanOption fullSpace = new BooleanOption("keystrokes.full_space", false);
+	private final BooleanOption displayMouseButtons = new BooleanOption("keystrokes.display_mouse_buttons", true, val -> keystrokes = null);
+	private final BooleanOption displayCps = new BooleanOption("keystrokes.display_cps", true);
+	private final IntegerOption keySize = new IntegerOption("keystrokes.key_size", 17, 10, 30);
 	public ArrayList<Keystroke> keystrokes;
 
 
@@ -116,21 +126,31 @@ public class KeystrokeHud extends TextHudEntry implements ProfileAware {
 
 	public void setDefaultKeystrokes() {
 		DrawPosition pos = getContentPos();
-		// LMB
-		keystrokes.add(createFromKey(new Rectangle(0, 36, 26, 17), pos, client.options.keyAttack));
-		// RMB
-		keystrokes.add(createFromKey(new Rectangle(27, 36, 26, 17), pos, client.options.keyUse));
+		int u = keySize.get();
+		int rowGap = u + 1;
+		int gridWidth = 3 * rowGap - 1;
+		int mouseW = (gridWidth - 1) / 2;
+		int mouseH = Math.max(10, u);
+		if (displayMouseButtons.get()) {
+			// LMB
+			keystrokes.add(createFromKey(new Rectangle(0, rowGap + u, mouseW, mouseH), pos, client.options.keyAttack));
+			// RMB
+			keystrokes.add(createFromKey(new Rectangle(mouseW + 1, rowGap + u, mouseW, mouseH), pos, client.options.keyUse));
+		}
 		// W
-		keystrokes.add(createFromKey(new Rectangle(18, 0, 17, 17), pos, client.options.keyUp));
+		keystrokes.add(createFromKey(new Rectangle(rowGap, 0, u, u), pos, client.options.keyUp));
 		// A
-		keystrokes.add(createFromKey(new Rectangle(0, 18, 17, 17), pos, client.options.keyLeft));
+		keystrokes.add(createFromKey(new Rectangle(0, u + 1, u, u), pos, client.options.keyLeft));
 		// S
-		keystrokes.add(createFromKey(new Rectangle(18, 18, 17, 17), pos, client.options.keyDown));
+		keystrokes.add(createFromKey(new Rectangle(rowGap, u + 1, u, u), pos, client.options.keyDown));
 		// D
-		keystrokes.add(createFromKey(new Rectangle(36, 18, 17, 17), pos, client.options.keyRight));
+		keystrokes.add(createFromKey(new Rectangle(2 * rowGap, u + 1, u, u), pos, client.options.keyRight));
 
-		// Space
-		keystrokes.add(new SpecialRenderKeystroke(SpecialKeystroke.SPACE));
+		// Space (styles: the thin vanilla-like bar, or a full filled bar)
+		if (displaySpace.get()) {
+			keystrokes.add(new SpecialRenderKeystroke(SpecialKeystroke.SPACE,
+				new Rectangle(0, rowGap + u + mouseH + 1, gridWidth, 7), pos, SpecialKeystroke.SPACE.getKey()));
+		}
 	}
 
 	public void setKeystrokes() {
@@ -143,8 +163,20 @@ public class KeystrokeHud extends TextHudEntry implements ProfileAware {
 		keystrokes = new ArrayList<>();
 		setDefaultKeystrokes();
 		loadKeystrokes();
+		// display_space / display_mouse_buttons also govern what a saved layout may contain:
+		// strokes for the switched-off groups are dropped so the toggle always takes effect.
+		keystrokes.removeIf(this::isFilteredOutByOptions);
 		KeyMapping.releaseAll();
 		KeyMapping.setAll();
+	}
+
+	private boolean isFilteredOutByOptions(Keystroke stroke) {
+		KeyMapping key = stroke.getKey();
+		if (!displaySpace.get() && key != null && key == client.options.keyJump) {
+			return true;
+		}
+		return !displayMouseButtons.get() && key != null
+			&& (key == client.options.keyAttack || key == client.options.keyUse);
 	}
 
 	public Keystroke createFromKey(Rectangle bounds, DrawPosition offset, KeyMapping key) {
@@ -222,6 +254,11 @@ public class KeystrokeHud extends TextHudEntry implements ProfileAware {
 		options.add(roundBackground);
 		options.add(backgroundRounding);
 		options.add(animationTime);
+		options.add(keySize);
+		options.add(displaySpace);
+		options.add(fullSpace);
+		options.add(displayMouseButtons);
+		options.add(displayCps);
 		options.add(keystrokesOption);
 		options.add(configurePositions);
 		return options;
@@ -388,11 +425,13 @@ public class KeystrokeHud extends TextHudEntry implements ProfileAware {
 	}
 
 	public LabelKeystroke newStroke() {
-		return new LabelKeystroke(new Rectangle(0, 0, 17, 17), getContentPos(), null, "", false, Justification.CENTER);
+		int u = keySize.get();
+		return new LabelKeystroke(new Rectangle(0, 0, u, u), getContentPos(), null, "", false, Justification.CENTER);
 	}
 
 	public Keystroke newCustomStroke() {
-		return new CustomRenderKeystroke(new Rectangle(0, 0, 17, 17), getContentPos(), null, null);
+		int u = keySize.get();
+		return new CustomRenderKeystroke(new Rectangle(0, 0, u, u), getContentPos(), null, null);
 	}
 
 	public class CustomRenderKeystroke extends Keystroke {
@@ -577,6 +616,18 @@ public class KeystrokeHud extends TextHudEntry implements ProfileAware {
 	public enum SpecialKeystroke {
 		SPACE("space", new Rectangle(0, 54, 53, 7), Minecraft.getInstance().options.keyJump, (hud, stroke, matrices) -> {
 			Rectangle bounds = stroke.bounds;
+			// full_space draws a filled bar across the stroke; the default keeps the
+			// thin vanilla-like 1px line.
+			if (hud.fullSpace.get()) {
+				Rectangle fullBounds = new Rectangle(bounds.x() + stroke.offset.x() + 2,
+					bounds.y() + stroke.offset.y() + bounds.height() / 2 - 2, bounds.width() - 4, 4);
+				fillRect(matrices, fullBounds, stroke.getFGColor());
+				if (hud.shadow.get()) {
+					fillRect(matrices, fullBounds.offset(1, 1), new Color(
+						(stroke.getFGColor().toInt() & 16579836) >> 2 | stroke.getFGColor().toInt() & -16777216));
+				}
+				return;
+			}
 			Rectangle spaceBounds = new Rectangle(bounds.x() + stroke.offset.x() + 4,
 				bounds.y() + stroke.offset.y() + bounds.height() / 2 - 1, bounds.width() - 8, 1);
 			fillRect(matrices, spaceBounds, stroke.getFGColor());
@@ -591,6 +642,9 @@ public class KeystrokeHud extends TextHudEntry implements ProfileAware {
 			int y = bounds.y() + stroke.offset.y() + 3;
 			int nameY = y + bounds.height() / 4 - hud.client.font.lineHeight / 2;
 			drawCenteredString(graphics, hud.client.font, "LMB", centerX, nameY, stroke.getFGColor(), hud.shadow.get());
+			if (!hud.displayCps.get()) {
+				return;
+			}
 			int cpsY = y + bounds.height() * 3 / 4 - hud.client.font.lineHeight / 2;
 			graphics.pose().pushMatrix();
 			graphics.pose().translate(centerX, cpsY);
@@ -606,6 +660,9 @@ public class KeystrokeHud extends TextHudEntry implements ProfileAware {
 			int y = bounds.y() + stroke.offset.y() + 3;
 			int nameY = y + bounds.height() / 4 - hud.client.font.lineHeight / 2;
 			drawCenteredString(graphics, hud.client.font, "RMB", centerX, nameY, stroke.getFGColor(), hud.shadow.get());
+			if (!hud.displayCps.get()) {
+				return;
+			}
 			int cpsY = y + bounds.height() * 3 / 4 - hud.client.font.lineHeight / 2;
 			graphics.pose().pushMatrix();
 			graphics.pose().translate(centerX, cpsY);

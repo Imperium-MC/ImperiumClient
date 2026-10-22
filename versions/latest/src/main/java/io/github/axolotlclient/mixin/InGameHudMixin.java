@@ -106,7 +106,9 @@ public abstract class InGameHudMixin {
 	@Inject(method = "extractEffects", at = @At("HEAD"), cancellable = true)
 	public void axolotlclient$renderStatusEffect(GuiGraphicsExtractor graphics, DeltaTracker tracker, CallbackInfo ci) {
 		PotionsHud hud = (PotionsHud) HudManager.getInstance().get(PotionsHud.ID);
-		if (HudManager.getInstance().hudsEnabled() && hud != null && hud.isEnabled()) {
+		// potion_status/display_vanilla (Alpine parity): keep the vanilla effect HUD drawn
+		// alongside the custom one instead of cancelling it.
+		if (HudManager.getInstance().hudsEnabled() && hud != null && hud.isEnabled() && !hud.displayVanilla.get()) {
 			ci.cancel();
 		}
 	}
