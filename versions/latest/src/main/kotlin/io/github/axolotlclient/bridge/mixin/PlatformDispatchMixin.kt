@@ -89,7 +89,7 @@ abstract class PlatformDispatchMixin {
 		val icon = if (minecraft.currentServer == null) {
 			FaviconTexture.forWorld(
 				minecraft.textureManager,
-				(minecraft.singleplayerServer as MinecraftServerAccessor).storageSource.levelId
+				(minecraft.singleplayerServer as MinecraftServerAccessor).getStorageSource().levelId
 			)
 		} else {
 			FaviconTexture.forServer(minecraft.textureManager, minecraft.currentServer!!.ip)

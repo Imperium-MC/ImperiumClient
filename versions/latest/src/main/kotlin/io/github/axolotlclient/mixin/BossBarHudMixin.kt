@@ -22,7 +22,7 @@
 
 package io.github.axolotlclient.mixin
 
-import io.github.axolotlclient.modules.hud.HudManager
+import io.github.axolotlclient.modules.hud.HudManagerCommon
 import io.github.axolotlclient.modules.hud.gui.hud.vanilla.BossBarHud
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.BossHealthOverlay
@@ -36,7 +36,7 @@ abstract class BossBarHudMixin {
 
     @Inject(method = ["extractRenderState"], at = [At("HEAD")], cancellable = true)
     private fun `axolotlclient$render`(graphics: GuiGraphicsExtractor, ci: CallbackInfo) {
-        val hud = HudManager.getInstance().get(BossBarHud.ID) as BossBarHud?
+        val hud = HudManagerCommon.getInstance()!!.get(BossBarHud.ID) as BossBarHud?
         if (hud != null && hud.isEnabled()) {
             ci.cancel()
         }

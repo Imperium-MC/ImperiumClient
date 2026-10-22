@@ -22,7 +22,7 @@
 
 package io.github.axolotlclient.mixin
 
-import io.github.axolotlclient.modules.hud.HudManager
+import io.github.axolotlclient.modules.hud.HudManagerCommon
 import io.github.axolotlclient.modules.scrollableTooltips.ScrollableTooltips
 import io.github.axolotlclient.modules.zoom.Zoom
 import net.minecraft.client.MouseHandler
@@ -63,6 +63,6 @@ abstract class MouseMixin {
     @Inject(method = ["setIgnoreFirstMove"], at = [At("HEAD")])
     private fun `axolotlclient$onResolutionChanged`(ci: CallbackInfo) {
         // Resize and rebuild!
-        HudManager.getInstance().refreshAllBounds()
+        HudManagerCommon.getInstance()!!.refreshAllBounds()
     }
 }

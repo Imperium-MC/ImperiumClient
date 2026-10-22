@@ -33,7 +33,7 @@ import io.github.axolotlclient.bridge.AxoMinecraftClient
 import io.github.axolotlclient.bridge.events.Events
 import io.github.axolotlclient.bridge.events.types.ScoreboardRenderEvent
 import io.github.axolotlclient.modules.hud.HudEditScreen
-import io.github.axolotlclient.modules.hud.HudManager
+import io.github.axolotlclient.modules.hud.HudManagerCommon
 import io.github.axolotlclient.modules.hud.gui.hud.PotionsHud
 import io.github.axolotlclient.modules.hud.gui.hud.vanilla.ActionBarHud
 import io.github.axolotlclient.modules.hud.gui.hud.vanilla.CrosshairHud
@@ -83,7 +83,7 @@ abstract class InGameHudMixin {
     )
     private fun onHudRender(guiGraphicsExtractor: GuiGraphicsExtractor, deltaTracker: DeltaTracker, ci: CallbackInfo) {
         if (AxoMinecraftClient.getInstance().`br$getScreen`() !is HudEditScreen) {
-            HudManager.getInstance().render(guiGraphicsExtractor, deltaTracker.getGameTimeDeltaTicks())
+            HudManagerCommon.getInstance()!!.render(guiGraphicsExtractor, deltaTracker.getGameTimeDeltaTicks())
         }
     }
 
@@ -132,18 +132,18 @@ abstract class InGameHudMixin {
 
     @Inject(method = ["extractEffects"], at = [At("HEAD")], cancellable = true)
     fun `axolotlclient$renderStatusEffect`(graphics: GuiGraphicsExtractor, tracker: DeltaTracker, ci: CallbackInfo) {
-        val hud = HudManager.getInstance().get(PotionsHud.ID) as PotionsHud?
+        val hud = HudManagerCommon.getInstance()!!.get(PotionsHud.ID) as PotionsHud?
         // potion_status/display_vanilla (Alpine parity): keep the vanilla effect HUD drawn
         // alongside the custom one instead of cancelling it.
-        if (HudManager.getInstance().hudsEnabled() && hud != null && hud.isEnabled() && !hud.displayVanilla.get()) {
+        if (HudManagerCommon.getInstance()!!.hudsEnabled() && hud != null && hud.isEnabled() && !hud.displayVanilla.get()) {
             ci.cancel()
         }
     }
 
     @Inject(method = ["extractCrosshair"], at = [At("HEAD")], cancellable = true)
     fun `axolotlclient$renderCrosshair`(graphics: GuiGraphicsExtractor, tracker: DeltaTracker, ci: CallbackInfo) {
-        val hud = HudManager.getInstance().get(CrosshairHud.ID) as CrosshairHud?
-        if (HudManager.getInstance().hudsEnabled() && hud != null && hud.isEnabled()) {
+        val hud = HudManagerCommon.getInstance()!!.get(CrosshairHud.ID) as CrosshairHud?
+        if (HudManagerCommon.getInstance()!!.hudsEnabled() && hud != null && hud.isEnabled()) {
             if (minecraft!!.gui.hud.getDebugOverlay().showDebugScreen() && !hud!!.overridesF3()) {
                 return
             }
@@ -154,7 +154,7 @@ abstract class InGameHudMixin {
 
     @Inject(method = ["displayScoreboardSidebar"], at = [At("HEAD")], cancellable = true)
     fun `axolotlclient$renderScoreboard`(graphics: GuiGraphicsExtractor, objective: Objective, ci: CallbackInfo) {
-        val hud = HudManager.getInstance().get(ScoreboardHud.ID) as ScoreboardHud?
+        val hud = HudManagerCommon.getInstance()!!.get(ScoreboardHud.ID) as ScoreboardHud?
         val event = ScoreboardRenderEvent(objective)
         Events.SCOREBOARD_RENDER_EVENT.invoker().accept(event)
         // Server-HUD-safety (Alpine parity M2/M6): only suppress the vanilla sidebar while the
@@ -163,8 +163,8 @@ abstract class InGameHudMixin {
         // null-safe pattern plus the hudsEnabled/isHidden guards the other vanilla cancels use.
         // With the entry's server_hud_safety option off, suppression is unconditional while
         // the entry is enabled (aggressive takeover, Alpine's old behaviour).
-        if (event.isCancelled || (hud != null && HudManager.getInstance().hudsEnabled()
-                && hud.isEnabled() && (hud.serverHudSafety.get() || !hud.isHidden))
+        if (event.isCancelled || (hud != null && HudManagerCommon.getInstance()!!.hudsEnabled()
+                && hud.isEnabled() && (hud.serverHudSafety.get() || !hud.isHidden()))
         ) {
             ci.cancel()
         }
@@ -176,32 +176,32 @@ abstract class InGameHudMixin {
     // user's anchor with the entry's scale/color options instead.
     @Inject(method = ["setTitle"], at = [At("TAIL")])
     fun `axolotlclient$forwardTitle`(title: Component, ci: CallbackInfo) {
-        val hud = HudManager.getInstance().get(TitleHud.ID) as TitleHud?
+        val hud = HudManagerCommon.getInstance()!!.get(TitleHud.ID) as TitleHud?
         hud?.setTitle(title)
     }
 
     @Inject(method = ["setSubtitle"], at = [At("TAIL")])
     fun `axolotlclient$forwardSubtitle`(subtitle: Component, ci: CallbackInfo) {
-        val hud = HudManager.getInstance().get(TitleHud.ID) as TitleHud?
+        val hud = HudManagerCommon.getInstance()!!.get(TitleHud.ID) as TitleHud?
         hud?.setSubtitle(subtitle)
     }
 
     @Inject(method = ["setTimes"], at = [At("TAIL")])
     fun `axolotlclient$forwardTitleTimes`(fadeIn: Int, stay: Int, fadeOut: Int, ci: CallbackInfo) {
-        val hud = HudManager.getInstance().get(TitleHud.ID) as TitleHud?
+        val hud = HudManagerCommon.getInstance()!!.get(TitleHud.ID) as TitleHud?
         hud?.setTimes(fadeIn, stay, fadeOut)
     }
 
     @Inject(method = ["clearTitles"], at = [At("TAIL")])
     fun `axolotlclient$forwardClearTitles`(ci: CallbackInfo) {
-        val hud = HudManager.getInstance().get(TitleHud.ID) as TitleHud?
+        val hud = HudManagerCommon.getInstance()!!.get(TitleHud.ID) as TitleHud?
         hud?.clearTitles()
     }
 
     @Inject(method = ["extractTitle"], at = [At("HEAD")], cancellable = true)
     fun `axolotlclient$renderTitle`(graphics: GuiGraphicsExtractor, tracker: DeltaTracker, ci: CallbackInfo) {
-        val hud = HudManager.getInstance().get(TitleHud.ID) as TitleHud?
-        if (HudManager.getInstance().hudsEnabled() && hud != null && hud.isEnabled()) {
+        val hud = HudManagerCommon.getInstance()!!.get(TitleHud.ID) as TitleHud?
+        if (HudManagerCommon.getInstance()!!.hudsEnabled() && hud != null && hud.isEnabled()) {
             ci.cancel()
         }
     }
@@ -217,8 +217,8 @@ abstract class InGameHudMixin {
         instance: GuiGraphicsExtractor, font: Font, text: Component, x: Int, y: Int, width: Int,
         color: Int, original: Operation<Int>
     ) {
-        val hud = HudManager.getInstance().get(ActionBarHud.ID) as ActionBarHud?
-        if (HudManager.getInstance().hudsEnabled() && hud != null && hud.isEnabled()) {
+        val hud = HudManagerCommon.getInstance()!!.get(ActionBarHud.ID) as ActionBarHud?
+        if (HudManagerCommon.getInstance()!!.hudsEnabled() && hud != null && hud.isEnabled()) {
             instance.pose().popMatrix()
             hud.render(instance, text, color)
             instance.pose().pushMatrix()
@@ -388,10 +388,10 @@ abstract class InGameHudMixin {
         )]
     )
     private fun customHotbar(instance: Hud, graphics: GuiGraphicsExtractor, deltaTracker: DeltaTracker, original: Operation<Void>) {
-        val hud = HudManager.getInstance().get(HotbarHud.ID) as HotbarHud
-        if (!hud.isHidden) {
+        val hud = HudManagerCommon.getInstance()!!.get(HotbarHud.ID) as HotbarHud
+        if (!hud.isHidden()) {
             graphics.`br$pushMatrix`()
-            if (hud.isEnabled) {
+            if (hud.isEnabled()) {
                 graphics.`br$translateMatrix`(-graphics.guiWidth() / 2f + 182 / 2f, -graphics.guiHeight() + 22f)
                 graphics.`br$translateMatrix`(hud.getRawTrueX().toFloat(), hud.getRawTrueY().toFloat())
             }
@@ -411,10 +411,10 @@ abstract class InGameHudMixin {
         instance: PlayerTabOverlay, graphics: GuiGraphicsExtractor, screenWidth: Int,
         scoreboard: Scoreboard, displayObjective: Objective, original: Operation<Void>
     ) {
-        val hud = HudManager.getInstance().get(PlayerTabOverlayHud.ID) as PlayerTabOverlayHud?
-        if (hud != null && !hud.isHidden) {
+        val hud = HudManagerCommon.getInstance()!!.get(PlayerTabOverlayHud.ID) as PlayerTabOverlayHud?
+        if (hud != null && !hud.isHidden()) {
             graphics.`br$pushMatrix`()
-            if (hud.isEnabled) {
+            if (hud.isEnabled()) {
                 graphics.`br$translateMatrix`(-graphics.`br$guiWidth`() / 2f, -9f)
                 graphics.`br$translateMatrix`(hud.getRawTrueX() + hud.getTrueWidth() / 2f, hud.getRawTrueY().toFloat())
             }

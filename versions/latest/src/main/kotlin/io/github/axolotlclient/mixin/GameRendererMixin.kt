@@ -33,7 +33,7 @@ import io.github.axolotlclient.AxolotlClient
 import io.github.axolotlclient.AxolotlClientConfigCommon
 import io.github.axolotlclient.modules.blur.HudBlur
 import io.github.axolotlclient.modules.blur.MotionBlur
-import io.github.axolotlclient.modules.hud.HudManager
+import io.github.axolotlclient.modules.hud.HudManagerCommon
 import io.github.axolotlclient.modules.hud.gui.hud.vanilla.CrosshairHud
 import io.github.axolotlclient.util.FrameTimeSampler
 import net.minecraft.client.Minecraft
@@ -156,7 +156,7 @@ abstract class GameRendererMixin {
     @Inject(method = ["renderLevel"], at = [At("TAIL")])
     private fun renderDirectionCrosshair(ci: CallbackInfo) {
         if (!this.minecraft!!.gui.hud.isHidden()) {
-            val hud = HudManager.getInstance().get(CrosshairHud.ID) as CrosshairHud
+            val hud = HudManagerCommon.getInstance()!!.get(CrosshairHud.ID) as CrosshairHud
             if (hud.isEnabled()) {
                 hud.renderDirectionCrosshair()
             }
@@ -174,7 +174,7 @@ abstract class GameRendererMixin {
         instance: DebugCrosshairRenderer, cameraRenderState: CameraRenderState, guiScale: Int,
         targetView: GpuTextureView, depthTargetView: GpuTextureView, original: Operation<Void>
     ) {
-        val hud = HudManager.getInstance().get(CrosshairHud.ID) as CrosshairHud
+        val hud = HudManagerCommon.getInstance()!!.get(CrosshairHud.ID) as CrosshairHud
         if (!hud.isEnabled() || !hud.overridesF3()) {
             // NOTE (wave 5b): preserved verbatim from the Java original, which passes
             // targetView twice and drops depthTargetView on this call.

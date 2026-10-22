@@ -24,7 +24,7 @@ package io.github.axolotlclient.mixin
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation
-import io.github.axolotlclient.modules.hud.HudManager
+import io.github.axolotlclient.modules.hud.HudManagerCommon
 import io.github.axolotlclient.modules.hud.gui.hud.simple.ToggleSprintHud
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.world.entity.player.Abilities
@@ -49,7 +49,7 @@ abstract class LocalPlayerMixin {
         if (!abilities.flying) {
             return speed
         }
-        val hud = HudManager.getInstance().get(ToggleSprintHud.ID) as ToggleSprintHud?
+        val hud = HudManagerCommon.getInstance()!!.get(ToggleSprintHud.ID) as ToggleSprintHud?
             ?: return speed
         if (!hud.verticalBoost.get() || !hud.flyBoostActive()) {
             return speed

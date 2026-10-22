@@ -27,7 +27,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation
 import com.llamalad7.mixinextras.sugar.Local
 import io.github.axolotlclient.modules.hud.HudEditScreen
-import io.github.axolotlclient.modules.hud.HudManager
+import io.github.axolotlclient.modules.hud.HudManagerCommon
 import io.github.axolotlclient.modules.hud.gui.hud.vanilla.SubtitlesHudHud
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -56,7 +56,7 @@ abstract class SubtitleOverlayMixin {
         @Local(name = ["width"]) width: Int, @Local(name = ["position"]) position: Vec3
     ) {
         val subtitles = audibleSubtitles!!
-        val subtitlesHud = HudManager.getInstance().get(SubtitlesHudHud.ID) as SubtitlesHudHud
+        val subtitlesHud = HudManagerCommon.getInstance()!!.get(SubtitlesHudHud.ID) as SubtitlesHudHud
         if (subtitlesHud.isEnabled() && subtitles.isNotEmpty()) {
             val lineHeight = 9
             val h = subtitles.stream().filter { s -> s.getBestSubtitleCandidate(position) != null }.count()
@@ -94,7 +94,7 @@ abstract class SubtitleOverlayMixin {
         instance: GuiGraphicsExtractor, x0: Int, y0: Int, x1: Int, y1: Int, col: Int,
         original: Operation<Void>
     ) {
-        val subtitlesHud = HudManager.getInstance().get(SubtitlesHudHud.ID) as SubtitlesHudHud
+        val subtitlesHud = HudManagerCommon.getInstance()!!.get(SubtitlesHudHud.ID) as SubtitlesHudHud
         if (!subtitlesHud.isEnabled() || subtitlesHud.vanillaEntryBackground.get()) {
             original.call(instance, x0, y0, x1, y1, col)
         }

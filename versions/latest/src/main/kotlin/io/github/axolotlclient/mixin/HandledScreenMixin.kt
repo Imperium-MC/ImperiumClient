@@ -23,7 +23,7 @@
 package io.github.axolotlclient.mixin
 
 import com.llamalad7.mixinextras.sugar.Local
-import io.github.axolotlclient.modules.hud.HudManager
+import io.github.axolotlclient.modules.hud.HudManagerCommon
 import io.github.axolotlclient.modules.hud.gui.hud.IconHud
 import io.github.axolotlclient.modules.scrollableTooltips.ScrollableTooltips
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -60,7 +60,7 @@ abstract class HandledScreenMixin {
 
     @Inject(method = ["extractContents"], at = [At("HEAD")])
     private fun renderIcon(guiGraphicsExtractor: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, partialTick: Float, ci: CallbackInfo) {
-        val hud = HudManager.getInstance().get(IconHud.ID) as IconHud?
+        val hud = HudManagerCommon.getInstance()!!.get(IconHud.ID) as IconHud?
         if (hud != null && hud.isEnabled()) {
             hud.renderInGui(guiGraphicsExtractor, partialTick)
         }

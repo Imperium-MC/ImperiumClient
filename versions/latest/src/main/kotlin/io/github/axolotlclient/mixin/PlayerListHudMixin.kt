@@ -114,7 +114,7 @@ abstract class PlayerListHudMixin {
                 width += 9
             }
         }
-        if ((HudManagerCommon.getInstance().get(PlayerTabOverlayHud.ID) as PlayerTabOverlayHud).numericalPing.get()) {
+        if ((HudManagerCommon.getInstance()!!.get(PlayerTabOverlayHud.ID) as PlayerTabOverlayHud).numericalPing.get()) {
             width += instance.width(PlayerTabOverlayHud.numericPingText(info.latency)) - 10
         }
         return width
@@ -163,7 +163,7 @@ abstract class PlayerListHudMixin {
         if (AxolotlClient.config().showBadges.get() && AxolotlClient.config().tabBadgeMode.get() == AxolotlClientConfigCommon.TabBadgeMode.BEFORE_PING
             && UserRequest.getOnline(info.profile.id().toString())
         ) {
-            val pingWidth = if ((HudManagerCommon.getInstance().get(PlayerTabOverlayHud.ID) as PlayerTabOverlayHud).numericalPing.get()) {
+            val pingWidth = if ((HudManagerCommon.getInstance()!!.get(PlayerTabOverlayHud.ID) as PlayerTabOverlayHud).numericalPing.get()) {
                 graphics.`br$getFont`().`br$getWidth`(PlayerTabOverlayHud.numericPingText(info.latency)) + 1
             } else 11
             graphics.blit(
@@ -185,18 +185,18 @@ abstract class PlayerListHudMixin {
         instance: PlayerTabOverlay, graphics: GuiGraphicsExtractor, slotWidth: Int, xo: Int, yo: Int,
         info: PlayerInfo, original: Operation<Void>
     ) {
-        val tablist = HudManagerCommon.getInstance().get(PlayerTabOverlayHud.ID) as PlayerTabOverlayHud?
+        val tablist = HudManagerCommon.getInstance()!!.get(PlayerTabOverlayHud.ID) as PlayerTabOverlayHud?
         val self = minecraft!!.player != null && info.profile == minecraft.player!!.gameProfile
         if (self) {
             if (tablist != null && tablist.highlightSelf.get()) {
-                graphics.fill(xo, yo, xo + slotWidth, yo + 8, tablist.selfHighlightColor)
+                graphics.fill(xo, yo, xo + slotWidth, yo + 8, tablist.getSelfHighlightColor())
             }
         } else if (tablist != null && tablist.highlightGroupMembers.get() &&
             io.github.axolotlclient.imperium.LegionStateRegistry.isMember(info.profile.name)
         ) {
             // Alpine "highlight_group_members" (M6): legion peers get their own row
             // highlight; self keeps precedence so the two never stack.
-            graphics.fill(xo, yo, xo + slotWidth, yo + 8, tablist.groupHighlightColor)
+            graphics.fill(xo, yo, xo + slotWidth, yo + 8, tablist.getGroupHighlightColor())
         }
         original.call(instance, graphics, slotWidth, xo, yo, info)
     }
@@ -208,7 +208,7 @@ abstract class PlayerListHudMixin {
             (BedwarsMod.getInstance().isWaiting() || BedwarsMod.getInstance().inGame())
         ) {
             ci.cancel()
-        } else if ((HudManagerCommon.getInstance().get(PlayerTabOverlayHud.ID) as PlayerTabOverlayHud)
+        } else if ((HudManagerCommon.getInstance()!!.get(PlayerTabOverlayHud.ID) as PlayerTabOverlayHud)
                 .renderNumericPing(graphics, width, x, y, entry)
         ) {
             ci.cancel()
@@ -220,7 +220,7 @@ abstract class PlayerListHudMixin {
         at = [At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientPacketListener;onlineMode()Z")]
     )
     private fun `showPlayerHeads$1`(instance: ClientPacketListener, original: Operation<Boolean>): Boolean {
-        if ((HudManagerCommon.getInstance().get(PlayerTabOverlayHud.ID) as PlayerTabOverlayHud).showPlayerHeads.get()) {
+        if ((HudManagerCommon.getInstance()!!.get(PlayerTabOverlayHud.ID) as PlayerTabOverlayHud).showPlayerHeads.get()) {
             return original.call(instance)
         }
         return false
@@ -231,7 +231,7 @@ abstract class PlayerListHudMixin {
     @WrapOperation(method = ["extractRenderState"], at = [At("MIXINEXTRAS:EXPRESSION")])
     private fun checkHeaderOption(left: Any, right: Any, original: Operation<Boolean>): Boolean {
         return original.call(left, right) &&
-            (HudManagerCommon.getInstance().get(PlayerTabOverlayHud.ID) as PlayerTabOverlayHud).showHeader.get()
+            (HudManagerCommon.getInstance()!!.get(PlayerTabOverlayHud.ID) as PlayerTabOverlayHud).showHeader.get()
     }
 
     @Definition(id = "footer", field = ["Lnet/minecraft/client/gui/components/PlayerTabOverlay;footer:Lnet/minecraft/network/chat/Component;"])
@@ -239,7 +239,7 @@ abstract class PlayerListHudMixin {
     @WrapOperation(method = ["extractRenderState"], at = [At("MIXINEXTRAS:EXPRESSION")])
     private fun checkFooterOption(left: Any, right: Any, original: Operation<Boolean>): Boolean {
         return original.call(left, right) &&
-            (HudManagerCommon.getInstance().get(PlayerTabOverlayHud.ID) as PlayerTabOverlayHud).showFooter.get()
+            (HudManagerCommon.getInstance()!!.get(PlayerTabOverlayHud.ID) as PlayerTabOverlayHud).showFooter.get()
     }
 
     @ModifyArg(
@@ -251,7 +251,7 @@ abstract class PlayerListHudMixin {
         index = 5
     )
     private fun `axolotlclient$renderHatLayer`(drawHat: Boolean): Boolean {
-        return drawHat || (HudManagerCommon.getInstance().get(PlayerTabOverlayHud.ID) as PlayerTabOverlayHud).alwaysShowHeadLayer.get()
+        return drawHat || (HudManagerCommon.getInstance()!!.get(PlayerTabOverlayHud.ID) as PlayerTabOverlayHud).alwaysShowHeadLayer.get()
     }
 
     @Inject(
@@ -377,8 +377,8 @@ abstract class PlayerListHudMixin {
         @Share("footerLines") footerLines: LocalRef<List<FormattedCharSequence>?>,
         @Local(name = ["rows"]) rows: Int
     ) {
-        val tablist = HudManagerCommon.getInstance().get(PlayerTabOverlayHud.ID) as PlayerTabOverlayHud
-        if (!tablist.isEnabled || tablist.backgroundDisabled()) {
+        val tablist = HudManagerCommon.getInstance()!!.get(PlayerTabOverlayHud.ID) as PlayerTabOverlayHud
+        if (!tablist.isEnabled() || tablist.backgroundDisabled()) {
             return
         }
         var x = screenWidth / 2 - maxLineWidth / 2 - 1
@@ -433,8 +433,8 @@ abstract class PlayerListHudMixin {
         instance: GuiGraphicsExtractor, x1: Int, y1: Int, x2: Int, y2: Int, color: Int,
         original: Operation<Void>
     ) {
-        val tablist = HudManagerCommon.getInstance().get(PlayerTabOverlayHud.ID) as PlayerTabOverlayHud
-        if (!tablist.isEnabled) {
+        val tablist = HudManagerCommon.getInstance()!!.get(PlayerTabOverlayHud.ID) as PlayerTabOverlayHud
+        if (!tablist.isEnabled()) {
             original.call(instance, x1, y1, x2, y2, color)
         }
     }

@@ -22,7 +22,7 @@
 
 package io.github.axolotlclient.mixin
 
-import io.github.axolotlclient.modules.hud.HudManager
+import io.github.axolotlclient.modules.hud.HudManagerCommon
 import io.github.axolotlclient.modules.hud.gui.hud.vanilla.CrosshairHud
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.DebugScreenOverlay
@@ -39,7 +39,7 @@ abstract class DebugHudMixin {
         at = [At(value = "INVOKE", target = "Lnet/minecraft/util/profiling/ProfilerFiller;pop()V")]
     )
     fun `axolotlclient$onRender`(graphics: GuiGraphicsExtractor, ci: CallbackInfo) {
-        val hud = HudManager.getInstance().get(CrosshairHud.ID) as CrosshairHud
+        val hud = HudManagerCommon.getInstance()!!.get(CrosshairHud.ID) as CrosshairHud
         if (hud.isEnabled() && hud.overridesF3()) {
             hud.render(graphics, 0f)
         }

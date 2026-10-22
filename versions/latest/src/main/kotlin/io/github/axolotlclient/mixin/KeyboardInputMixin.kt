@@ -25,7 +25,7 @@ package io.github.axolotlclient.mixin
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation
 import io.github.axolotlclient.modules.autoutils.AutoWalk
-import io.github.axolotlclient.modules.hud.HudManager
+import io.github.axolotlclient.modules.hud.HudManagerCommon
 import io.github.axolotlclient.modules.hud.gui.hud.simple.ToggleSprintHud
 import net.minecraft.client.Minecraft
 import net.minecraft.client.player.KeyboardInput
@@ -47,10 +47,10 @@ abstract class KeyboardInputMixin {
         var s = shift
         var sp = sprint
         var u = up
-        val hud = HudManager.getInstance().get(ToggleSprintHud.ID) as ToggleSprintHud
+        val hud = HudManagerCommon.getInstance()!!.get(ToggleSprintHud.ID) as ToggleSprintHud
         if (hud.isEnabled()) {
-            s = s || (hud.getSneakToggled().get() && Minecraft.getInstance().gui.screen() == null)
-            sp = sp || hud.getSprintToggled().get()
+            s = s || (hud.sneakToggled.get() && Minecraft.getInstance().gui.screen() == null)
+            sp = sp || hud.sprintToggled.get()
         }
         // Auto-Walk's limited-tier module ORs its simulated forward key in here (wave 4):
         // the walk rides the ordinary input pipeline, exactly like ToggleSprint's modifiers.

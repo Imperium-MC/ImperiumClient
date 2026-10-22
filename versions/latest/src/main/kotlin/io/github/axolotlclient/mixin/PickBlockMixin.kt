@@ -22,7 +22,7 @@
 
 package io.github.axolotlclient.mixin
 
-import io.github.axolotlclient.modules.hud.HudManager
+import io.github.axolotlclient.modules.hud.HudManagerCommon
 import io.github.axolotlclient.modules.hud.gui.hud.CoordsHud
 import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
@@ -44,8 +44,8 @@ abstract class PickBlockMixin {
     @Inject(method = ["pickBlockOrEntity"], at = [At("HEAD")])
     private fun `axolotlclient$announceLookedAtBlock`(ci: CallbackInfo) {
         val self = this as Minecraft
-        val hud = HudManager.getInstance().get(CoordsHud.ID) as CoordsHud?
-        if (!HudManager.getInstance().hudsEnabled() || hud == null || !hud.isEnabled()) {
+        val hud = HudManagerCommon.getInstance()!!.get(CoordsHud.ID) as CoordsHud?
+        if (!HudManagerCommon.getInstance()!!.hudsEnabled() || hud == null || !hud.isEnabled()) {
             return
         }
         val hit = self.hitResult

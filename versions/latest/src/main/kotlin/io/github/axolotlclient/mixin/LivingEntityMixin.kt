@@ -25,7 +25,7 @@ package io.github.axolotlclient.mixin
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation
 import io.github.axolotlclient.bridge.events.Events
-import io.github.axolotlclient.modules.hud.HudManager
+import io.github.axolotlclient.modules.hud.HudManagerCommon
 import io.github.axolotlclient.modules.hud.gui.hud.simple.ToggleSprintHud
 import net.minecraft.client.Minecraft
 import net.minecraft.world.damagesource.DamageSource
@@ -74,7 +74,7 @@ abstract class LivingEntityMixin protected constructor(type: EntityType<*>, worl
     ) {
         var s = speed
         if (this === Minecraft.getInstance().player) {
-            val hud = HudManager.getInstance().get(ToggleSprintHud.ID) as ToggleSprintHud?
+            val hud = HudManagerCommon.getInstance()!!.get(ToggleSprintHud.ID) as ToggleSprintHud?
             if (hud != null && hud.flyWhileSwimming.get() && hud.flyBoostActive()) {
                 s *= hud.flyBoostMultiplier.get()
             }

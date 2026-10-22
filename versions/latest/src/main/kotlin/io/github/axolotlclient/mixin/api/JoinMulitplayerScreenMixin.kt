@@ -43,10 +43,11 @@ import org.spongepowered.asm.mixin.Shadow
 import org.spongepowered.asm.mixin.Unique
 import org.spongepowered.asm.mixin.injection.At
 
-// File-level instead of a companion @Unique static: Mixin requires non-shadow static
-// fields in the mixin class to be private, which Kotlin cannot pair with @JvmField.
-private val WORLD_HOST_INSTALLED: Boolean = FabricLoader.getInstance().isModLoaded("world-host")
-
+// No file-level val / companion constant here: any extra class in this declared mixin
+// package (file facade `...MixinKt` or `...$Companion`) is rejected by the mixin subsystem
+// with IllegalClassLoadError when the injected handler references it ("cannot be referenced
+// directly"). The mod-list probe below runs inline instead — the loaded-mod set is fixed
+// after launch, so the value cannot change between calls.
 @Mixin(JoinMultiplayerScreen::class)
 abstract class JoinMulitplayerScreenMixin protected constructor(title: Component) : Screen(title) {
 
@@ -64,7 +65,7 @@ abstract class JoinMulitplayerScreenMixin protected constructor(title: Component
     private fun modifyHeader(
         instance: HeaderAndFooterLayout, message: Component, font: Font, original: Operation<Void>
     ) {
-        if (API.getInstance().isAuthenticated() && !WORLD_HOST_INSTALLED) {
+        if (API.getInstance().isAuthenticated() && !FabricLoader.getInstance().isModLoaded("world-host")) {
             instance.setHeaderHeight(60)
             val header = instance.addToHeader(LinearLayout.vertical()).spacing(8)
             header.addChild(StringWidget(message, font), LayoutSettings::alignHorizontallyCenter)

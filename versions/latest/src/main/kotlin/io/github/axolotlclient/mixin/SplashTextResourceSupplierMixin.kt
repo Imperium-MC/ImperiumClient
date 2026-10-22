@@ -42,10 +42,11 @@ import java.io.BufferedReader
 import java.io.IOException
 import java.util.stream.Stream
 
-// File-level instead of a companion @Unique static: Mixin requires non-shadow static
-// fields in the mixin class to be private, which Kotlin cannot pair with @JvmField.
-private val EXTRA_SPLASHES: Identifier = Identifier.fromNamespaceAndPath(AxolotlClientCommon.MODID, "texts/splashes.txt")
-
+// No file-level val / companion constant here: any extra class in this declared mixin
+// package (file facade `...MixinKt` or `...$Companion`) is rejected by the mixin subsystem
+// with IllegalClassLoadError when the injected handler references it ("cannot be referenced
+// directly"). The identifier below is constructed inline instead — it is pure and only
+// used on the resource-reload path.
 @Mixin(SplashManager::class)
 abstract class SplashTextResourceSupplierMixin {
 
@@ -59,7 +60,11 @@ abstract class SplashTextResourceSupplierMixin {
         @Share("axolotlclient_splashes") reader: LocalRef<BufferedReader?>
     ) {
         try {
-            reader.set(Minecraft.getInstance().resourceManager.openAsReader(EXTRA_SPLASHES))
+            reader.set(
+                Minecraft.getInstance().resourceManager.openAsReader(
+                    Identifier.fromNamespaceAndPath(AxolotlClientCommon.MODID, "texts/splashes.txt")
+                )
+            )
         } catch (_: IOException) {
         }
     }
