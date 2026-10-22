@@ -1,5 +1,5 @@
 /*
- * Copyright © 2024 moehreag <moehreag@gmail.com> & Contributors
+ * Copyright © 2023 moehreag <moehreag@gmail.com> & Contributors
  *
  * This file is part of AxolotlClient.
  *
@@ -19,10 +19,10 @@
  *
  * For more information, see the LICENSE file.
  */
-package io.github.axolotlclient.modules.hud.gui.layout;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+package io.github.axolotlclient.modules.hud.util
+
+import java.util.Objects
 
 /**
  * This implementation of Hud modules is based on KronHUD.
@@ -30,13 +30,33 @@ import lombok.Getter;
  *
  * <p>License: GPL-3.0</p>
  */
+class DrawPosition(@JvmField var x: Int, @JvmField var y: Int) {
 
-@Getter
-@AllArgsConstructor
-public enum CardinalOrder {
-	TOP_DOWN(false, -1), DOWN_TOP(false, 1), LEFT_RIGHT(true, 1), RIGHT_LEFT(true, -1),
-	;
+    fun x(): Int = x
 
-	private final boolean xAxis;
-	private final int direction;
+    fun x(x: Int) {
+        this.x = x
+    }
+
+    fun y(): Int = y
+
+    fun y(y: Int) {
+        this.y = y
+    }
+
+    fun subtract(x: Int, y: Int): DrawPosition = DrawPosition(this.x - x, this.y - y)
+
+    fun subtract(position: DrawPosition): DrawPosition = DrawPosition(position.x, position.y)
+
+    fun divide(scale: Float): DrawPosition = DrawPosition(Math.round(x / scale), Math.round(y / scale))
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is DrawPosition) return false
+        return x == other.x && y == other.y
+    }
+
+    override fun hashCode(): Int = Objects.hash(x, y)
+
+    override fun toString(): String = "DrawPosition(x=$x, y=$y)"
 }

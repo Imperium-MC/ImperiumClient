@@ -102,11 +102,11 @@ class ImperiumHudEditScreen : HudEditScreen {
 		}
 		val helper = snap ?: return
 		val entry = current ?: return
-		helper.setCurrent(entry.trueBounds)
+		helper.current = entry.getTrueBounds()
 		// The spec's guide lines: full-height/width 1px rules in accent-hot, only for the
 		// frames a snap is actually holding the element.
-		helper.rawXSnap.ifPresent { x -> graphics.fill(x, 0, x + 1, height, Theme.ACCENT_HOT) }
-		helper.rawYSnap.ifPresent { y -> graphics.fill(0, y, width, y + 1, Theme.ACCENT_HOT) }
+		helper.getRawXSnap().ifPresent { x -> graphics.fill(x, 0, x + 1, height, Theme.ACCENT_HOT) }
+		helper.getRawYSnap().ifPresent { y -> graphics.fill(0, y, width, y + 1, Theme.ACCENT_HOT) }
 	}
 
 	override fun onClose() {
@@ -132,8 +132,8 @@ class ImperiumHudEditScreen : HudEditScreen {
 	/** 2px bronze outline plus 10px square handles on the corners and edge midpoints. */
 	private fun drawSelection(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
 		val entry = selected ?: return
-		if (!entry.isEnabled) return
-		val b = entry.trueBounds
+		if (!entry.isEnabled()) return
+		val b = entry.getTrueBounds()
 		val x0 = b.x() - 2
 		val y0 = b.y() - 2
 		val x1 = b.xEnd() + 2
@@ -167,14 +167,14 @@ class ImperiumHudEditScreen : HudEditScreen {
 	private fun drawSnapHint(graphics: GuiGraphicsExtractor) {
 		val entry = current ?: return
 		if (!mouseDown) return
-		val bounds = entry.trueBounds
+		val bounds = entry.getTrueBounds()
 		val helper = snap
 		val xName: String
 		val yName: String
 		if (helper != null) {
-			helper.setCurrent(bounds)
-			xName = helper.rawXSnap.map { value -> snapName(value, true) }.orElse(bounds.x().toString())
-			yName = helper.rawYSnap.map { value -> snapName(value, false) }.orElse(bounds.y().toString())
+			helper.current = bounds
+			xName = helper.getRawXSnap().map { value -> snapName(value, true) }.orElse(bounds.x().toString())
+			yName = helper.getRawYSnap().map { value -> snapName(value, false) }.orElse(bounds.y().toString())
 		} else {
 			xName = bounds.x().toString()
 			yName = bounds.y().toString()
@@ -226,7 +226,7 @@ class ImperiumHudEditScreen : HudEditScreen {
 	}
 
 	private fun drawToolbar(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
-		val snappingOn = HudManager.getInstance().isSnappingEnabled
+		val snappingOn = HudManagerCommon.getInstance()!!!!.isSnappingEnabled()
 		for (chip in chips()) {
 			val hovered = chip.enabled && mouseX >= chip.x && mouseX < chip.x + chip.w &&
 				mouseY >= chip.y && mouseY < chip.y + CHIP_H
@@ -265,7 +265,7 @@ class ImperiumHudEditScreen : HudEditScreen {
 
 	private fun handleChip(id: ChipId) {
 		when (id) {
-			ChipId.SNAPPING -> HudManager.getInstance().toggleSnapping()
+			ChipId.SNAPPING -> HudManagerCommon.getInstance()!!.toggleSnapping()
 			ChipId.UNDO -> undo()
 			ChipId.REDO -> redo()
 			ChipId.MODULES -> minecraft!!.gui.setScreen(ImperiumMenuScreen(this))
@@ -370,7 +370,7 @@ class ImperiumHudEditScreen : HudEditScreen {
 			handleChip(id)
 			return true
 		}
-		val under = HudManager.getInstance().getEntryXY(mx.toInt(), my.toInt()).orElse(null)
+		val under = HudManagerCommon.getInstance()!!.getEntryXY(mx.toInt(), my.toInt()).orElse(null)
 		if (event.button() == InputConstants.MOUSE_BUTTON_RIGHT) {
 			if (under != null) {
 				selected = under
@@ -477,7 +477,7 @@ class ImperiumHudEditScreen : HudEditScreen {
 	/** Moves the element by whole pixels; consecutive nudges coalesce into one undo step. */
 	private fun nudge(entry: HudEntry, dx: Int, dy: Int) {
 		val before = HudEditorHistory.Snapshot.capture(entry)
-		val bounds = entry.trueBounds
+		val bounds = entry.getTrueBounds()
 		entry.setPos(bounds.x() + dx + entry.offsetTrueWidth(), bounds.y() + dy + entry.offsetTrueHeight())
 		history.push(entry, before, HudEditorHistory.Snapshot.capture(entry), HudEditorHistory.Kind.NUDGE)
 		if (entry.tickable()) {
@@ -504,11 +504,11 @@ class ImperiumHudEditScreen : HudEditScreen {
 		}
 		entry.setPos(snapshot.x + entry.offsetTrueWidth(), snapshot.y + entry.offsetTrueHeight())
 		entry.setScale(snapshot.scale)
-		if (entry.isEnabled != snapshot.enabled) {
+		if (entry.isEnabled() != snapshot.enabled) {
 			entry.setEnabled(snapshot.enabled)
 		}
 		entry.onBoundsUpdate()
-		if (!entry.isEnabled && selected === entry) {
+		if (!entry.isEnabled() && selected === entry) {
 			selected = null
 		}
 		saveEntry(entry)
@@ -531,11 +531,11 @@ class ImperiumHudEditScreen : HudEditScreen {
 		closeContextMenu()
 		val before = HudEditorHistory.Snapshot.capture(entry)
 		entry.clearBoundsDependencies()
-		HudManagerCommon.getInstance().saveHudDependencyLinks()
+		HudManagerCommon.getInstance()!!.saveHudDependencyLinks()
 		entry.setScale(1f)
 		// Default positions are fractions of the window; storing f * size puts the option back
 		// to its factory value (setX/setY convert pixels to fractions).
-		entry.setPos((entry.defaultX * width).toInt(), (entry.defaultY * height).toInt())
+		entry.setPos((entry.getDefaultX() * width).toInt(), (entry.getDefaultY() * height).toInt())
 		history.push(entry, before, HudEditorHistory.Snapshot.capture(entry), HudEditorHistory.Kind.RESET)
 		saveEntry(entry)
 	}
@@ -563,13 +563,13 @@ class ImperiumHudEditScreen : HudEditScreen {
 	}
 
 	private fun saveEntry(entry: HudEntry) {
-		AxolotlClientConfig.getInstance().getConfigManager(entry.category).save()
+		AxolotlClientConfig.getInstance().getConfigManager(entry.getCategory()).save()
 	}
 
 	// ── test hooks ────────────────────────────────────────────────────────────────────────────
 
 	@VisibleForTesting
-	fun selectedEntryId(): String? = selected?.id?.toString()
+	fun selectedEntryId(): String? = selected?.getId()?.toString()
 
 	@VisibleForTesting
 	fun isHelpOpen(): Boolean = helpOpen
@@ -578,7 +578,7 @@ class ImperiumHudEditScreen : HudEditScreen {
 	fun isContextMenuOpen(): Boolean = contextMenu != null
 
 	@VisibleForTesting
-	fun contextMenuEntryId(): String? = contextMenu?.entry?.id?.toString()
+	fun contextMenuEntryId(): String? = contextMenu?.entry?.getId()?.toString()
 
 	@VisibleForTesting
 	fun undoDepth(): Int = history.undoDepth()

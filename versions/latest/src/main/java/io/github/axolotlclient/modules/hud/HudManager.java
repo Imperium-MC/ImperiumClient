@@ -30,7 +30,6 @@ import io.github.axolotlclient.modules.hud.gui.hud.PackDisplayHud;
 import io.github.axolotlclient.modules.hud.gui.hud.PlayerHud;
 import io.github.axolotlclient.modules.hud.gui.hud.vanilla.*;
 import io.github.axolotlclient.util.HudFrameCache;
-import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.profiling.Profiler;
 
@@ -43,7 +42,9 @@ import java.util.Comparator;
  * <p>License: GPL-3.0</p>
  */
 public class HudManager extends HudManagerCommon {
-	@Getter
+	// getInstance() is inherited from HudManagerCommon (its Kotlin companion JvmStatic is
+	// final and cannot be static-hidden); this field only forces eager singleton construction.
+	@SuppressWarnings("unused")
 	private final static HudManager instance = new HudManager();
 
 	@Override

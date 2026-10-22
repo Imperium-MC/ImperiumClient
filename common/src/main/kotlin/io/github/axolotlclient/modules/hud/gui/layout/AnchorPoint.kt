@@ -1,5 +1,5 @@
 /*
- * Copyright © 2024 moehreag <moehreag@gmail.com> & Contributors
+ * Copyright © 2023 moehreag <moehreag@gmail.com> & Contributors
  *
  * This file is part of AxolotlClient.
  *
@@ -20,11 +20,7 @@
  * For more information, see the LICENSE file.
  */
 
-package io.github.axolotlclient.modules.hud.gui.layout;
-
-import io.github.axolotlclient.bridge.AxoMinecraftClient;
-import io.github.axolotlclient.bridge.util.AxoText;
-import lombok.AllArgsConstructor;
+package io.github.axolotlclient.modules.hud.gui.layout
 
 /**
  * This implementation of Hud modules is based on KronHUD.
@@ -33,32 +29,33 @@ import lombok.AllArgsConstructor;
  * <p>License: GPL-3.0</p>
  */
 
-@AllArgsConstructor
-public enum Justification {
+enum class AnchorPoint(val xComponent: Int, val yComponent: Int) {
+    TOP_LEFT(-1, 1), TOP_MIDDLE(0, 1), TOP_RIGHT(1, 1),
+    MIDDLE_LEFT(-1, 0), MIDDLE_MIDDLE(0, 0), MIDDLE_RIGHT(1, 0),
+    BOTTOM_LEFT(-1, -1), BOTTOM_MIDDLE(0, -1), BOTTOM_RIGHT(1, -1),
+    ;
 
-	LEFT, CENTER, RIGHT;
+    fun getX(anchorX: Int, width: Int): Int = when (xComponent) {
+        0 -> anchorX - (width / 2)
+        1 -> anchorX - width
+        else -> anchorX
+    }
 
-	public int getXOffset(AxoText text, int width) {
-		if (this == LEFT) {
-			return 0;
-		}
-		return getXOffset(AxoMinecraftClient.getInstance().br$getFont().br$getWidth(text), width);
-	}
+    fun getY(anchorY: Int, height: Int): Int = when (yComponent) {
+        0 -> anchorY - (height / 2)
+        1 -> anchorY - height
+        else -> anchorY
+    }
 
-	public int getXOffset(int textWidth, int width) {
-		if (this == LEFT) {
-			return 0;
-		}
-		if (this == RIGHT) {
-			return width - textWidth;
-		}
-		return (width - textWidth) / 2;
-	}
+    fun offsetWidth(width: Int): Int = when (xComponent) {
+        0 -> width / 2
+        1 -> width
+        else -> 0
+    }
 
-	public int getXOffset(String text, int width) {
-		if (this == LEFT) {
-			return 0;
-		}
-		return getXOffset(AxoMinecraftClient.getInstance().br$getFont().br$getWidth(text), width);
-	}
+    fun offsetHeight(height: Int): Int = when (yComponent) {
+        0 -> height / 2
+        1 -> 0
+        else -> height
+    }
 }

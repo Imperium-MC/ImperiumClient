@@ -177,7 +177,7 @@ object HudFrameCache {
     private fun replay(context: AxoRenderContext, state: GuiRenderState, delta: Float, ordered: List<HudEntry>) {
         replayedFrames++
         for (hud in ordered) {
-            if (!hud.isEnabled || hud.isHidden) {
+            if (!hud.isEnabled() || hud.isHidden()) {
                 continue
             }
             if (hud.dynamicContent()) {
@@ -195,7 +195,7 @@ object HudFrameCache {
 
     private fun renderEntries(context: AxoRenderContext, delta: Float, ordered: List<HudEntry>, recording: GuiRenderState?) {
         for (hud in ordered) {
-            if (!hud.isEnabled || hud.isHidden) {
+            if (!hud.isEnabled() || hud.isHidden()) {
                 continue
             }
             if (recording == null || hud.dynamicContent()) {
@@ -228,10 +228,10 @@ object HudFrameCache {
         var hash = 1L
         for (hud in ordered) {
             var entry = hud.getId().hashCode().toLong()
-            entry = entry * 31L + (if (hud.isEnabled) 1 else 0)
-            entry = entry * 31L + (if (hud.isHidden) 1 else 0)
-            if (hud.isEnabled && !hud.isHidden && !hud.dynamicContent()) {
-                val bounds: Rectangle = hud.trueBounds
+            entry = entry * 31L + (if (hud.isEnabled()) 1 else 0)
+            entry = entry * 31L + (if (hud.isHidden()) 1 else 0)
+            if (hud.isEnabled() && !hud.isHidden() && !hud.dynamicContent()) {
+                val bounds: Rectangle = hud.getTrueBounds()
                 entry = entry * 31L + bounds.x
                 entry = entry * 31L + bounds.y
                 entry = entry * 31L + bounds.width

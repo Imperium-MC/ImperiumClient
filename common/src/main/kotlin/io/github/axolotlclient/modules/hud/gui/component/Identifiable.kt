@@ -1,5 +1,5 @@
 /*
- * Copyright © 2024 moehreag <moehreag@gmail.com> & Contributors
+ * Copyright © 2023 moehreag <moehreag@gmail.com> & Contributors
  *
  * This file is part of AxolotlClient.
  *
@@ -20,37 +20,38 @@
  * For more information, see the LICENSE file.
  */
 
-package io.github.axolotlclient.modules.hud.gui.component;
+package io.github.axolotlclient.modules.hud.gui.component
 
-import java.util.List;
-
-import io.github.axolotlclient.AxolotlClientConfig.api.options.Option;
-import io.github.axolotlclient.AxolotlClientConfig.api.options.OptionCategory;
+import io.github.axolotlclient.bridge.util.AxoI18n
+import io.github.axolotlclient.bridge.util.AxoIdentifier
 
 /**
  * This implementation of Hud modules is based on KronHUD.
  * <a href="https://github.com/DarkKronicle/KronHUD">Github Link.</a>
  *
- * <p>License: GPL-3.0</p>
+ * <p>
+ * An interface that represents an object that contains an Identifier, as well as ways to translate itself into a
  */
+interface Identifiable {
 
-public interface Configurable {
+    /**
+     * The translated name of the object
+     *
+     * @return String containing the name
+     */
+    fun getName(): String = AxoI18n.translate(getNameKey())
 
-	/**
-	 * Returns a list of options that should be saved. By default, this includes {@link #getConfigurationOptions()}
-	 *
-	 * @return Options to save within a config
-	 */
-	default List<Option<?>> getSaveOptions() {
-		return getConfigurationOptions();
-	}
+    /**
+     * Gets the display name key
+     *
+     * @return The display name key
+     */
+    fun getNameKey(): String = getId().`br$getPath`()
 
-	/**
-	 * Returns a list of options that will be configured
-	 *
-	 * @return List of configurable options
-	 */
-	List<Option<?>> getConfigurationOptions();
-
-	OptionCategory getCategory();
+    /**
+     * Returns a unique identifier for this object
+     *
+     * @return The identifier
+     */
+    fun getId(): AxoIdentifier
 }

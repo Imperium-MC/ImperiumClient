@@ -1,5 +1,5 @@
 /*
- * Copyright © 2024 moehreag <moehreag@gmail.com> & Contributors
+ * Copyright © 2023 moehreag <moehreag@gmail.com> & Contributors
  *
  * This file is part of AxolotlClient.
  *
@@ -19,14 +19,25 @@
  *
  * For more information, see the LICENSE file.
  */
-package io.github.axolotlclient.modules;
 
-import io.github.axolotlclient.bridge.AxoMinecraftClient;
+package io.github.axolotlclient.modules
 
-public abstract class AbstractCommonModule implements Module {
-	protected final AxoMinecraftClient client;
+interface Module {
+    /**
+     * Initialize this module.
+     * This method is called exactly once on game startup.
+     */
+    fun init() {
+    }
 
-	public AbstractCommonModule() {
-		client = AxoMinecraftClient.getInstance();
-	}
+    /**
+     * Run tasks that require the config to be loaded.
+     * Unlike the `init()V` method this method may and
+     * **will** be called multiple times.
+     */
+    fun lateInit() {
+    }
+
+    fun tick() {
+    }
 }

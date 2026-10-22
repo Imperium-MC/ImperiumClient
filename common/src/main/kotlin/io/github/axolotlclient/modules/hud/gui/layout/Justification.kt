@@ -20,24 +20,35 @@
  * For more information, see the LICENSE file.
  */
 
-package io.github.axolotlclient.modules;
+package io.github.axolotlclient.modules.hud.gui.layout
 
-public interface Module {
-	/**
-	 * Initialize this module.
-	 * This method is called exactly once on game startup.
-	 */
-	default void init() {
-	}
+import io.github.axolotlclient.bridge.AxoMinecraftClient
+import io.github.axolotlclient.bridge.util.AxoText
 
-	/**
-	 * Run tasks that require the config to be loaded.
-	 * Unlike the <code>init()V</code> method this method may and
-	 * <strong>will</strong> be called multiple times.
-	 */
-	default void lateInit() {
-	}
+enum class Justification {
+    LEFT, CENTER, RIGHT;
 
-	default void tick() {
-	}
+    fun getXOffset(text: AxoText, width: Int): Int {
+        if (this == LEFT) {
+            return 0
+        }
+        return getXOffset(AxoMinecraftClient.getInstance().`br$getFont`().`br$getWidth`(text), width)
+    }
+
+    fun getXOffset(textWidth: Int, width: Int): Int {
+        if (this == LEFT) {
+            return 0
+        }
+        if (this == RIGHT) {
+            return width - textWidth
+        }
+        return (width - textWidth) / 2
+    }
+
+    fun getXOffset(text: String, width: Int): Int {
+        if (this == LEFT) {
+            return 0
+        }
+        return getXOffset(AxoMinecraftClient.getInstance().`br$getFont`().`br$getWidth`(text), width)
+    }
 }

@@ -20,10 +20,7 @@
  * For more information, see the LICENSE file.
  */
 
-package io.github.axolotlclient.modules.hud.util;
-
-import lombok.Data;
-import lombok.experimental.Accessors;
+package io.github.axolotlclient.modules.hud.gui.layout
 
 /**
  * This implementation of Hud modules is based on KronHUD.
@@ -32,26 +29,6 @@ import lombok.experimental.Accessors;
  * <p>License: GPL-3.0</p>
  */
 
-@Data
-@Accessors(fluent = true)
-public class DrawPosition {
-
-	public int x, y;
-
-	public DrawPosition(int x, int y) {
-		this.x = x;
-		this.y = y;
-	}
-
-	public DrawPosition subtract(int x, int y) {
-		return new DrawPosition(this.x - x, this.y - y);
-	}
-
-	public DrawPosition subtract(DrawPosition position) {
-		return new DrawPosition(position.x, position.y);
-	}
-
-	public DrawPosition divide(float scale) {
-		return new DrawPosition(Math.round(x / scale), Math.round(y / scale));
-	}
+enum class CardinalOrder(@get:JvmName("isXAxis") val xAxis: Boolean, val direction: Int) {
+    TOP_DOWN(false, -1), DOWN_TOP(false, 1), LEFT_RIGHT(true, 1), RIGHT_LEFT(true, -1),
 }

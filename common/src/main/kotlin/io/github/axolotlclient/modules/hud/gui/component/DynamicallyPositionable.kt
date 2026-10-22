@@ -1,5 +1,5 @@
 /*
- * Copyright © 2024 moehreag <moehreag@gmail.com> & Contributors
+ * Copyright © 2023 moehreag <moehreag@gmail.com> & Contributors
  *
  * This file is part of AxolotlClient.
  *
@@ -20,9 +20,9 @@
  * For more information, see the LICENSE file.
  */
 
-package io.github.axolotlclient.modules.hud.gui.component;
+package io.github.axolotlclient.modules.hud.gui.component
 
-import io.github.axolotlclient.modules.hud.gui.layout.AnchorPoint;
+import io.github.axolotlclient.modules.hud.gui.layout.AnchorPoint
 
 /**
  * This implementation of Hud modules is based on KronHUD.
@@ -32,42 +32,24 @@ import io.github.axolotlclient.modules.hud.gui.layout.AnchorPoint;
  * <p>
  * Represents an object that width/height can change and it can react accordingly
  */
-public interface DynamicallyPositionable extends Positionable {
+interface DynamicallyPositionable : Positionable {
 
-	@Override
-	default int getTrueX() {
-		return getAnchor().getX(getRawTrueX(), getTrueWidth());
-	}
+    override fun getTrueX(): Int = getAnchor().getX(getRawTrueX(), getTrueWidth())
 
-	@Override
-	default int getX() {
-		return getAnchor().getX(getRawX(), getWidth());
-	}
+    override fun getX(): Int = getAnchor().getX(getRawX(), getWidth())
 
-	/**
-	 * Get the direction that this object is anchored in
-	 *
-	 * @return {@link AnchorPoint} that represents where the object is anchored in
-	 */
-	AnchorPoint getAnchor();
+    /**
+     * Get the direction that this object is anchored in
+     *
+     * @return [AnchorPoint] that represents where the object is anchored in
+     */
+    fun getAnchor(): AnchorPoint
 
-	@Override
-	default int getTrueY() {
-		return getAnchor().getY(getRawTrueY(), getTrueHeight());
-	}
+    override fun getTrueY(): Int = getAnchor().getY(getRawTrueY(), getTrueHeight())
 
-	@Override
-	default int getY() {
-		return getAnchor().getY(getRawY(), getHeight());
-	}
+    override fun getY(): Int = getAnchor().getY(getRawY(), getHeight())
 
-	@Override
-	default int offsetWidth() {
-		return getAnchor().offsetWidth(getWidth());
-	}
+    override fun offsetWidth(): Int = getAnchor().offsetWidth(getWidth())
 
-	@Override
-	default int offsetHeight() {
-		return getAnchor().offsetHeight(getHeight());
-	}
+    override fun offsetHeight(): Int = getAnchor().offsetHeight(getHeight())
 }

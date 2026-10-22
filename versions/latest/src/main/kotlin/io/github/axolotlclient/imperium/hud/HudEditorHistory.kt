@@ -48,8 +48,8 @@ internal class HudEditorHistory(private val capacity: Int = MAX_HISTORY) {
 	data class Snapshot(val x: Int, val y: Int, val scale: Float, val enabled: Boolean, val anchor: AnchorPoint?) {
 		companion object {
 			fun capture(entry: HudEntry): Snapshot {
-				val bounds = entry.trueBounds
-				return Snapshot(bounds.x(), bounds.y(), entry.scale, entry.isEnabled, HudEditorAnchors.current(entry))
+				val bounds = entry.getTrueBounds()
+				return Snapshot(bounds.x(), bounds.y(), entry.getScale(), entry.isEnabled(), HudEditorAnchors.current(entry))
 			}
 		}
 	}
@@ -81,14 +81,14 @@ internal class HudEditorHistory(private val capacity: Int = MAX_HISTORY) {
 		if (before == after) return
 		redoStack.clear()
 		val top = undoStack.lastOrNull()
-		if (kind == Kind.NUDGE && top != null && top.kind == Kind.NUDGE && top.entryId == entry.id.toString()) {
+		if (kind == Kind.NUDGE && top != null && top.kind == Kind.NUDGE && top.entryId == entry.getId().toString()) {
 			top.after = after
 			return
 		}
 		if (undoStack.size >= capacity) {
 			undoStack.removeFirst()
 		}
-		undoStack.addLast(Edit(entry.id.toString(), entry, kind, before, after))
+		undoStack.addLast(Edit(entry.getId().toString(), entry, kind, before, after))
 	}
 
 	/** Pops the newest edit for undo (moving it to the redo stack), or null when there is none. */
@@ -126,7 +126,7 @@ object HudEditorAnchors {
 	/** The entry's anchor option, or null when the element cannot be anchored. */
 	@JvmStatic
 	fun option(entry: HudEntry): EnumOption<*>? {
-		return entry.saveOptions.firstOrNull { opt -> opt is EnumOption<*> && (opt as EnumOption<*>).get() is AnchorPoint }
+		return entry.getSaveOptions().firstOrNull { opt -> opt is EnumOption<*> && (opt as EnumOption<*>).get() is AnchorPoint }
 			as? EnumOption<*>
 	}
 
