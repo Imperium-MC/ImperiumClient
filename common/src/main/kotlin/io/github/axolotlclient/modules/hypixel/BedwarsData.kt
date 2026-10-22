@@ -20,20 +20,15 @@
  * For more information, see the LICENSE file.
  */
 
-package io.github.axolotlclient.modules.hypixel;
+package io.github.axolotlclient.modules.hypixel
 
-import io.github.axolotlclient.AxolotlClientConfig.api.options.OptionCategory;
-
-public interface AbstractHypixelMod {
-
-	void init();
-
-	OptionCategory getCategory();
-
-	default void tick() {
-	}
-
-	default boolean tickable() {
-		return false;
-	}
+@JvmRecord
+data class BedwarsData(
+    val finalKills: Int, val finalDeaths: Int, val bedsBroken: Int, val deaths: Int, val kills: Int,
+    val losses: Int, val wins: Int, val winstreak: Int
+) {
+    companion object {
+        @JvmField
+        val EMPTY = BedwarsData(0, 0, 0, 0, 0, 0, 0, 0)
+    }
 }

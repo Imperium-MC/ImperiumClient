@@ -20,10 +20,17 @@
  * For more information, see the LICENSE file.
  */
 
-package io.github.axolotlclient.modules.hypixel;
+package io.github.axolotlclient.modules.hypixel
 
-public record BedwarsData(int finalKills, int finalDeaths, int bedsBroken, int deaths, int kills, int losses, int wins,
-						  int winstreak) {
-	public static BedwarsData EMPTY = new BedwarsData(0, 0, 0, 0, 0, 0, 0, 0);
+import io.github.axolotlclient.AxolotlClientConfig.api.options.OptionCategory
 
+interface AbstractHypixelMod {
+    fun init()
+
+    fun getCategory(): OptionCategory?
+
+    fun tick() {
+    }
+
+    fun tickable(): Boolean = false
 }

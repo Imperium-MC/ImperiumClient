@@ -1,5 +1,5 @@
 /*
- * Copyright © 2023 moehreag <moehreag@gmail.com> & Contributors
+ * Copyright © 2024 moehreag <moehreag@gmail.com> & Contributors
  *
  * This file is part of AxolotlClient.
  *
@@ -20,11 +20,17 @@
  * For more information, see the LICENSE file.
  */
 
-package io.github.axolotlclient.modules.hypixel.bedwars.upgrades;
+package io.github.axolotlclient.modules.hypixel.bedwars
 
-import io.github.axolotlclient.bridge.render.AxoRenderContext;
+/**
+ * @author DarkKronicle
+ */
+enum class BedwarsMode(vararg teams: BedwarsTeam) {
+    SOLO(*BedwarsTeam.values()),
+    DOUBLES(*BedwarsTeam.values()),
+    THREES(BedwarsTeam.BLUE, BedwarsTeam.GREEN, BedwarsTeam.YELLOW, BedwarsTeam.RED),
+    FOURS(BedwarsTeam.BLUE, BedwarsTeam.GREEN, BedwarsTeam.YELLOW, BedwarsTeam.RED),
+    FOUR_V_FOUR(BedwarsTeam.BLUE, BedwarsTeam.RED);
 
-public interface TeamUpgradeRenderer {
-
-	void render(AxoRenderContext context, int x, int y, int width, int height, int upgradeLevel);
+    val teams: Array<out BedwarsTeam> = teams
 }
