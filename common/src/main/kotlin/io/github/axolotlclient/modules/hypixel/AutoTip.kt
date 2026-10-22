@@ -71,11 +71,10 @@ class AutoTip : AbstractHypixelMod {
     override fun tickable(): Boolean = true
 
     fun onChatMessage(event: ReceiveChatMessageEvent) {
-        event.setCancelled(
+        event.isCancelled =
             enabled.get() && hideMessages.get() &&
-                (messagePattern.matcher(event.getOriginalMessage()).matches() ||
-                    tippedPattern.matcher(event.getOriginalMessage()).matches())
-        )
+                (messagePattern.matcher(event.originalMessage).matches() ||
+                    tippedPattern.matcher(event.originalMessage).matches())
     }
 
     companion object {

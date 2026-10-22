@@ -36,7 +36,7 @@ import io.github.axolotlclient.bridge.util.AxoText.Color.LIGHT_PURPLE
 import io.github.axolotlclient.bridge.util.AxoText.Color.RED
 import io.github.axolotlclient.bridge.util.AxoText.Color.WHITE
 import io.github.axolotlclient.bridge.util.AxoText.Color.YELLOW
-import io.github.axolotlclient.bridge.util.AxoText.literal
+import io.github.axolotlclient.bridge.util.AxoText.Companion.literal
 import java.util.stream.IntStream
 
 object BedwarsPrestige {

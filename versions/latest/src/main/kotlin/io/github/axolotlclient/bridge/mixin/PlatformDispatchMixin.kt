@@ -41,9 +41,9 @@ import org.spongepowered.asm.mixin.Mixin
 import org.spongepowered.asm.mixin.Overwrite
 import org.spongepowered.asm.mixin.Unique
 
-@Mixin(PlatformDispatch::class, remap = false)
+@Mixin(PlatformDispatch.Companion::class, remap = false)
 abstract class PlatformDispatchMixin {
-	companion object {
+	private companion object {
 		// @Unique field names may not contain `$` in Kotlin; mixin only requires uniqueness.
 		@Unique
 		private val axoPinger = ServerStatusPinger()
@@ -62,100 +62,95 @@ abstract class PlatformDispatchMixin {
 				}
 			})
 		}
+	}
 
-		/**
-		 * @author Flowey
-		 * @reason Implement bridge.
-		 */
-		@Overwrite
-		@JvmStatic
-		fun `pingHud$updatePing`(currentServerPing: MutableInt) {
-			val minecraft = Minecraft.getInstance()
-			if (minecraft.currentServer != null) {
-				getRealTimeServerPing(minecraft.currentServer!!, currentServerPing)
-			} else if (minecraft.hasSingleplayerServer()) {
-				currentServerPing.setValue(1)
-			}
+	/**
+	 * @author Flowey
+	 * @reason Implement bridge.
+	 */
+	@Overwrite
+	fun `pingHud$updatePing`(currentServerPing: MutableInt) {
+		val minecraft = Minecraft.getInstance()
+		if (minecraft.currentServer != null) {
+			getRealTimeServerPing(minecraft.currentServer!!, currentServerPing)
+		} else if (minecraft.hasSingleplayerServer()) {
+			currentServerPing.setValue(1)
+		}
+	}
+
+	/**
+	 * @author Flowey
+	 * @reason Implement bridge.
+	 */
+	@Overwrite
+	fun `ipHud$getServerIcon`(): AxoSprite.Dynamic? {
+		val minecraft = Minecraft.getInstance()
+
+		val icon = if (minecraft.currentServer == null) {
+			FaviconTexture.forWorld(
+				minecraft.textureManager,
+				(minecraft.singleplayerServer as MinecraftServerAccessor).storageSource.levelId
+			)
+		} else {
+			FaviconTexture.forServer(minecraft.textureManager, minecraft.currentServer!!.ip)
 		}
 
-		/**
-		 * @author Flowey
-		 * @reason Implement bridge.
-		 */
-		@Overwrite
-		@JvmStatic
-		fun `ipHud$getServerIcon`(): AxoSprite.Dynamic? {
-			val minecraft = Minecraft.getInstance()
-
-			val icon = if (minecraft.currentServer == null) {
-				FaviconTexture.forWorld(
-					minecraft.textureManager,
-					(minecraft.singleplayerServer as MinecraftServerAccessor).storageSource.levelId
-				)
-			} else {
-				FaviconTexture.forServer(minecraft.textureManager, minecraft.currentServer!!.ip)
-			}
-
-			try {
-				val img: NativeImage
-				if (minecraft.currentServer == null) {
-					val i = minecraft.singleplayerServer!!.status!!.favicon
-					if (i.isEmpty) {
-						return null
-					} else {
-						img = NativeImage.read(i.get()!!.iconBytes()!!)
-					}
+		try {
+			val img: NativeImage
+			if (minecraft.currentServer == null) {
+				val i = minecraft.singleplayerServer!!.status!!.favicon
+				if (i.isEmpty) {
+					return null
 				} else {
-					img = NativeImage.read(minecraft.currentServer!!.iconBytes!!)
+					img = NativeImage.read(i.get()!!.iconBytes()!!)
 				}
-				icon.upload(img)
-			} catch (e: Throwable) {
-				icon.close()
-				throw e
+			} else {
+				img = NativeImage.read(minecraft.currentServer!!.iconBytes!!)
+			}
+			icon.upload(img)
+		} catch (e: Throwable) {
+			icon.close()
+			throw e
+		}
+
+		// Local class converted to an object expression; implements the same two interfaces.
+		val impl = object : AxoSprite.Dynamic, AxoSpriteImpl {
+			override fun draw(client: Minecraft, stack: GuiGraphicsExtractor, sX: Int, sY: Int, sW: Int, sH: Int, color: Int) {
+				stack.blit(RenderPipelines.GUI_TEXTURED, icon.textureLocation(), sX, sY, 0f, 0f, sW, sH, sW, sH, color)
 			}
 
-			// Local class converted to an object expression; implements the same two interfaces.
-			val impl = object : AxoSprite.Dynamic, AxoSpriteImpl {
-				override fun draw(client: Minecraft, stack: GuiGraphicsExtractor, sX: Int, sY: Int, sW: Int, sH: Int, color: Int) {
-					stack.blit(RenderPipelines.GUI_TEXTURED, icon.textureLocation(), sX, sY, 0f, 0f, sW, sH, sW, sH, color)
-				}
-
-				override fun close() {
-					minecraft.execute(icon::close)
-				}
+			override fun close() {
+				minecraft.execute(icon::close)
 			}
-
-			return impl
 		}
 
-		/**
-		 * @author moehreag
-		 * @reason Implement bridge.
-		 */
-		@Overwrite
-		@JvmStatic
-		fun `autoBoop$openFiltersScreen`(filters: List<String>) {
-			Minecraft.getInstance().gui.setScreen(FilterListConfigurationScreen(filters, Minecraft.getInstance().gui.screen()))
-		}
+		return impl
+	}
 
-		/**
-		 * @author moehreag
-		 * @reason Implement bridge.
-		 */
-		@Overwrite
-		@JvmStatic
-		fun `bedwars$sessionstats$openEntryConfigScreen`() {
-			Minecraft.getInstance().gui.setScreen(SessionStatsHudEntryConfigScreen(Minecraft.getInstance().gui.screen()))
-		}
+	/**
+	 * @author moehreag
+	 * @reason Implement bridge.
+	 */
+	@Overwrite
+	fun `autoBoop$openFiltersScreen`(filters: List<String>) {
+		Minecraft.getInstance().gui.setScreen(FilterListConfigurationScreen(filters, Minecraft.getInstance().gui.screen()))
+	}
 
-		/**
-		 * @author moehreag
-		 * @reason Implement bridge in preparation for sandboxing
-		 */
-		@Overwrite
-		@JvmStatic
-		fun `api$login`(profileId: java.util.UUID, token: String, serverId: String?) {
-			Minecraft.getInstance().services().sessionService().joinServer(profileId, token, serverId)
-		}
+	/**
+	 * @author moehreag
+	 * @reason Implement bridge.
+	 */
+	@Overwrite
+	fun `bedwars$sessionstats$openEntryConfigScreen`() {
+		Minecraft.getInstance().gui.setScreen(SessionStatsHudEntryConfigScreen(Minecraft.getInstance().gui.screen()))
+	}
+
+	/**
+	 * @author moehreag
+	 * @reason Implement bridge in preparation for sandboxing
+	 */
+	@Overwrite
+	fun `api$login`(profileId: java.util.UUID, token: String, serverId: String?) {
+		Minecraft.getInstance().services().sessionService().joinServer(profileId, token, serverId)
 	}
 }

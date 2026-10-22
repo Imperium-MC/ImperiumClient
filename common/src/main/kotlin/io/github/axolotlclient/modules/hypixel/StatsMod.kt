@@ -37,8 +37,8 @@ import io.github.axolotlclient.bridge.util.AxoText
 import io.github.axolotlclient.bridge.util.AxoText.Color.GOLD
 import io.github.axolotlclient.bridge.util.AxoText.Color.GREEN
 import io.github.axolotlclient.bridge.util.AxoText.Color.RED
-import io.github.axolotlclient.bridge.util.AxoText.literal
-import io.github.axolotlclient.bridge.util.AxoText.translatable
+import io.github.axolotlclient.bridge.util.AxoText.Companion.literal
+import io.github.axolotlclient.bridge.util.AxoText.Companion.translatable
 import io.github.axolotlclient.modules.hypixel.bedwars.BedwarsPrestige
 
 class StatsMod : AbstractHypixelMod {
@@ -82,7 +82,7 @@ class StatsMod : AbstractHypixelMod {
                                                 return@whenCompleteAsync
                                             }
 
-                                            handler.handler.accept(c.getSource(), s.get(), res.playerName(), playerData.get())
+                                            handler.handler.accept(c.getSource(), s.get(), res.playerName, playerData.get())
                                         }, AxoMinecraftClient.getInstance())
                                 }
                             }

@@ -69,8 +69,8 @@ class HypixelMessages : Runnable {
     }
 
     fun process(option: BooleanOption, messageKey: String, event: ReceiveChatMessageEvent) {
-        if (option.get() && matchesAnyLanguage(messageKey, event.getOriginalMessage())) {
-            event.setCancelled(true)
+        if (option.get() && matchesAnyLanguage(messageKey, event.originalMessage)) {
+            event.isCancelled = true
         }
     }
 

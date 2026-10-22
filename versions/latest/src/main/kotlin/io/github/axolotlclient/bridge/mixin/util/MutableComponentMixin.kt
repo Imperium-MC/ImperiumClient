@@ -24,10 +24,13 @@ package io.github.axolotlclient.bridge.mixin.util
 
 import io.github.axolotlclient.bridge.util.AxoText
 import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.FormattedText
 import net.minecraft.network.chat.MutableComponent
 import net.minecraft.network.chat.Style
 import org.spongepowered.asm.mixin.Mixin
 import org.spongepowered.asm.mixin.Shadow
+import java.util.Optional
+import java.util.function.BiConsumer
 
 @Mixin(MutableComponent::class)
 abstract class MutableComponentMixin : Component, AxoText.Mutable {
@@ -43,4 +46,20 @@ abstract class MutableComponentMixin : Component, AxoText.Mutable {
 		// can't shadow setStyle because of stupid mapping bug...
 		return setStyle(style as Style)
 	}
+
+	override fun `br$getRawString`(): String = getString()
+
+	override fun `br$copy`(): AxoText.Mutable = copy()
+
+	override fun `br$visit`(handler: BiConsumer<String, AxoText.Style>) {
+		visit(
+			FormattedText.StyledContentConsumer<Any> { style: Style, asString: String ->
+				handler.accept(asString, style)
+				Optional.empty()
+			},
+			Style.EMPTY
+		)
+	}
+
+	override fun `br$getStyle`(): AxoText.Style = getStyle()
 }

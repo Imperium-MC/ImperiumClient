@@ -119,7 +119,7 @@ class InventoryHud : BoxHudEntry(164, 56, true), DynamicallyPositionable {
         if (empty) return
 
         graphics.`br$renderGuiItemModel`(itemStack!!, x, y)
-        graphics.`br$renderGuiItemOverlay`(itemStack, x, y, null)
+        graphics.`br$renderGuiItemOverlay`(itemStack, x, y, "")
     }
 
     override fun getId(): AxoIdentifier = ID

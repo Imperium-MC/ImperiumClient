@@ -64,7 +64,7 @@ class HypixelMods : AbstractCommonModule() {
         Events.END_RESOURCE_RELOAD.register(HypixelMessages.getInstance())
 
         Events.RECEIVE_CHAT_MESSAGE.register(Consumer { event ->
-            AutoBoop.getInstance().handleMessage(event.getOriginalMessage())
+            AutoBoop.getInstance().handleMessage(event.originalMessage)
             HypixelMessages.getInstance().process(removeLobbyJoinMessages, "lobby_join", event)
         })
 

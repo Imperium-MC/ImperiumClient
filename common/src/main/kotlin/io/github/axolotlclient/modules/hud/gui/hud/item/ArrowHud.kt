@@ -81,8 +81,8 @@ class ArrowHud : TextHudEntry(20, 22, true) {
 
     override fun renderComponent(graphics: AxoRenderContext, delta: Float) {
         val pos = contentPos
-        graphics.`br$renderGuiItemModel`(currentArrow, pos.x() + 2, pos.y() + 2)
-        graphics.`br$renderGuiItemOverlay`(currentArrow, pos.x() + 2, pos.y() + 2, arrows.toString())
+        graphics.`br$renderGuiItemModel`(currentArrow!!, pos.x() + 2, pos.y() + 2)
+        graphics.`br$renderGuiItemOverlay`(currentArrow!!, pos.x() + 2, pos.y() + 2, arrows.toString())
     }
 
     override fun renderPlaceholderComponent(graphics: AxoRenderContext, delta: Float) {

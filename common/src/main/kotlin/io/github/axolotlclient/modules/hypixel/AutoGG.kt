@@ -137,11 +137,11 @@ class AutoGG : AbstractHypixelMod {
             "coins! (Final Kill)"
         )
 
-        gfStrings["bedwarspractice.club"] = addToList(client.`br$getSession`().username() + " FINAL KILL!")
+        gfStrings["bedwarspractice.club"] = addToList(client.`br$getSession`().username + " FINAL KILL!")
 
-        gfStrings["pvp.land"] = addToList("slain by " + client.`br$getSession`().username())
+        gfStrings["pvp.land"] = addToList("slain by " + client.`br$getSession`().username)
 
-        gfStrings["minemen.club"] = addToList("killed by " + client.`br$getSession`().username() + "!")
+        gfStrings["minemen.club"] = addToList("killed by " + client.`br$getSession`().username + "!")
     }
 
     private fun populateGLHFStrings() {
@@ -155,10 +155,10 @@ class AutoGG : AbstractHypixelMod {
     private fun addToList(vararg strings: String): List<String> = Arrays.stream(strings).toList()
 
     private fun onMessage(event: ReceiveChatMessageEvent) {
-        val message = event.getOriginalMessage()
+        val message = event.originalMessage
         if (!client.`br$isLocalServer`()) {
             serverMap.keys.forEach { s ->
-                if (serverMap[s]!!.get() && client.`br$getServerAddress`().contains(s)) {
+                if (serverMap[s]!!.get() && client.`br$getServerAddress`()?.contains(s) == true) {
                     if (gf.get()) {
                         processChat(message, gfStrings[s], gfString.get())
                     }

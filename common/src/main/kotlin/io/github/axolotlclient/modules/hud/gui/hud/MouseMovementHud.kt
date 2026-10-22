@@ -78,8 +78,8 @@ class MouseMovementHud : BoxHudEntry(53, 35, true), DynamicallyPositionable {
         // Implementation credit goes to TheKodeToad
         // This project has the author's approval to use this
         // https://github.com/Sol-Client/Client/blob/main/game/src/main/java/io/github/solclient/client/mod/impl/hud/keystrokes/KeystrokesMod.java
-        mouseX += (event.yaw() - event.prevYaw()) / 7f
-        mouseY += (event.pitch() - event.prevPitch()) / 7f
+        mouseX += (event.yaw - event.prevYaw) / 7f
+        mouseY += (event.pitch - event.prevPitch) / 7f
         // 0, 0 will be the center of the HUD element
         val halfWidth = getContentWidth() / 2f
         val halfHeight = getContentHeight() / 2f

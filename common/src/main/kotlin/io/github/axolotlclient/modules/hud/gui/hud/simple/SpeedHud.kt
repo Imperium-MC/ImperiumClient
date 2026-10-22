@@ -59,7 +59,7 @@ class SpeedHud : SimpleTextHudEntry(true) {
         val entity = player.`br$getVehicle`() ?: player
 
         var vec = entity.`br$getVelocity`()
-        if (horizontal.get() || entity.`br$isOnGround`() && vec.y() < 0) {
+        if (horizontal.get() || entity.`br$isOnGround`() && vec.y < 0) {
             vec = vec.y(0.0)
         }
 

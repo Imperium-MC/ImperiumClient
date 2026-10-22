@@ -43,7 +43,8 @@ abstract class KeyBindingMixin : AxoKeybinding {
 	@Shadow
 	abstract fun isDown(): Boolean
 
-	@Shadow
+	@field:Shadow
+	@JvmField
 	protected var key: InputConstants.Key? = null
 
 	@Shadow

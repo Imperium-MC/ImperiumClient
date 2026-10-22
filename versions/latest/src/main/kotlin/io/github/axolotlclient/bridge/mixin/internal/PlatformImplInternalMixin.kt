@@ -64,206 +64,177 @@ import org.spongepowered.asm.mixin.Mixin
 import org.spongepowered.asm.mixin.Overwrite
 import java.util.Objects
 
-@Mixin(PlatformImplInternal::class, remap = false)
+@Mixin(PlatformImplInternal.Companion::class, remap = false)
 abstract class PlatformImplInternalMixin {
-	companion object {
-		/**
-		 * @author Flowey
-		 * @reason Implement bridge platform.
-		 */
-		@Overwrite
-		@JvmStatic
-		fun getWindow(): AxoWindow = Minecraft.getInstance().window
+	/**
+	 * @author Flowey
+	 * @reason Implement bridge platform.
+	 */
+	@Overwrite
+	fun getWindow(): AxoWindow? = Minecraft.getInstance().window
 
-		/**
-		 * @author Flowey
-		 * @reason Implement bridge platform.
-		 */
-		@Overwrite
-		@JvmStatic
-		fun getMinecraftClientInstance(): AxoMinecraftClient = Minecraft.getInstance()
+	/**
+	 * @author Flowey
+	 * @reason Implement bridge platform.
+	 */
+	@Overwrite
+	fun getMinecraftClientInstance(): AxoMinecraftClient = Minecraft.getInstance()
 
-		/**
-		 * @author moehreag
-		 * @reason Implement bridge platform.
-		 */
-		@Overwrite
-		@JvmStatic
-		fun getProfiler(): AxoProfiler = Profiler.get()
+	/**
+	 * @author moehreag
+	 * @reason Implement bridge platform.
+	 */
+	@Overwrite
+	fun getProfiler(): AxoProfiler = Profiler.get()
 
-		/**
-		 * @author Flowey
-		 * @reason Implement bridge platform.
-		 */
-		@Overwrite
-		@JvmStatic
-		fun getTranslatedString(nameKey: String, args: Array<out Any?>): String {
-			// NullMarked vararg: the bridge passes whatever AxoI18n received (Java Object[]),
-			// so spread through the documented unchecked array cast.
-			@Suppress("UNCHECKED_CAST")
-			val cast = args as Array<Any>
-			return I18n.get(nameKey, *cast)
-		}
+	/**
+	 * @author Flowey
+	 * @reason Implement bridge platform.
+	 */
+	@Overwrite
+	fun getTranslatedString(nameKey: String, args: Array<out Any?>): String {
+		// NullMarked vararg: the bridge passes whatever AxoI18n received (Java Object[]),
+		// so spread through the documented unchecked array cast.
+		@Suppress("UNCHECKED_CAST")
+		val cast = args as Array<Any>
+		return I18n.get(nameKey, *cast)
+	}
 
-		/**
-		 * @author Flowey
-		 * @reason Implement bridge platform.
-		 */
-		@Overwrite
-		@JvmStatic
-		fun createItemStack(item: AxoItem, count: Int): AxoItemStack = ItemStack(item as Item, count)
+	/**
+	 * @author Flowey
+	 * @reason Implement bridge platform.
+	 */
+	@Overwrite
+	fun createItemStack(item: AxoItem, count: Int): AxoItemStack = ItemStack(item as Item, count)
 
-		/**
-		 * @author Flowey
-		 * @reason Implement bridge platform.
-		 */
-		@Overwrite
-		@JvmStatic
-		fun getMeasuringTimeMs(): Long = getMillis()
+	/**
+	 * @author Flowey
+	 * @reason Implement bridge platform.
+	 */
+	@Overwrite
+	fun getMeasuringTimeMs(): Long = getMillis()
 
-		/**
-		 * @author Flowey
-		 * @reason Implement bridge platform.
-		 */
-		@Overwrite
-		@JvmStatic
-		fun getCurrentFps(): Int = MinecraftClientAccessor.`axolotlclient$getCurrentFps`()
+	/**
+	 * @author Flowey
+	 * @reason Implement bridge platform.
+	 */
+	@Overwrite
+	fun getCurrentFps(): Int = MinecraftClientAccessor.`axolotlclient$getCurrentFps`()
 
-		/**
-		 * @author Flowey
-		 * @reason Implement bridge platform.
-		 */
-		@Overwrite
-		@JvmStatic
-		fun createKeyBinding(defaultKey: AxoKey?, name: String): io.github.axolotlclient.bridge.key.AxoKeybinding {
-			val code = (Objects.requireNonNullElse(defaultKey, AxoKeys.KEY_UNKNOWN)
-				as com.mojang.blaze3d.platform.InputConstants.Key).value
-			val binding = KeyMapping(name, code, KeyBinds.CATEGORY_AXOLOTLCLIENT)
-			KeyBinds.getInstance().register(binding)
-			return binding
-		}
+	/**
+	 * @author Flowey
+	 * @reason Implement bridge platform.
+	 */
+	@Overwrite
+	fun createKeyBinding(defaultKey: AxoKey?, name: String): io.github.axolotlclient.bridge.key.AxoKeybinding {
+		val code = (Objects.requireNonNullElse(defaultKey, AxoKeys.KEY_UNKNOWN)
+			as com.mojang.blaze3d.platform.InputConstants.Key).value
+		val binding = KeyMapping(name, code, KeyBinds.CATEGORY_AXOLOTLCLIENT)
+		KeyBinds.getInstance().register(binding)
+		return binding
+	}
 
-		/**
-		 * @author Flowey
-		 * @reason Implement bridge platform.
-		 */
-		@Overwrite
-		@JvmStatic
-		fun createIdentifier(ns: String, path: String): AxoIdentifier = Identifier.fromNamespaceAndPath(ns, path)
+	/**
+	 * @author Flowey
+	 * @reason Implement bridge platform.
+	 */
+	@Overwrite
+	fun createIdentifier(ns: String, path: String): AxoIdentifier = Identifier.fromNamespaceAndPath(ns, path)
 
-		/**
-		 * @author moehreag
-		 * @reason Implement bridge platform.
-		 */
-		@Overwrite
-		@JvmStatic
-		fun parseIdentifier(id: String): AxoIdentifier = Identifier.parse(id)
+	/**
+	 * @author moehreag
+	 * @reason Implement bridge platform.
+	 */
+	@Overwrite
+	fun parseIdentifier(id: String): AxoIdentifier = Identifier.parse(id)
 
-		/**
-		 * @author moehreag
-		 * @reason Implement bridge platform.
-		 */
-		@Overwrite
-		@JvmStatic
-		fun createEmpty(): AxoText.Mutable = Component.empty()
+	/**
+	 * @author Flowey
+	 * @reason Implement bridge platform.
+	 */
+	@Overwrite
+	fun createLiteral(text: String): AxoText.Mutable = Component.literal(text)
 
-		/**
-		 * @author Flowey
-		 * @reason Implement bridge platform.
-		 */
-		@Overwrite
-		@JvmStatic
-		fun createLiteral(text: String): AxoText.Mutable = Component.literal(text)
+	/**
+	 * @author Flowey
+	 * @reason Implement bridge platform.
+	 */
+	@Overwrite
+	fun createTranslatable(key: String, vararg args: Any?): AxoText.Mutable {
+		@Suppress("UNCHECKED_CAST")
+		val cast = args as Array<Any>
+		return Component.translatable(key, *cast)
+	}
 
-		/**
-		 * @author Flowey
-		 * @reason Implement bridge platform.
-		 */
-		@Overwrite
-		@JvmStatic
-		fun createTranslatable(key: String, vararg args: Any?): AxoText.Mutable {
-			@Suppress("UNCHECKED_CAST")
-			val cast = args as Array<Any>
-			return Component.translatable(key, *cast)
-		}
+	/**
+	 * @author Flowey
+	 * @reason Implement bridge platform.
+	 */
+	@Overwrite
+	fun tickCount(): Int = Minecraft.getInstance().gui.hud.getGuiTicks()
 
-		/**
-		 * @author Flowey
-		 * @reason Implement bridge platform.
-		 */
-		@Overwrite
-		@JvmStatic
-		fun tickCount(): Int = Minecraft.getInstance().gui.hud.getGuiTicks()
+	/**
+	 * @author Flowey
+	 * @reason Implement bridge platform.
+	 */
+	@Overwrite
+	fun stripText(text: String): String = ChatFormatting.stripFormatting(text)!!
 
-		/**
-		 * @author Flowey
-		 * @reason Implement bridge platform.
-		 */
-		@Overwrite
-		@JvmStatic
-		fun stripText(text: String): String = ChatFormatting.stripFormatting(text)!!
-
-		/**
-		 * @author Flowey
-		 * @reason Implement bridge platform.
-		 */
-		@Overwrite
-		@JvmStatic
-		fun getTabNameFor(player: AxoPlayerListEntry): String {
-			// Inlined PlayerListHud#getDisplayName to avoid StackOverflowError due to mixin
-			val p = player as PlayerInfo
-			if (p.tabListDisplayName != null) {
-				val name = p.tabListDisplayName!!.copy()
-				return ChatFormatting.stripFormatting(
-					(if (p.gameMode == GameType.SPECTATOR) name.withStyle(ChatFormatting.ITALIC) else name).string
-				)!!
-			}
-			val name = PlayerTeam.formatNameForTeam(p.team, Component.literal(p.profile.name))
+	/**
+	 * @author Flowey
+	 * @reason Implement bridge platform.
+	 */
+	@Overwrite
+	fun getTabNameFor(player: AxoPlayerListEntry): String {
+		// Inlined PlayerListHud#getDisplayName to avoid StackOverflowError due to mixin
+		val p = player as PlayerInfo
+		if (p.tabListDisplayName != null) {
+			val name = p.tabListDisplayName!!.copy()
 			return ChatFormatting.stripFormatting(
 				(if (p.gameMode == GameType.SPECTATOR) name.withStyle(ChatFormatting.ITALIC) else name).string
 			)!!
 		}
-
-		/**
-		 * @author Flowey
-		 * @reason Implement bridge platform.
-		 */
-		@Overwrite
-		@JvmStatic
-		fun setTabListHeader(text: AxoText) {
-			Minecraft.getInstance().gui.hud.tabList.setHeader(text as Component)
-		}
-
-		/**
-		 * @author Flowey
-		 * @reason Implement bridge platform.
-		 */
-		@Overwrite
-		@JvmStatic
-		fun createStatusEffectInstance(effect: AxoStatusEffect, duration: Int): AxoStatusEffectInstance =
-			MobEffectInstance(Holder.direct(effect as MobEffect), duration)
-
-		/**
-		 * @author Flowey
-		 * @reason Implement bridge platform.
-		 */
-		@Overwrite
-		@JvmStatic
-		fun createTexture(option: GraphicsOption): AxoSprite = AxoSpriteImpl { _, stack, sX, sY, sW, sH, _ ->
-			stack.blit(
-				RenderPipelines.GUI_TEXTURED,
-				Util.getTexture(option), sX, sY, 0f, 0f,
-				sW, sH, option.get().width, option.get().height
-			)
-		}
-
-		/**
-		 * @author moehreag
-		 * @reason Implement bridge platform.
-		 */
-		@Overwrite
-		@JvmStatic
-		fun getTeamMemberDisplayName(team: AxoTeam, s: String): String =
-			PlayerTeam.formatNameForTeam(team as Team, Component.literal(s)).string
+		val name = PlayerTeam.formatNameForTeam(p.team, Component.literal(p.profile.name))
+		return ChatFormatting.stripFormatting(
+			(if (p.gameMode == GameType.SPECTATOR) name.withStyle(ChatFormatting.ITALIC) else name).string
+		)!!
 	}
+
+	/**
+	 * @author Flowey
+	 * @reason Implement bridge platform.
+	 */
+	@Overwrite
+	fun setTabListHeader(text: AxoText) {
+		Minecraft.getInstance().gui.hud.tabList.setHeader(text as Component)
+	}
+
+	/**
+	 * @author Flowey
+	 * @reason Implement bridge platform.
+	 */
+	@Overwrite
+	fun createStatusEffectInstance(effect: AxoStatusEffect, duration: Int): AxoStatusEffectInstance =
+		MobEffectInstance(Holder.direct(effect as MobEffect), duration)
+
+	/**
+	 * @author Flowey
+	 * @reason Implement bridge platform.
+	 */
+	@Overwrite
+	fun createTexture(option: GraphicsOption): AxoSprite = AxoSpriteImpl { _, stack, sX, sY, sW, sH, _ ->
+		stack.blit(
+			RenderPipelines.GUI_TEXTURED,
+			Util.getTexture(option), sX, sY, 0f, 0f,
+			sW, sH, option.get().width, option.get().height
+		)
+	}
+
+	/**
+	 * @author moehreag
+	 * @reason Implement bridge platform.
+	 */
+	@Overwrite
+	fun getTeamMemberDisplayName(team: AxoTeam, s: String): String =
+		PlayerTeam.formatNameForTeam(team as Team, Component.literal(s)).string
 }

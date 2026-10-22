@@ -107,9 +107,9 @@ class CoordsHud : TextHudEntry(79, 31, true) {
         var height: Int
         val xStart = pos.x() + 2
 
-        val fx = format.format(playerPos.x())
-        val fy = format.format(playerPos.y())
-        val fz = format.format(playerPos.z())
+        val fx = format.format(playerPos.x)
+        val fy = format.format(playerPos.y)
+        val fz = format.format(playerPos.z)
         if (minimal.get()) {
             var currPos = xStart
             val separator = this.separator.get()
@@ -135,13 +135,13 @@ class CoordsHud : TextHudEntry(79, 31, true) {
                     currPos = context.`br$drawString`("XYZ" + del, currPos, pos.y() + 2, firstColor.get(), shadow.get())
                 }
                 currPos = context.`br$drawString`(
-                    format.format(playerPos.x() * factor), currPos, pos.y() + 2, secondColor.get(), shadow.get()
+                    format.format(playerPos.x * factor), currPos, pos.y() + 2, secondColor.get(), shadow.get()
                 )
                 currPos = context.`br$drawString`(
-                    format.format(playerPos.y() * factor), currPos, pos.y() + 2, secondColor.get(), shadow.get()
+                    format.format(playerPos.y * factor), currPos, pos.y() + 2, secondColor.get(), shadow.get()
                 )
                 currPos = context.`br$drawString`(
-                    format.format(playerPos.z() * factor), currPos, pos.y() + 2, secondColor.get(), shadow.get()
+                    format.format(playerPos.z * factor), currPos, pos.y() + 2, secondColor.get(), shadow.get()
                 )
                 width = maxOf(width, currPos - pos.x() + 2)
                 height += 10
@@ -182,21 +182,21 @@ class CoordsHud : TextHudEntry(79, 31, true) {
                 nextX = context.`br$drawString`(name + del + "X" + del, xStart, yEnd, firstColor.get(), shadow.get())
                 xEnd = maxOf(
                     xEnd,
-                    context.`br$drawString`(format.format(playerPos.x() * factor), nextX, yEnd, secondColor.get(), shadow.get()) + 4
+                    context.`br$drawString`(format.format(playerPos.x * factor), nextX, yEnd, secondColor.get(), shadow.get()) + 4
                 )
                 yEnd += 10
 
                 nextX = context.`br$drawString`("Y" + del, xStart + offset, yEnd, firstColor.get(), shadow.get())
                 xEnd = maxOf(
                     xEnd,
-                    context.`br$drawString`(format.format(playerPos.y() * factor), nextX, yEnd, secondColor.get(), shadow.get()) + 4
+                    context.`br$drawString`(format.format(playerPos.y * factor), nextX, yEnd, secondColor.get(), shadow.get()) + 4
                 )
                 yEnd += 10
 
                 nextX = context.`br$drawString`("Z" + del, xStart + offset, yEnd, firstColor.get(), shadow.get())
                 xEnd = maxOf(
                     xEnd,
-                    context.`br$drawString`(format.format(playerPos.z() * factor), nextX, yEnd, secondColor.get(), shadow.get()) + 4
+                    context.`br$drawString`(format.format(playerPos.z * factor), nextX, yEnd, secondColor.get(), shadow.get()) + 4
                 )
                 yEnd += 10
             }

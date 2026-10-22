@@ -22,11 +22,14 @@
 
 package io.github.axolotlclient.bridge.mixin.entity
 
+import io.github.axolotlclient.bridge.entity.AxoEntity
 import io.github.axolotlclient.bridge.entity.AxoLivingEntity
 import io.github.axolotlclient.bridge.entity.effect.AxoStatusEffectInstance
+import io.github.axolotlclient.bridge.math.Vec3
 import net.minecraft.core.Holder
 import net.minecraft.world.effect.MobEffect
 import net.minecraft.world.effect.MobEffectInstance
+import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.LivingEntity
 import org.spongepowered.asm.mixin.Final
 import org.spongepowered.asm.mixin.Mixin
@@ -38,5 +41,47 @@ abstract class LivingEntityMixin : AxoLivingEntity {
 	@field:Final
 	private val activeEffects: Map<Holder<MobEffect>, MobEffectInstance>? = null
 
+	private val self: Entity
+		get() = this as Any as Entity
+
 	override fun `br$getStatusEffects`(): List<AxoStatusEffectInstance> = activeEffects!!.values.toList()
+
+	override fun `br$getVehicle`(): AxoEntity? = self.vehicle
+
+	override fun `br$getPos`(): Vec3 {
+		val pos = self.position()
+		return Vec3(pos.x, pos.y, pos.z)
+	}
+
+	override fun `br$getVelocity`(): Vec3 {
+		val movement = self.getDeltaMovement()
+		return Vec3(movement.x, movement.y, movement.z)
+	}
+
+	override fun `br$isOnGround`(): Boolean = self.onGround()
+
+	override fun `br$getYaw`(): Float = self.yRot
+
+	override fun `br$getPitch`(): Float = self.xRot
+
+	override fun `br$getRotation`(deltaTick: Float): Vec3 {
+		val vec = self.getViewVector(deltaTick)
+		return Vec3(vec.x, vec.y, vec.z)
+	}
+
+	override fun `br$getUuid`(): java.util.UUID = self.uuid
+
+	override fun `br$getNetId`(): Int = self.id
+
+	override fun `br$getEyePos`(delta: Float): Vec3 {
+		val pos = self.getEyePosition(delta)
+		return Vec3(pos.x, pos.y, pos.z)
+	}
+
+	override fun `br$getHeight`(): Float = self.getEyeHeight()
+
+	override fun `br$getBoundingBoxHalfDimensions`(): Vec3 {
+		val box = self.boundingBox
+		return Vec3(box.maxX - box.minX, box.maxY - box.minY, box.maxZ - box.minZ).div(2.0)
+	}
 }

@@ -99,7 +99,7 @@ class ReachHud : SimpleTextHudEntry(true) {
         // See https://iquilezles.org/articles/distfunctions/
         private fun distToBox(pos: Vec3, boxRadii: Vec3): Double {
             val q = pos.abs().sub(boxRadii)
-            return q.max(0.0).len() + Math.min(Math.max(q.x(), Math.max(q.y(), q.z())), 0.0)
+            return q.max(0.0).len() + Math.min(Math.max(q.x, Math.max(q.y, q.z)), 0.0)
         }
     }
 }

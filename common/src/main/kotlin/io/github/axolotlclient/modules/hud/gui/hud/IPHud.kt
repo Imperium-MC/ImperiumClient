@@ -55,7 +55,7 @@ class IPHud : TextHudEntry(115, 13, true) {
             }
         })
 
-        Events.CONNECTION_PLAY_READY.register(Consumer<AxoServerData> {
+        Events.CONNECTION_PLAY_READY.register(Consumer<AxoServerData?> {
             if (showIcon.get()) {
                 sprite = PlatformDispatch.`ipHud$getServerIcon`()
             }
@@ -112,10 +112,11 @@ class IPHud : TextHudEntry(115, 13, true) {
         val pos = contentPos
         var textX = pos.x() + getContentWidth() / 2
 
-        if (showIcon.get() && sprite != null) {
+        val icon = sprite
+        if (showIcon.get() && icon != null) {
             val imageSize = getContentHeight() - 2
             textX += imageSize / 2
-            graphics.`br$drawTexture`(sprite, pos.x() + 1, pos.y() + 1, imageSize, imageSize)
+            graphics.`br$drawTexture`(icon, pos.x() + 1, pos.y() + 1, imageSize, imageSize)
         }
 
         graphics.`br$drawCenteredString`(

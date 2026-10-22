@@ -359,7 +359,7 @@ class ArmorHud : TextHudEntry(20, 100, true) {
 
     fun renderItem(graphics: AxoRenderContext, stack: AxoItemStack, x: Int, y: Int, labelOverride: String?) {
         graphics.`br$renderGuiItemModel`(stack, x, y)
-        graphics.`br$renderGuiItemOverlay`(stack, x, y, labelOverride, textColor.get().toInt(), shadow.get())
+        graphics.`br$renderGuiItemOverlay`(stack, x, y, labelOverride ?: "", textColor.get().toInt(), shadow.get())
         if (lowEffect.get() && isLowDurability(stack)) {
             graphics.`br$fillRect`(x, y, 18, 18, lowEffectColor.get().toInt())
         }

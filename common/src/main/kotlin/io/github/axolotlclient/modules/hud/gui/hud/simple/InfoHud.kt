@@ -101,8 +101,8 @@ class InfoHud : TextHudEntry(60, 13, true) {
             var value = PLACEHOLDER_COORDS
             if (inGame) {
                 val pos = player!!.`br$getPos`()
-                value = Math.floor(pos.x()).toInt().toString() + " " + Math.floor(pos.y()).toInt() + " " +
-                    Math.floor(pos.z()).toInt()
+                value = Math.floor(pos.x).toInt().toString() + " " + Math.floor(pos.y).toInt() + " " +
+                    Math.floor(pos.z).toInt()
             }
             lines.add(InfoLine(AxoI18n.translate("infohud.line.coordinates"), value))
         }
