@@ -20,25 +20,23 @@
  * For more information, see the LICENSE file.
  */
 
-package io.github.axolotlclient.config.migration.impl;
+package io.github.axolotlclient.config.migration.impl
 
-import com.google.gson.JsonObject;
-import io.github.axolotlclient.config.migration.ConfigMigration;
+import com.google.gson.JsonObject
+import io.github.axolotlclient.config.migration.ConfigMigration
 
-public class V3Migration implements ConfigMigration {
-	@Override
-	public int version() {
-		return 3;
-	}
+class V11Migration : ConfigMigration {
+    override fun version() = 11
 
-	@Override
-	public void apply(JsonObject json) {
-		getObject(json, "hud")
-			.flatMap(hud -> getObject(hud, "armorhud"))
-			.ifPresent(armorhud -> {
-				if (getBooleanOrFalse(armorhud, "armorhud.main_hand_item_top")) {
-					armorhud.addProperty("armorhud.main_hand_item_position", "armorhud.main_hand_item_position.top");
-				}
-			});
-	}
+    override fun apply(config: JsonObject) {
+        // The no-hurt-cam boolean became the hurt_cam enum (Alpine parity): true -> OFF, false -> FULL.
+        // Enum options serialize via toString(), so the migrated value uses the "hurt_cam.<mode>" form.
+        getObject(config, "rendering").ifPresent { rendering ->
+            val noHurtCam = rendering.get("noHurtCam")
+            if (noHurtCam != null && noHurtCam.isJsonPrimitive && noHurtCam.asJsonPrimitive.isBoolean) {
+                rendering.remove("noHurtCam")
+                rendering.addProperty("hurt_cam", if (noHurtCam.asBoolean) "hurt_cam.off" else "hurt_cam.full")
+            }
+        }
+    }
 }

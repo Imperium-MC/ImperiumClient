@@ -20,27 +20,18 @@
  * For more information, see the LICENSE file.
  */
 
-package io.github.axolotlclient.config.migration.impl;
+package io.github.axolotlclient.config.migration.impl
 
-import java.util.Locale;
+import com.google.gson.JsonObject
+import io.github.axolotlclient.config.migration.ConfigMigration
 
-import com.google.gson.JsonObject;
-import io.github.axolotlclient.config.migration.ConfigMigration;
+class V7Migration : ConfigMigration {
+    override fun version() = 7
 
-public class V4Migration implements ConfigMigration {
-	@Override
-	public int version() {
-		return 4;
-	}
-
-	@Override
-	public void apply(JsonObject json) {
-		getObject(json, "storedOptions")
-			.ifPresent(hiddenOptions -> {
-				JsonObject apiOptions = getOrAddObject(json, "api.category");
-				getString(hiddenOptions, "privacyPolicyAccepted").ifPresent(s ->
-					apiOptions.addProperty("api.privacy_policy_accepted",
-						"privacy_policy_state." + s.toLowerCase(Locale.ROOT)));
-			});
-	}
+    override fun apply(config: JsonObject) {
+        getObject(config, "hud").flatMap { hud -> getObject(hud, "potionshud") }.ifPresent { potionshud ->
+            val iconsOnly = getBooleanOrFalse(potionshud, "iconsonly")
+            potionshud.addProperty("mode", "potionshud.mode." + (if (iconsOnly) "icons_only" else "icons_and_text"))
+        }
+    }
 }

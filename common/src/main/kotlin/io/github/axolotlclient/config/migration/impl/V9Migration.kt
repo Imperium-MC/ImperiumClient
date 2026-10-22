@@ -1,5 +1,5 @@
 /*
- * Copyright © 2024 moehreag <moehreag@gmail.com> & Contributors
+ * Copyright © 2025 moehreag <moehreag@gmail.com> & Contributors
  *
  * This file is part of AxolotlClient.
  *
@@ -20,16 +20,19 @@
  * For more information, see the LICENSE file.
  */
 
-package io.github.axolotlclient.config.modmenu;
+package io.github.axolotlclient.config.migration.impl
 
-import com.terraformersmc.modmenu.api.ConfigScreenFactory;
-import com.terraformersmc.modmenu.api.ModMenuApi;
-import io.github.axolotlclient.imperium.hud.ImperiumHudEditScreen;
+import com.google.gson.JsonObject
+import io.github.axolotlclient.config.migration.ConfigMigration
 
-public class ModMenuCompat implements ModMenuApi {
+class V9Migration : ConfigMigration {
+    override fun version() = 9
 
-	@Override
-	public ConfigScreenFactory<?> getModConfigScreenFactory() {
-		return (ImperiumHudEditScreen::new);
-	}
+    override fun apply(config: JsonObject) {
+        getObject(config, "rendering").flatMap { rendering -> getObject(rendering, "tablist") }.ifPresent { tablist ->
+            val hud = getOrAddObject(config, "hud")
+            hud.add("tab_overlay_hud", tablist)
+            tablist.add("background", tablist.get("enable_background"))
+        }
+    }
 }

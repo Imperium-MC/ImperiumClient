@@ -20,22 +20,24 @@
  * For more information, see the LICENSE file.
  */
 
-package io.github.axolotlclient.config.migration.impl;
+package io.github.axolotlclient.config.migration.impl
 
-import com.google.gson.JsonObject;
-import io.github.axolotlclient.config.migration.ConfigMigration;
+import com.google.gson.JsonObject
+import io.github.axolotlclient.config.migration.ConfigMigration
 
-public class V7Migration implements ConfigMigration {
-	@Override
-	public int version() {
-		return 7;
-	}
+class V3Migration : ConfigMigration {
+    override fun version() = 3
 
-	@Override
-	public void apply(JsonObject config) {
-		getObject(config, "hud").flatMap(hud -> getObject(hud, "potionshud")).ifPresent(potionshud -> {
-			var iconsOnly = getBooleanOrFalse(potionshud, "iconsonly");
-			potionshud.addProperty("mode", "potionshud.mode." + (iconsOnly ? "icons_only" : "icons_and_text"));
-		});
-	}
+    override fun apply(config: JsonObject) {
+        getObject(config, "hud")
+            .flatMap { hud -> getObject(hud, "armorhud") }
+            .ifPresent { armorhud ->
+                if (getBooleanOrFalse(armorhud, "armorhud.main_hand_item_top")) {
+                    armorhud.addProperty(
+                        "armorhud.main_hand_item_position",
+                        "armorhud.main_hand_item_position.top"
+                    )
+                }
+            }
+    }
 }

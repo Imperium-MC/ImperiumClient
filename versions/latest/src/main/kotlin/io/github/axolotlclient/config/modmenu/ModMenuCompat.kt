@@ -20,30 +20,14 @@
  * For more information, see the LICENSE file.
  */
 
-package io.github.axolotlclient.config.migration.impl;
+package io.github.axolotlclient.config.modmenu
 
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.stream.Collectors;
+import com.terraformersmc.modmenu.api.ConfigScreenFactory
+import com.terraformersmc.modmenu.api.ModMenuApi
+import io.github.axolotlclient.imperium.hud.ImperiumHudEditScreen
 
-import com.google.gson.JsonObject;
-import io.github.axolotlclient.config.migration.ConfigMigration;
+class ModMenuCompat : ModMenuApi {
 
-public class V5Migration implements ConfigMigration {
-	@Override
-	public int version() {
-		return 5;
-	}
-
-	@Override
-	public void apply(JsonObject json) {
-		getObject(json, "hypixel-mods")
-			.flatMap(hypixel -> getObject(hypixel, "autoboop"))
-			.ifPresent(autoboop ->
-				getString(autoboop, "autoboop.filterlist").ifPresent(filterlist ->
-					autoboop.getAsJsonObject().addProperty("autoboop.filterlist", Arrays.stream(filterlist.split(","))
-						.map(s -> s.getBytes(StandardCharsets.UTF_8))
-						.map(s -> Base64.getEncoder().encodeToString(s)).collect(Collectors.joining(",")))));
-	}
+    override fun getModConfigScreenFactory(): ConfigScreenFactory<*> =
+        ConfigScreenFactory { ImperiumHudEditScreen() }
 }

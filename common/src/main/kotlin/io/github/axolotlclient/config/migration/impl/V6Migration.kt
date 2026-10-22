@@ -20,23 +20,19 @@
  * For more information, see the LICENSE file.
  */
 
-package io.github.axolotlclient.config.migration.impl;
+package io.github.axolotlclient.config.migration.impl
 
-import com.google.gson.JsonObject;
-import io.github.axolotlclient.AxolotlClientCommon;
-import io.github.axolotlclient.config.migration.ConfigMigration;
+import com.google.gson.JsonObject
+import io.github.axolotlclient.AxolotlClientCommon
+import io.github.axolotlclient.config.migration.ConfigMigration
 
-public class V6Migration implements ConfigMigration {
-	@Override
-	public int version() {
-		return 6;
-	}
+class V6Migration : ConfigMigration {
+    override fun version() = 6
 
-	@Override
-	public void apply(JsonObject json) {
-		getObject(json, "api.category")
-			.flatMap(api -> getObject(api, "api.pluralkit"))
-			.flatMap(pk -> getString(pk, "api.pk_token"))
-			.ifPresent(AxolotlClientCommon.getInstance().getApiOptions().pkToken::set);
-	}
+    override fun apply(config: JsonObject) {
+        getObject(config, "api.category")
+            .flatMap { api -> getObject(api, "api.pluralkit") }
+            .flatMap { pk -> getString(pk, "api.pk_token") }
+            .ifPresent { token -> AxolotlClientCommon.getInstance().apiOptions.pkToken.set(token) }
+    }
 }

@@ -20,11 +20,25 @@
  * For more information, see the LICENSE file.
  */
 
-package io.github.axolotlclient.config.profiles;
+package io.github.axolotlclient.config.migration.impl
 
-public interface ProfileAware {
+import com.google.gson.JsonObject
+import io.github.axolotlclient.config.migration.ConfigMigration
+import java.util.Locale
 
-	void saveConfig();
+class V4Migration : ConfigMigration {
+    override fun version() = 4
 
-	void reloadConfig();
+    override fun apply(config: JsonObject) {
+        getObject(config, "storedOptions")
+            .ifPresent { hiddenOptions ->
+                val apiOptions = getOrAddObject(config, "api.category")
+                getString(hiddenOptions, "privacyPolicyAccepted").ifPresent { s ->
+                    apiOptions.addProperty(
+                        "api.privacy_policy_accepted",
+                        "privacy_policy_state." + s.lowercase(Locale.ROOT)
+                    )
+                }
+            }
+    }
 }
