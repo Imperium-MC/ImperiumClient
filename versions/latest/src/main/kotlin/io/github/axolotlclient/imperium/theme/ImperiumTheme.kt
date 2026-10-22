@@ -40,45 +40,45 @@ import net.minecraft.resources.Identifier
  */
 object ImperiumTheme {
 	// brand
-	const val ACCENT = 0xFFC39A58.toInt()
-	const val ACCENT_HOT = 0xFFECD6A6.toInt()
+	const val ACCENT = 0xFFCCAF83.toInt()
+	const val ACCENT_HOT = 0xFFFCEEBF.toInt()
 
 	// surfaces
-	const val SURFACE = 0xE00B0907.toInt()          // rgba(11, 9, 7, .88)
-	const val LAYER = 0x6B17120C.toInt()            // rgba(23, 18, 12, .42)
-	const val PANEL_BASE = 0xFF15110C.toInt()
-	const val PANEL_RAISED = 0xFF221A11.toInt()
-	const val FIELD = 0xFF0D0A07.toInt()
-	const val CHIP = 0xFF241C13.toInt()
+	const val SURFACE = 0xE00D1426.toInt()          // rgba(11, 9, 7, .88)
+	const val LAYER = 0x6B1A2440.toInt()            // rgba(23, 18, 12, .42)
+	const val PANEL_BASE = 0xFF141E38.toInt()
+	const val PANEL_RAISED = 0xFF1F2C4E.toInt()
+	const val FIELD = 0xFF0A101F.toInt()
+	const val CHIP = 0xFF22304F.toInt()
 
 	// component ramp
-	const val COMPONENT_BASE = 0xFF9A8466.toInt()
-	const val COMPONENT = 0x339A8466.toInt()        // rgba(154, 132, 102, .2)
-	const val COMPONENT_BG = 0x8C2A2118.toInt()     // rgba(42, 33, 24, .55)
-	const val TRACK = 0x9954452F.toInt()            // rgba(84, 69, 47, .6)
+	const val COMPONENT_BASE = 0xFF8E96A6.toInt()
+	const val COMPONENT = 0x338E96A6.toInt()        // rgba(154, 132, 102, .2)
+	const val COMPONENT_BG = 0x8C1F2C4E.toInt()     // rgba(42, 33, 24, .55)
+	const val TRACK = 0x993E4A6B.toInt()            // rgba(84, 69, 47, .6)
 
 	// primary / accent fills
-	const val PRIMARY = 0x40C39A58.toInt()          // accent at 25 %
-	const val PRIMARY_HOVER = 0x59C39A58.toInt()    // accent at 35 %
-	const val SECONDARY = 0x26C39A58.toInt()        // accent at 15 %
-	const val ACCENT_SOFT = 0x4DC39A58.toInt()      // accent at 30 %
-	const val ACCENT_HALF = 0x80C39A58.toInt()      // accent at 50 %
+	const val PRIMARY = 0x40CCAF83.toInt()          // accent at 25 %
+	const val PRIMARY_HOVER = 0x59CCAF83.toInt()    // accent at 35 %
+	const val SECONDARY = 0x26CCAF83.toInt()        // accent at 15 %
+	const val ACCENT_SOFT = 0x4DCCAF83.toInt()      // accent at 30 %
+	const val ACCENT_HALF = 0x80CCAF83.toInt()      // accent at 50 %
 
 	// text
-	const val TEXT = 0xFFFFF8EE.toInt()
-	const val TEXT_SECONDARY = 0xC7E8DCC8.toInt()   // rgba(232, 220, 200, .78)
-	const val TEXT_TERTIARY = 0xB3D8CCB8.toInt()    // rgba(216, 204, 184, .7)
-	const val TEXT_DISABLED = 0xBFB0A28C.toInt()    // rgba(176, 162, 140, .75)
-	const val TEXT_ACCENT = 0xFFE0BF86.toInt()
+	const val TEXT = 0xFFFAFBFD.toInt()
+	const val TEXT_SECONDARY = 0xC7D9DEE8.toInt()   // rgba(232, 220, 200, .78)
+	const val TEXT_TERTIARY = 0xB3B8C2CE.toInt()    // rgba(216, 204, 184, .7)
+	const val TEXT_DISABLED = 0xBF9AA4B2.toInt()    // rgba(176, 162, 140, .75)
+	const val TEXT_ACCENT = 0xFFD9C39A.toInt()
 
 	// overlay controls (title screen, HUD editor)
 	const val OVERLAY_TEXT = 0xFFFFFFFF.toInt()
-	const val OVERLAY_TEXT_SECONDARY = 0xC7EBE1D2.toInt()
-	const val OVERLAY_CONTROL = 0x6B17120C.toInt()
-	const val OVERLAY_CONTROL_HOVER = 0x40C39A58.toInt()
-	const val OVERLAY_BORDER = 0x29ECD6A6.toInt()
-	const val OVERLAY_BORDER_HOVER = 0x73C39A58.toInt()
-	const val OVERLAY_GLOW = 0x59C39A58.toInt()
+	const val OVERLAY_TEXT_SECONDARY = 0xC7DFE5EE.toInt()
+	const val OVERLAY_CONTROL = 0x6B1A2440.toInt()
+	const val OVERLAY_CONTROL_HOVER = 0x40CCAF83.toInt()
+	const val OVERLAY_BORDER = 0x29FCEEBF.toInt()
+	const val OVERLAY_BORDER_HOVER = 0x73CCAF83.toInt()
+	const val OVERLAY_GLOW = 0x59CCAF83.toInt()
 	const val OVERLAY_SHADOW = 0x80000000.toInt()
 
 	// status
@@ -86,22 +86,22 @@ object ImperiumTheme {
 	const val ERROR = 0xFFE2603A.toInt()
 
 	// module cards (docs/design/mockups/imperium-ui.css .card*)
-	const val CARD_BG = 0x5215110C.toInt()          // rgba(21, 17, 12, .32)
-	const val CARD_HOVER_BG = 0xA6221A11.toInt()    // rgba(34, 26, 17, .65)
-	const val CARD_ON_BG = 0x21C39A58.toInt()       // accent at 13 %
-	const val CARD_ON_BORDER = 0x8CC39A58.toInt()   // accent at 55 %
+	const val CARD_BG = 0x52141E38.toInt()          // rgba(21, 17, 12, .32)
+	const val CARD_HOVER_BG = 0xA61F2C4E.toInt()    // rgba(34, 26, 17, .65)
+	const val CARD_ON_BG = 0x21CCAF83.toInt()       // accent at 13 %
+	const val CARD_ON_BORDER = 0x8CCCAF83.toInt()   // accent at 55 %
 	const val CARD_BLOCKED_BG = 0x1AE2603A.toInt()  // error at 10 %
 	const val CARD_BLOCKED_BORDER = 0x73E2603A.toInt() // error at 45 %
-	const val CARD_BORDER = 0x299A8466.toInt()      // component at 16 %
-	const val ICON_WELL = 0x249A8466.toInt()        // component at 14 %
-	const val ICON_WELL_ON = 0x38C39A58.toInt()     // accent at 22 %
+	const val CARD_BORDER = 0x298E96A6.toInt()      // component at 16 %
+	const val ICON_WELL = 0x248E96A6.toInt()        // component at 14 %
+	const val ICON_WELL_ON = 0x38CCAF83.toInt()     // accent at 22 %
 	const val ICON_WELL_BLOCKED = 0x29E2603A.toInt() // error at 16 %
 	const val BLOCKED_TAG = 0xFFF0A088.toInt()
 
 	// setting rows (.row*)
-	const val ROW_BG = 0x6115110C.toInt()           // rgba(21, 17, 12, .38)
-	const val ROW_HOVER_BG = 0x99221A11.toInt()     // rgba(34, 26, 17, .6)
-	const val ROW_FOUND_HALO = 0x26C39A58.toInt()   // secondary ring
+	const val ROW_BG = 0x61141E38.toInt()           // rgba(21, 17, 12, .38)
+	const val ROW_HOVER_BG = 0x991F2C4E.toInt()     // rgba(34, 26, 17, .6)
+	const val ROW_FOUND_HALO = 0x26CCAF83.toInt()   // secondary ring
 
 	/** The IMC emblem shipped as the mod icon, drawn scaled for the sidebar and title screen. */
 	val EMBLEM: Identifier = Identifier.fromNamespaceAndPath("imperiumclient", "icon.png")
