@@ -20,12 +20,12 @@
  * For more information, see the LICENSE file.
  */
 
-package io.github.axolotlclient.modules.hud.gui.hud.simple;
+package io.github.axolotlclient.modules.hud.gui.hud.simple
 
-import io.github.axolotlclient.AxolotlClientCommon;
-import io.github.axolotlclient.bridge.util.AxoI18n;
-import io.github.axolotlclient.bridge.util.AxoIdentifier;
-import io.github.axolotlclient.modules.hud.gui.entry.SimpleTextHudEntry;
+import io.github.axolotlclient.AxolotlClientCommon
+import io.github.axolotlclient.bridge.util.AxoI18n
+import io.github.axolotlclient.bridge.util.AxoIdentifier
+import io.github.axolotlclient.modules.hud.gui.entry.SimpleTextHudEntry
 
 /**
  * This implementation of Hud modules is based on KronHUD.
@@ -33,36 +33,23 @@ import io.github.axolotlclient.modules.hud.gui.entry.SimpleTextHudEntry;
  *
  * <p>License: GPL-3.0</p>
  */
+class PlayerCountHud : SimpleTextHudEntry(true) {
+    override fun getId(): AxoIdentifier = ID
 
-public class PlayerCountHud extends SimpleTextHudEntry {
+    override fun getValue(): String {
+        if (client.`br$getWorld`() == null) {
+            return getPlaceholderValue()
+        }
 
-	public static final AxoIdentifier ID = AxoIdentifier.of(AxolotlClientCommon.MODID, "playercounthud");
+        return client.`br$getOnlinePlayers`().size.toString()
+    }
 
-	public PlayerCountHud() {
-		super(true);
-	}
+    override fun getPlaceholderValue(): String = 3.141592.toString()
 
-	@Override
-	public AxoIdentifier getId() {
-		return ID;
-	}
+    override fun getLabel(): String = AxoI18n.translate("players")
 
-	@Override
-	public String getValue() {
-		if (client.br$getWorld() == null) {
-			return getPlaceholderValue();
-		}
-
-		return String.valueOf(client.br$getOnlinePlayers().size());
-	}
-
-	@Override
-	public String getPlaceholderValue() {
-		return String.valueOf(3.141592);
-	}
-
-	@Override
-	public String getLabel() {
-		return AxoI18n.translate("players");
-	}
+    companion object {
+        @JvmField
+        val ID: AxoIdentifier = AxoIdentifier.of(AxolotlClientCommon.MODID, "playercounthud")
+    }
 }

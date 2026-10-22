@@ -20,48 +20,32 @@
  * For more information, see the LICENSE file.
  */
 
-package io.github.axolotlclient.modules.hud.gui.hud.simple;
+package io.github.axolotlclient.modules.hud.gui.hud.simple
 
-import io.github.axolotlclient.bridge.util.AxoI18n;
-import io.github.axolotlclient.bridge.util.AxoIdentifier;
-import io.github.axolotlclient.modules.hud.gui.entry.SimpleTextHudEntry;
+import io.github.axolotlclient.bridge.util.AxoI18n
+import io.github.axolotlclient.bridge.util.AxoIdentifier
+import io.github.axolotlclient.modules.hud.gui.entry.SimpleTextHudEntry
 
 /**
  * Active status effect count (Alpine "potion_count" module, parity spec M4): how many
  * effects are currently applied to the player. Alpine carries no own settings for
  * this beyond the shared HUD style block.
  */
-public class PotionCountHud extends SimpleTextHudEntry {
+class PotionCountHud : SimpleTextHudEntry(true) {
+    override fun getValue(): String {
+        val player = client.`br$getPlayer`() ?: return getPlaceholderValue()
 
-	public static final AxoIdentifier ID = AxoIdentifier.of("imperiumclient", "potioncounthud");
+        return player.`br$getStatusEffects`().size.toString()
+    }
 
-	public PotionCountHud() {
-		super(true);
-	}
+    override fun getPlaceholderValue(): String = "3"
 
-	@Override
-	public String getValue() {
-		var player = client.br$getPlayer();
+    override fun getLabel(): String = AxoI18n.translate("potioncounthud.effects")
 
-		if (player == null) {
-			return getPlaceholderValue();
-		}
+    override fun getId(): AxoIdentifier = ID
 
-		return String.valueOf(player.br$getStatusEffects().size());
-	}
-
-	@Override
-	public String getPlaceholderValue() {
-		return "3";
-	}
-
-	@Override
-	public String getLabel() {
-		return AxoI18n.translate("potioncounthud.effects");
-	}
-
-	@Override
-	public AxoIdentifier getId() {
-		return ID;
-	}
+    companion object {
+        @JvmField
+        val ID: AxoIdentifier = AxoIdentifier.of("imperiumclient", "potioncounthud")
+    }
 }

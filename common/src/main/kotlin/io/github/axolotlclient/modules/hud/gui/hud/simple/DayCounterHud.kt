@@ -20,44 +20,28 @@
  * For more information, see the LICENSE file.
  */
 
-package io.github.axolotlclient.modules.hud.gui.hud.simple;
+package io.github.axolotlclient.modules.hud.gui.hud.simple
 
-import io.github.axolotlclient.bridge.AxoMinecraftClient;
-import io.github.axolotlclient.bridge.util.AxoIdentifier;
-import io.github.axolotlclient.modules.hud.gui.entry.SimpleTextHudEntry;
+import io.github.axolotlclient.AxolotlClientCommon
+import io.github.axolotlclient.bridge.util.AxoI18n
+import io.github.axolotlclient.bridge.util.AxoIdentifier
+import io.github.axolotlclient.modules.hud.gui.entry.SimpleTextHudEntry
 
-/**
- * This implementation of Hud modules is based on KronHUD.
- * <a href="https://github.com/DarkKronicle/KronHUD">Github Link.</a>
- *
- * <p>License: GPL-3.0</p>
- */
+class DayCounterHud : SimpleTextHudEntry() {
+    override fun getPlaceholderValue(): String = AxoI18n.translate("daycounterhud.days", 35)
 
-public class FPSHud extends SimpleTextHudEntry {
+    override fun getValue(): String {
+        if (client.`br$getWorld`() == null) {
+            return getPlaceholderValue()
+        }
 
-	public static final AxoIdentifier ID = AxoIdentifier.of("kronhud", "fpshud");
+        return AxoI18n.translate("daycounterhud.days", client.`br$getWorld`()!!.`br$getTimeOfDay`() / 24000)
+    }
 
-	public FPSHud() {
-		super(true);
-	}
+    override fun getId(): AxoIdentifier = ID
 
-	@Override
-	public AxoIdentifier getId() {
-		return ID;
-	}
-
-	@Override
-	public String getValue() {
-		return String.valueOf(AxoMinecraftClient.getCurrentFps());
-	}
-
-	@Override
-	public String getPlaceholderValue() {
-		return "60";
-	}
-
-	@Override
-	public String getLabel() {
-		return "FPS";
-	}
+    companion object {
+        @JvmField
+        val ID: AxoIdentifier = AxoIdentifier.of(AxolotlClientCommon.MODID, "daycounterhud")
+    }
 }
