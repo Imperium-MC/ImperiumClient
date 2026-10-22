@@ -42,6 +42,7 @@
       "io.github.axolotlclient.InventoryTweaksGameTest",
       "io.github.axolotlclient.HitboxesGameTest",
       "io.github.axolotlclient.CannonTrajectoryGameTest",
+      "io.github.axolotlclient.ModulesWave3GameTest",
       "io.github.axolotlclient.FullscreenMapGameTest",
       "io.github.axolotlclient.WorldSpaceRenderingGameTest",
       "io.github.axolotlclient.HudBlurGameTest",

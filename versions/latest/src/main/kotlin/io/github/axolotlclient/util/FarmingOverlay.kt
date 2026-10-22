@@ -73,7 +73,7 @@ object FarmingOverlay {
     }
 
     @JvmStatic
-    fun render(graphics: GuiGraphicsExtractor) {
+    fun render(graphics: GuiGraphicsExtractor?) {
         val minecraft = Minecraft.getInstance()
         if (!AxolotlClient.config().farmingOverlay.get() || minecraft.level == null || minecraft.player == null) {
             return
@@ -91,20 +91,24 @@ object FarmingOverlay {
             return
         }
 
+        // Null graphics is the documented early-out contract (the gametest calls
+        // render(null) to pin that every guard above runs before any graphics use).
+        val g = checkNotNull(graphics)
+
         val progress = crop.getAge(state).toFloat() / crop.maxAge
         val color = lerpColor(0xFFFF5555.toInt(), 0xFF55FF55.toInt(), progress)
         val font = minecraft.font
 
         if (AxolotlClient.config().farmingStyle.get() == FarmingOverlayStyle.BAR) {
-            val x = graphics.guiWidth() / 2 - BAR_WIDTH / 2
-            val y = graphics.guiHeight() / 2 + 12
-            graphics.fill(x, y, x + BAR_WIDTH, y + BAR_HEIGHT, 0x90000000.toInt())
-            graphics.fill(x + 1, y + 1, x + 1 + ((BAR_WIDTH - 2) * progress).roundToInt(), y + BAR_HEIGHT - 1, color)
+            val x = g.guiWidth() / 2 - BAR_WIDTH / 2
+            val y = g.guiHeight() / 2 + 12
+            g.fill(x, y, x + BAR_WIDTH, y + BAR_HEIGHT, 0x90000000.toInt())
+            g.fill(x + 1, y + 1, x + 1 + ((BAR_WIDTH - 2) * progress).roundToInt(), y + BAR_HEIGHT - 1, color)
         } else {
             val text = stageText(state)!!
-            val x = graphics.guiWidth() / 2 + 10
-            val y = graphics.guiHeight() / 2 + 8
-            graphics.text(font, text, x, y, color, true)
+            val x = g.guiWidth() / 2 + 10
+            val y = g.guiHeight() / 2 + 8
+            g.text(font, text, x, y, color, true)
         }
     }
 

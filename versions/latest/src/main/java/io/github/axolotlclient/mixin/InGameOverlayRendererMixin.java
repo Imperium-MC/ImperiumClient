@@ -40,7 +40,9 @@ public abstract class InGameOverlayRendererMixin {
 	@Inject(method = "lambda$submitFire$0", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix4f;translate(FFF)Lorg/joml/Matrix4f;"))
 	private static void axolotlclient$lowFire(TextureAtlasSprite sprite, PoseStack.Pose basePose, VertexConsumer builder, CallbackInfo ci, @Local(name = "pose") Matrix4f pose) {
 		if (AxolotlClient.config().lowFire.get()) {
-			pose.translate(0, -0.2F, 0);
+			// fire_height (Alpine grab-bag, wave 3): the lowering distance is configurable;
+			// 0.2 (the default) is the offset the old fixed version used.
+			pose.translate(0, -AxolotlClient.config().fireHeight.get(), 0);
 		}
 	}
 }

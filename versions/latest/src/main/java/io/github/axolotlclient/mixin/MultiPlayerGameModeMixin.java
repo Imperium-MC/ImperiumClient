@@ -23,6 +23,7 @@
 package io.github.axolotlclient.mixin;
 
 import io.github.axolotlclient.modules.autoutils.AutoTool;
+import io.github.axolotlclient.util.FarmingProtections;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -37,6 +38,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * own {@code ensureHasSentCarriedItem} (called inside these methods, before any break
  * packet) announces the tool that is about to be used — exactly the ordering a physical
  * hotbar switch produces.
+ *
+ * <p>The farming break-veto (wave 3) rides the same heads: cancelling before the vanilla
+ * body runs means no START/ABORT/STOP destroy packet is ever sent and no client-side
+ * break prediction starts, while the "true" return value tells the input code that the
+ * (pretend) mining is in progress so it neither falls through to another action nor spams
+ * re-tries. {@code destroyBlock} (the instant-break path some callers use directly) is
+ * cancelled the same way and reports "not destroyed".</p>
  */
 @Mixin(MultiPlayerGameMode.class)
 public abstract class MultiPlayerGameModeMixin {
@@ -49,5 +57,26 @@ public abstract class MultiPlayerGameModeMixin {
 	@Inject(method = "continueDestroyBlock", at = @At("HEAD"))
 	private void axolotlclient$autoToolBeforeContinue(BlockPos pos, Direction direction, CallbackInfoReturnable<Boolean> cir) {
 		AutoTool.getInstance().beforeDestroy(pos);
+	}
+
+	@Inject(method = "startDestroyBlock", at = @At("HEAD"), cancellable = true)
+	private void axolotlclient$farmingVetoStart(BlockPos pos, Direction direction, CallbackInfoReturnable<Boolean> cir) {
+		if (FarmingProtections.shouldVetoBreak(pos)) {
+			cir.setReturnValue(true);
+		}
+	}
+
+	@Inject(method = "continueDestroyBlock", at = @At("HEAD"), cancellable = true)
+	private void axolotlclient$farmingVetoContinue(BlockPos pos, Direction direction, CallbackInfoReturnable<Boolean> cir) {
+		if (FarmingProtections.shouldVetoBreak(pos)) {
+			cir.setReturnValue(true);
+		}
+	}
+
+	@Inject(method = "destroyBlock", at = @At("HEAD"), cancellable = true)
+	private void axolotlclient$farmingVetoInstant(BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
+		if (FarmingProtections.shouldVetoBreak(pos)) {
+			cir.setReturnValue(false);
+		}
 	}
 }

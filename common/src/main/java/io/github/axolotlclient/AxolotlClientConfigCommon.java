@@ -236,6 +236,14 @@ public abstract class AxolotlClientConfigCommon {
 	public final ForceableBooleanOption fullBright = new ForceableBooleanOption("fullBright", false);
 	public final BooleanOption removeVignette = new BooleanOption("removeVignette", false);
 	public final ForceableBooleanOption lowFire = new ForceableBooleanOption("lowFire", false);
+	// fire_height (Alpine client grab-bag, wave 3): how far the first-person fire overlay is
+	// pushed down while lowFire is on, in blocks (0.2 was the old fixed offset).
+	public final FloatOption fireHeight = new FloatOption("fire_height", 0.2F, 0.0F, 1.0F);
+	// pumpkin/spyglass/frost overlay opacity (Alpine client grab-bag, wave 3): percent of
+	// the vanilla overlay alpha — 100 is vanilla, 0 removes the overlay entirely.
+	public final IntegerOption pumpkinOpacity = new IntegerOption("pumpkin_opacity", 100, 0, 100);
+	public final IntegerOption spyglassOpacity = new IntegerOption("spyglass_opacity", 100, 0, 100);
+	public final IntegerOption frostOpacity = new IntegerOption("frost_opacity", 100, 0, 100);
 	public final ColorOption hitColor = new ColorOption("hitColor", new Color(0x4DFF0000), this::updateHitColor);
 	public final BooleanOption hitColorOnArmor = new BooleanOption("hit_color_on_armor", false);
 	// hit_color/color_trim (Alpine parity): also flash armour TRIMS with the hit colour.
@@ -269,6 +277,17 @@ public abstract class AxolotlClientConfigCommon {
 	public final BooleanOption farmingOverlay = new BooleanOption("enabled", false);
 	public final BooleanOption farmingHoeOnly = new BooleanOption("farming.hoe_only", false);
 	public final EnumOption<FarmingOverlayStyle> farmingStyle = new EnumOption<>("farming.style", FarmingOverlayStyle.class, FarmingOverlayStyle.TEXT);
+
+	// farming protections (Alpine parity, wave 3): veto breaking the bottom block of a
+	// still-growing cane/bamboo stack (one misclick would fell the whole plant), plus
+	// render-hides for cactus and tripwire string. The vetoes are enforced client-side in
+	// MultiPlayerGameModeMixin (no break packet is ever sent); the render-hides are
+	// enforced in SectionCompilerMixin, and a toggle flip re-meshes the world through
+	// onFarmingRenderHidesChanged (the chunk mesh is otherwise static, baked geometry).
+	public final BooleanOption farmingProtectBottomCane = new BooleanOption("farming.prevent_breaking_bottom_cane", true);
+	public final BooleanOption farmingProtectBottomBamboo = new BooleanOption("farming.prevent_breaking_bottom_bamboo", true);
+	public final BooleanOption farmingDisableCactusRendering = new BooleanOption("farming.disable_cactus_rendering", false, v -> onFarmingRenderHidesChanged());
+	public final BooleanOption farmingDisableStringRendering = new BooleanOption("farming.disable_string_rendering", false, v -> onFarmingRenderHidesChanged());
 
 	// chunk_borders (Alpine parity): chunk (and optional region) boundary gizmo lines.
 	public final BooleanOption chunkBorders = new BooleanOption("enabled", false);
@@ -482,6 +501,10 @@ public abstract class AxolotlClientConfigCommon {
 			fullBright,
 			removeVignette,
 			lowFire,
+			fireHeight,
+			pumpkinOpacity,
+			spyglassOpacity,
+			frostOpacity,
 			minimalViewBob,
 			hurtCam,
 			clearWater,
@@ -505,6 +528,10 @@ public abstract class AxolotlClientConfigCommon {
 		farming.add(farmingOverlay);
 		farming.add(farmingHoeOnly);
 		farming.add(farmingStyle);
+		farming.add(farmingProtectBottomCane);
+		farming.add(farmingProtectBottomBamboo);
+		farming.add(farmingDisableCactusRendering);
+		farming.add(farmingDisableStringRendering);
 		rendering.add(farming);
 
 		chunkBordersCategory.add(chunkBorders);
@@ -581,4 +608,11 @@ public abstract class AxolotlClientConfigCommon {
 	protected abstract void updateWindowTitle(boolean useCustom);
 
 	protected abstract void updateHitColor(Color color);
+
+	/**
+	 * Fired whenever a farming render-hide toggle changes; the version-side override
+	 * re-meshes the world so the (statically baked) chunk geometry picks the change up.
+	 */
+	protected void onFarmingRenderHidesChanged() {
+	}
 }

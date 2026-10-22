@@ -30,11 +30,13 @@ import io.github.axolotlclient.AxolotlClientConfig.api.util.Color
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.BooleanOption
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.ColorOption
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.EnumOption
+import io.github.axolotlclient.AxolotlClientConfig.impl.options.FloatOption
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.OptionBase
 import io.github.axolotlclient.AxolotlClientConfig.impl.options.StringArrayOption
 import io.github.axolotlclient.AxolotlClientConfig.impl.ui.RecreatableScreen
 import io.github.axolotlclient.AxolotlClientConfigCommon
 import io.github.axolotlclient.bridge.AxoMinecraftClient
+import io.github.axolotlclient.bridge.events.Events
 import io.github.axolotlclient.config.screen.CreditsScreen
 import io.github.axolotlclient.config.screen.ProfilesScreen
 import io.github.axolotlclient.imperium.emotes.EmoteWheelConfig
@@ -42,6 +44,7 @@ import io.github.axolotlclient.imperium.enforcement.EnforcementConfig
 import io.github.axolotlclient.imperium.media.MediaConfig
 import io.github.axolotlclient.mixin.OverlayTextureAccessor
 import io.github.axolotlclient.util.ClientColors
+import io.github.axolotlclient.util.FarmingProtections
 import io.github.axolotlclient.util.options.GenericOption
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screens.Screen
@@ -61,6 +64,11 @@ class AxolotlClientConfig : AxolotlClientConfigCommon() {
 
     @JvmField
     val lowShield = BooleanOption("lowShield", false)
+
+    // shield_height (Alpine client grab-bag, wave 3): how far the first-person shield is
+    // nudged down while lowShield is on, in blocks (0.2 was the old fixed offset).
+    @JvmField
+    val shieldHeight = FloatOption("shield_height", 0.2F, 0.0F, 1.0F)
 
     @JvmField
     val customLoadingScreenColor = BooleanOption("custom_loading_bg_color", false)
@@ -83,6 +91,8 @@ class AxolotlClientConfig : AxolotlClientConfigCommon() {
     val options: MutableList<Option<*>> = ArrayList()
 
     init {
+        // farming render-hides (wave 3): drain pending re-meshes on the client thread.
+        Events.TICK.register { FarmingProtections.tick() }
         general.add(customLoadingScreenColor)
         general.add(loadingScreenColor)
         general.add(titleScreenFriendsButtonMode)
@@ -125,6 +135,7 @@ class AxolotlClientConfig : AxolotlClientConfigCommon() {
         }
 
         rendering.add(lowShield)
+        rendering.add(shieldHeight)
 
         // Local rules enforcement (W4-C): outgoing-packet interceptor scoped to ImperiumMC.
         config.add(EnforcementConfig.category)
@@ -145,6 +156,14 @@ class AxolotlClientConfig : AxolotlClientConfigCommon() {
 
     override fun updateWindowTitle(useCustom: Boolean) {
         Minecraft.getInstance().updateTitle()
+    }
+
+    // farming render-hides (wave 3): the toggles feed the chunk mesh compiler, whose
+    // output is static baked geometry — flipping one needs a full re-mesh to show. The
+    // re-mesh itself drains on the client tick (see FarmingProtections.tick), so the
+    // option stays safe to flip from any thread (config load included).
+    override fun onFarmingRenderHidesChanged() {
+        FarmingProtections.requestRemesh()
     }
 
     override fun updateHitColor(value: Color) {

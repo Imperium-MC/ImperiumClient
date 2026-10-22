@@ -66,9 +66,11 @@ public class CannonTrajectoryGameTest implements FabricClientGameTest {
 			world.getConnection().waitForChunksRender();
 			CannonTrajectory module = CannonTrajectory.getInstance();
 
-			// Hold TNT in the main hand -> the predicted arc must render every frame.
+			// Hold TNT in the main hand -> the predicted arc must render every frame. The
+			// generous window matters: right after join the first rendered level frames can
+			// lag behind chunk upload, and the assertion reads whatever the LAST frame drew.
 			context.runOnClient(mc -> mc.player.getInventory().setSelectedItem(new ItemStack(Items.TNT)));
-			context.waitTicks(10);
+			context.waitTicks(30);
 			int heldSegments = context.computeOnClient(mc -> module.getLastDrawnSegments());
 			check(heldSegments > 0, "holding TNT must submit trajectory segments, got " + heldSegments);
 			context.takeScreenshot("cannon-trajectory-held-tnt");
