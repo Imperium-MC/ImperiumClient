@@ -1,5 +1,5 @@
 /*
- * Copyright © 2024 moehreag <moehreag@gmail.com> & Contributors
+ * Copyright © 2025 moehreag <moehreag@gmail.com> & Contributors
  *
  * This file is part of AxolotlClient.
  *
@@ -20,23 +20,24 @@
  * For more information, see the LICENSE file.
  */
 
-package io.github.axolotlclient.api.util;
+package io.github.axolotlclient.api.util
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
+import io.github.axolotlclient.api.API
+import io.github.axolotlclient.api.Response
+import io.github.axolotlclient.bridge.util.AxoI18n
 
-public class AlphabeticalComparator implements Comparator<String> {
-	@Override
-	public int compare(String s1, String s2) {
-		if (s1.equals(s2))
-			return 0;
-		String[] strings = {s1, s2};
-		Arrays.sort(strings, Collections.reverseOrder());
+interface SocketMessageHandler {
 
-		if (strings[0].equals(s1))
-			return 1;
-		else
-			return -1;
-	}
+    fun isApplicable(target: String): Boolean
+
+    fun handle(response: Response) {
+    }
+
+    fun translate(key: String, vararg args: Any?): String {
+        return AxoI18n.translate(key, *args)
+    }
+
+    fun notification(titleKey: String, descKey: String, vararg args: Any?) {
+        API.getInstance().notificationProvider.addStatus(titleKey, descKey, *args)
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2024 moehreag <moehreag@gmail.com> & Contributors
+ * Copyright © 2025 moehreag <moehreag@gmail.com> & Contributors
  *
  * This file is part of AxolotlClient.
  *
@@ -20,13 +20,12 @@
  * For more information, see the LICENSE file.
  */
 
-package io.github.axolotlclient.api.util;
+package io.github.axolotlclient.api.util
 
-import io.github.axolotlclient.api.Request;
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
-public interface StatusUpdateProvider {
-
-	void initialize();
-
-	Request getStatus();
+@JvmRecord
+data class Authentication(val token: String, val expiration: Instant) {
+    constructor(token: String) : this(token, Instant.now().plus(24, ChronoUnit.HOURS))
 }

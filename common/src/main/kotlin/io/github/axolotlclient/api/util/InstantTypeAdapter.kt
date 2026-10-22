@@ -20,23 +20,23 @@
  * For more information, see the LICENSE file.
  */
 
-package io.github.axolotlclient.api.util;
+package io.github.axolotlclient.api.util
 
-import java.io.IOException;
-import java.time.Instant;
+import com.google.gson.TypeAdapter
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonWriter
+import java.io.IOException
+import java.time.Instant
 
-import com.google.gson.TypeAdapter;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
+class InstantTypeAdapter : TypeAdapter<Instant>() {
 
-public class InstantTypeAdapter extends TypeAdapter<Instant> {
-	@Override
-	public void write(JsonWriter out, Instant value) throws IOException {
-		out.value(value.toString());
-	}
+    @Throws(IOException::class)
+    override fun write(out: JsonWriter, value: Instant) {
+        out.value(value.toString())
+    }
 
-	@Override
-	public Instant read(JsonReader in) throws IOException {
-		return Instant.parse(in.nextString());
-	}
+    @Throws(IOException::class)
+    override fun read(`in`: JsonReader): Instant {
+        return Instant.parse(`in`.nextString())
+    }
 }

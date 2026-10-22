@@ -20,13 +20,16 @@
  * For more information, see the LICENSE file.
  */
 
-package io.github.axolotlclient.api.util;
+package io.github.axolotlclient.api.util
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.util.Comparator
 
-public record Authentication(String token, Instant expiration) {
-	public Authentication(String token) {
-		this(token, Instant.now().plus(24, ChronoUnit.HOURS));
-	}
+class AlphabeticalComparator : Comparator<String> {
+    override fun compare(s1: String, s2: String): Int {
+        if (s1 == s2) return 0
+        val strings = arrayOf(s1, s2)
+        strings.sortWith(reverseOrder())
+
+        return if (strings[0] == s1) 1 else -1
+    }
 }
