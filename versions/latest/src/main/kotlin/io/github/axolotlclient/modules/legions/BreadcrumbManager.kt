@@ -39,9 +39,9 @@ class BreadcrumbManager private constructor() {
     /** Auto-expire choices in minutes; OFF keeps crumbs until cleared manually. */
     enum class Expiry(@JvmField val maxAgeMs: Long) {
         OFF(0),
-        MINUTES_5(5),
-        MINUTES_15(15),
-        MINUTES_60(60);
+        MINUTES_5(5 * 60_000L),
+        MINUTES_15(15 * 60_000L),
+        MINUTES_60(60 * 60_000L);
     }
 
     /** The persisted blob; config-UI edits re-parse through the change listener. */
