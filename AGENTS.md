@@ -6,9 +6,11 @@
 
 Every PR that fixes a bug or adds behaviour includes **evidence from a real run** in its description. "Tests pass" alone doesn't count. Evidence means one of:
 
-- a log excerpt showing the fixed path running, for example the game reaching the title screen or joining a world, or a launch smoke verdict from a *fresh* log
-- a screenshot of the changed UI, at the scales the issue names
+- a link to a **CI run** that exercised the change, with the relevant log lines or artifacts: the launcher smoke workflow, the client gametest workflow, or a test job
+- a screenshot of the changed UI from a CI artifact (gametest screenshots) or a website preview
 - a `curl` against the deployed or preview endpoint with its status and body
+
+**Never launch Minecraft, or the launcher's game, on the agent machine.** In-game evidence comes from the GitHub Actions workflows (start them with `workflow_dispatch` when they don't run on push). If something can only be checked on a real PC, such as performance numbers, Microsoft sign-in or a GPU-specific bug, list it under "Not verified" with exact steps for the owner.
 
 If you couldn't verify something, write **"Not verified: <what and why>"** in the PR. Never write "fixed" for something you haven't seen fixed. A wrong "fixed" costs the owner more than an honest "not verified".
 
@@ -36,10 +38,10 @@ If you couldn't verify something, write **"Not verified: <what and why>"** in th
 
 ## How to verify in this repo (RomanicaClient)
 
-- `./gradlew :latest:build -Pversion=<v>`. Run the gametests and **paste the count of tests that ran**. Zero, or "skipped", is a failure, not a pass (#15).
-- **In-game proof** for anything that runs in the client: boot to the title screen **and** join a world (singleplayer quick-play or play.romanica.net). Paste the log lines that show it (`joined the game`, `Loaded N advancements`) and confirm there are no `Reported exception` lines.
-- UI changes: screenshots at GUI scale 2, 3 and Auto, posted next to the mockup they implement.
-- Performance changes: a before and after table (average FPS, 1% lows) from the same scene and settings.
+- `./gradlew :latest:build -Pversion=<v>` locally is fine: it builds but doesn't launch the game. **Never run the client (`runClient`, `runClientGameTest`) on the agent machine.**
+- **In-game proof** comes from the **`ci.yml` gametest job** (`gh workflow run ci.yml --ref <branch>`; it runs headless under xvfb). Link the run and paste the **count of gametests that ran**. Zero, or "skipped", is a failure (#15). For anything that runs in the client, include a gametest that boots and **joins a world**, and quote `joined the game` from the job log with no `Reported exception`.
+- UI changes: screenshots from the gametest artifact (`gametest-run`), next to the mockup they implement. Add a gametest that captures each changed screen.
+- Performance: CI uses software rendering, so FPS from it means nothing. Ship the change with a short test plan (scene, settings, what to compare) under "Not verified". The owner measures on real hardware.
 
 ## Kotlin and Mixin rules (learned the hard way)
 
