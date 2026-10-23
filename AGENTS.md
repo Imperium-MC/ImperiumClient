@@ -20,6 +20,13 @@ If you couldn't verify something, write **"Not verified: <what and why>"** in th
 - A CI step that runs zero tests must fail, not go green. Check the reported count.
 - Smoke and integration checks read only output from *this* run, never files left over from a previous one.
 - Tests never touch real user data (configs, saves, `%APPDATA%`). Use temp directories.
+- **Mocks prove your code, not the outside world.** Anything that talks to a third party (Microsoft, Xbox, Mojang, Discord, PayNow, GitHub) also needs one check against the real service before you call it working, for example a `curl` of the real URL showing the expected page or status. Mocked tests passed on a Microsoft URL that returned 404 in production.
+- **A fallback or "no errors seen" verdict is not a pass.** If a check can pass without the thing ever happening (no game log, no response, zero tests), it must fail instead.
+
+## Where the work is
+
+- Current priorities, in order: **RomanicaClient#12** (latest comment). Read it before starting anything new.
+- Deploy and release only from the default branch (`main`/`master`). Branches that drift from it ship without its fixes.
 
 ## Finish the job
 
@@ -51,5 +58,7 @@ If you couldn't verify something, write **"Not verified: <what and why>"** in th
 
 ## Lessons from past misses
 
+- beta.24 shipped reporting `0.1.0-alpha.1` because the version fix landed after the build. **Before uploading a release, read `fabric.mod.json` inside the built jar** (`unzip -p <jar> fabric.mod.json`) and check that the version matches the tag.
+- `common/.../auth/MSApi.kt` uses AxolotlClient upstream's Azure app ID (`938592fc…`). It isn't ours. Never copy it into our own services. Romanica's Azure app is `8b0c9e33-b6ce-40ec-ac30-c85a35dd8163`.
 - The titles fix (colour loss, clipping) was reported "done" several times and still isn't on `main`. Done means merged, released and visible in a screenshot.
 - The domain cutover left code on `imperiummc.net` behind "cutover" comments. Migrations finish in one pass, with a grep to prove it.
