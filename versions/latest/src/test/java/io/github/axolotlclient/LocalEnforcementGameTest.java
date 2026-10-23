@@ -47,12 +47,12 @@ import net.minecraft.resources.Identifier;
  * connected), and (b) an out-of-scope connection is untouched even with the allowlist pointed
  * at it. The in-scope decisions are exercised through the same pure functions the hook calls
  * (address matching, channel allowlisting, register-payload filtering via the REAL Fabric
- * register class, sign/book rules). Live interception against a real imperiummc.net connection
+ * register class, sign/book rules). Live interception against a real romanica.net connection
  * is not gametest-drivable without DNS; the decision logic is.</p>
  */
 public class LocalEnforcementGameTest implements FabricClientGameTest {
 
-	private static final List<String> DEFAULT = List.of("imperiummc.net", "play.imperiummc.net");
+	private static final List<String> DEFAULT = List.of("romanica.net", "play.romanica.net");
 
 	@Override
 	public void runTest(ClientGameTestContext context) {
@@ -138,7 +138,7 @@ public class LocalEnforcementGameTest implements FabricClientGameTest {
 			// The real reload path a config screen or /reload equivalent takes.
 			io.github.axolotlclient.AxolotlClientCommon.getInstance().getConfigManager().load();
 
-			check(EnforcementService.instance().wouldBeInScope("play.imperiummc.net", null),
+			check(EnforcementService.instance().wouldBeInScope("play.romanica.net", null),
 				"the stale enabled:false key must not disable scope after a config reload");
 			long pulseBefore = EnforcementService.instance().hookPulse();
 			context.waitTicks(20);
@@ -169,31 +169,31 @@ public class LocalEnforcementGameTest implements FabricClientGameTest {
 
 	private void scopeAddressMatching() {
 		// Exact and dot-boundary suffix matches.
-		check(EnforcementService.isAddressAllowed("imperiummc.net", DEFAULT), "exact apex match");
-		check(EnforcementService.isAddressAllowed("play.imperiummc.net", DEFAULT), "subdomain match");
-		check(EnforcementService.isAddressAllowed("eu.play.imperiummc.net", DEFAULT), "deep subdomain match");
+		check(EnforcementService.isAddressAllowed("romanica.net", DEFAULT), "exact apex match");
+		check(EnforcementService.isAddressAllowed("play.romanica.net", DEFAULT), "subdomain match");
+		check(EnforcementService.isAddressAllowed("eu.play.romanica.net", DEFAULT), "deep subdomain match");
 		// Port / case / trailing-dot normalization.
-		check(EnforcementService.isAddressAllowed("imperiummc.net:25565", DEFAULT), "port stripped");
+		check(EnforcementService.isAddressAllowed("romanica.net:25565", DEFAULT), "port stripped");
 		check(EnforcementService.isAddressAllowed("IMPERIUMMC.NET", DEFAULT), "case-insensitive");
 		check(EnforcementService.isAddressAllowed("ImperiumMC.net.", DEFAULT), "trailing dot stripped");
 		// Non-matches: the dot boundary is the security property.
 		check(!EnforcementService.isAddressAllowed("evilimperiummc.net", DEFAULT), "suffix-in-label must NOT match");
 		check(!EnforcementService.isAddressAllowed("notimperiummc.net", DEFAULT), "prefix-in-label must NOT match");
-		check(!EnforcementService.isAddressAllowed("imperiummc.net.evil.com", DEFAULT), "domain-contains must NOT match");
+		check(!EnforcementService.isAddressAllowed("romanica.net.evil.com", DEFAULT), "domain-contains must NOT match");
 		check(!EnforcementService.isAddressAllowed("example.org", DEFAULT), "unrelated host must NOT match");
 		check(!EnforcementService.isAddressAllowed("[::1]:25565", DEFAULT), "IPv6 loopback must NOT match");
 		check(!EnforcementService.isAddressAllowed(null, DEFAULT), "null host must NOT match");
-		check(!EnforcementService.isAddressAllowed("imperiummc.net", List.of()), "empty allowlist matches nothing");
+		check(!EnforcementService.isAddressAllowed("romanica.net", List.of()), "empty allowlist matches nothing");
 		// A custom allowlist governs instead of the default.
 		check(EnforcementService.isAddressAllowed("example.org", List.of("example.org")), "custom allowlist entry works");
-		check(!EnforcementService.isAddressAllowed("imperiummc.net", List.of("example.org")), "custom allowlist excludes others");
+		check(!EnforcementService.isAddressAllowed("romanica.net", List.of("example.org")), "custom allowlist excludes others");
 
 		// The service seam with the live (pinned default) config.
 		String allowlist = EnforcementConfig.serverAllowlist.get();
 		try {
 			EnforcementConfig.serverAllowlist.set(EnforcementConfig.DEFAULT_ALLOWLIST);
-			check(EnforcementService.instance().wouldBeInScope("play.imperiummc.net", null), "socket host alone scopes in");
-			check(EnforcementService.instance().wouldBeInScope(null, "imperiummc.net"), "server-entry ip alone scopes in");
+			check(EnforcementService.instance().wouldBeInScope("play.romanica.net", null), "socket host alone scopes in");
+			check(EnforcementService.instance().wouldBeInScope(null, "romanica.net"), "server-entry ip alone scopes in");
 			check(!EnforcementService.instance().wouldBeInScope("example.org", "example.org"), "both sources out of scope stays out");
 		} finally {
 			EnforcementConfig.serverAllowlist.set(allowlist);

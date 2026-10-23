@@ -55,12 +55,7 @@ import io.github.axolotlclient.util.ThreadExecuter
  */
 object ImperiumOnline : ClientModInitializer {
 
-	/**
-	 * ROMANICA CUTOVER: at the domain flip drop "imperiummc.net" from this list (the
-	 * network will answer on romanica.net; both stay until then, like the enforcement
-	 * allowlist default).
-	 */
-	private val NETWORK_DOMAINS = listOf("imperiummc.net", "romanica.net")
+	private val NETWORK_DOMAINS = listOf("romanica.net")
 
 	/** Slow re-auth cadence after a failure (backend not deployed yet, API down). */
 	private const val FAILURE_RETRY_TICKS = 20L * 60 * 5

@@ -6,7 +6,7 @@ product
 
 ## Users
 Romanica players: grinders, PvP players, story players and cosmetic collectors on a Rome-themed prison
-server (play.imperiummc.net). They open the client's menus mid-session, often between mining runs or fights,
+server (play.romanica.net). They open the client's menus mid-session, often between mining runs or fights,
 to toggle a module, move a HUD element or change a setting, and want to be back in the game within seconds.
 Many play for hours, so the UI has to stay readable on a dimmed game world at any GUI scale.
 

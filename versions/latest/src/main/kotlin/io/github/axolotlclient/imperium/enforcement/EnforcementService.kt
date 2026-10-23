@@ -53,7 +53,7 @@ import net.minecraft.world.effect.MobEffects
  *
  * **Scope rule (non-negotiable):** the layer is completely inert unless the
  * connection's address matches the configured allowlist (hostname suffix match, dot boundary,
- * default exactly imperiummc.net / play.imperiummc.net). In singleplayer, on LAN (memory
+ * default exactly romanica.net / play.romanica.net). In singleplayer, on LAN (memory
  * connections never match), and on every other server no packet of any kind is touched. When
  * the master toggle is off the same inertness applies everywhere — the honest fallback is a
  * normal modded client under the server's normal anticheat.
@@ -190,8 +190,8 @@ object EnforcementService {
 	}
 
 	/**
-	 * Hostname suffix match on the dot boundary: `play.imperiummc.net` and
-	 * `imperiummc.net` match the default list; `evilimperiummc.net` does not. Strips
+	 * Hostname suffix match on the dot boundary: `play.romanica.net` and
+	 * `romanica.net` match the default list; `evilimperiummc.net` does not. Strips
 	 * a `:port` suffix and IPv6 brackets, lowercases, ignores empty entries.
 	 */
 	@JvmStatic
