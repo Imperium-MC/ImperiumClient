@@ -46,7 +46,7 @@ class StatusUpdateProviderImpl : StatusUpdateProvider {
                     if (server == StatusUpdate.SupportedServer.HYPIXEL) {
                         return HypixelMods.getInstance().getStatus()!!
                     } else if (server == StatusUpdate.SupportedServer.MCC_ISLAND) {
-                        return MccIslandMods.getInstance().mccIStatus
+                        return MccIslandMods.getInstance().getMccIStatus()
                     }
                 }
                 return StatusUpdate.inGameServer(entry.name, entry.ip)

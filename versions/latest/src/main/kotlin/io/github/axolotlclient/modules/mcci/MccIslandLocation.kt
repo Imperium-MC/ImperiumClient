@@ -20,28 +20,29 @@
  * For more information, see the LICENSE file.
  */
 
-package io.github.axolotlclient.modules.mcci;
+package io.github.axolotlclient.modules.mcci
 
-import java.util.concurrent.CompletableFuture;
+import io.github.axolotlclient.util.Util
+import java.util.concurrent.CompletableFuture
 
-import io.github.axolotlclient.util.Util;
+object MccIslandLocation {
+    private var consumer: CompletableFuture<MccIslandLocationData>? = null
 
-public class MccIslandLocation {
-	private static CompletableFuture<MccIslandLocationData> consumer;
+    @JvmStatic
+    fun get(): CompletableFuture<MccIslandLocationData> {
+        Util.sendChatMessage("/whereami")
+        consumer = CompletableFuture()
+        return consumer!!
+    }
 
-	public static CompletableFuture<MccIslandLocationData> get() {
-		Util.sendChatMessage("/whereami");
-		consumer = new CompletableFuture<>();
-		return consumer;
-	}
-
-	static boolean waitingForResponse(String message) {
-		MccIslandLocationData data = null;
-		boolean consume = consumer != null && (data = MccIslandLocationData.parse(message)) != null;
-		if (consume) {
-			consumer.complete(data);
-			consumer = null;
-		}
-		return consume;
-	}
+    @JvmStatic
+    fun waitingForResponse(message: String): Boolean {
+        var data: MccIslandLocationData? = null
+        val consume = consumer != null && MccIslandLocationData.parse(message).also { data = it } != null
+        if (consume) {
+            consumer!!.complete(data)
+            consumer = null
+        }
+        return consume
+    }
 }

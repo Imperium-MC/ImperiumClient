@@ -133,7 +133,7 @@ abstract class PlatformDispatchMixin {
 	 */
 	@Overwrite
 	fun `autoBoop$openFiltersScreen`(filters: List<String>) {
-		Minecraft.getInstance().gui.setScreen(FilterListConfigurationScreen(filters, Minecraft.getInstance().gui.screen()))
+		Minecraft.getInstance().gui.setScreen(FilterListConfigurationScreen(filters.toMutableList(), Minecraft.getInstance().gui.screen()))
 	}
 
 	/**
