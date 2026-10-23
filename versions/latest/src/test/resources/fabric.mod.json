@@ -24,6 +24,7 @@
       "io.github.axolotlclient.ChatGameTest",
       "io.github.axolotlclient.ChatExtrasGameTest",
       "io.github.axolotlclient.ImperiumMenuGameTest",
+      "io.github.axolotlclient.CarvedThemeGameTest",
       "io.github.axolotlclient.HudEditorGameTest",
       "io.github.axolotlclient.InventorySearchGameTest",
       "io.github.axolotlclient.ImperiumProtocolGameTest",
