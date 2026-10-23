@@ -38,7 +38,10 @@ import io.github.axolotlclient.api.Request
 abstract class ImageNetworking {
     abstract fun uploadImage(file: java.nio.file.Path)
 
-    protected fun upload(file: java.nio.file.Path): CompletableFuture<String> =
+    // public since wave 7: ImageScreen (latest side, same package but different source root)
+    // calls it through ImageShare; Kotlin protected is not package-visible the way Java
+    // protected was across the common/latest split (the Accounts.login precedent).
+    fun upload(file: java.nio.file.Path): CompletableFuture<String> =
         try {
             upload(file.fileName.toString(), Files.readAllBytes(file))
         } catch (e: IOException) {
