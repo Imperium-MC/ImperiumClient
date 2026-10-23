@@ -1,0 +1,148 @@
+name: Dependency watch
+
+# Monthly dependency vulnerability watch for this Gradle build. OSV-Scanner
+# reads Gradle lockfiles (not build scripts), so a best-effort job first
+# generates gradle.lockfile files via an init script that activates
+# dependency locking, then the scanner runs over the repository root.
+# Any findings fail the run and a single, deduplicated "dependency-watch"
+# issue is opened (or commented on) with the results.
+
+on:
+  schedule:
+    - cron: "0 12 1 * *" # 1st of every month, 12:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  # Warm-up is best-effort (continue-on-error): findings must fail, tool
+  # install / lockfile generation failures may warn.
+  gradle-lockfiles:
+    name: Generate Gradle lockfiles (best effort)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Resolve dependencies and write lockfiles
+        continue-on-error: true # lockfile generation is best-effort
+        run: |
+          chmod +x ./gradlew
+          cat > "$RUNNER_TEMP/depwatch-init.gradle" <<'EOF'
+          // Activate Gradle dependency locking for every resolvable
+          // configuration so --write-locks emits gradle.lockfile files that
+          // OSV-Scanner can parse. Unresolvable configurations are skipped so
+          // one bad configuration does not lose the rest.
+          allprojects {
+              configurations.configureEach { configuration ->
+                  if (configuration.canBeResolved) {
+                      configuration.resolutionStrategy.activateDependencyLocking()
+                  }
+              }
+              tasks.register('depwatchResolveAndLockAll') {
+                  doLast {
+                      configurations.configureEach { configuration ->
+                          if (configuration.canBeResolved) {
+                              try {
+                                  configuration.resolve()
+                              } catch (Throwable failure) {
+                                  println "depwatch: skipping ${configuration.path}: ${failure.message}"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+          EOF
+          ./gradlew --no-daemon --init-script "$RUNNER_TEMP/depwatch-init.gradle" depwatchResolveAndLockAll --write-locks
+
+      - name: Upload lockfiles for the scanner
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradle-lockfiles
+          path: |
+            gradle.lockfile
+            buildscript-gradle.lockfile
+            **/gradle.lockfile
+            **/buildscript-gradle.lockfile
+          if-no-files-found: ignore
+
+  osv-scanner:
+    name: OSV-Scanner
+    needs: gradle-lockfiles
+    if: ${{ !cancelled() }} # scan even when lockfile generation failed
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.7.0
+    with:
+      scan-args: |-
+        --recursive
+        ./
+      download-artifact: gradle-lockfiles
+      upload-sarif: false # no security-events permission; results go to the issue instead
+
+  report:
+    name: Report findings
+    needs: [gradle-lockfiles, osv-scanner]
+    if: ${{ failure() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download OSV-Scanner results
+        continue-on-error: true # the scan may have failed before uploading
+        uses: actions/download-artifact@v4
+        with:
+          name: OSV Scanner SARIF file
+
+      - name: Open or update the dependency-watch issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LOCKFILES_RESULT: ${{ needs.gradle-lockfiles.result }}
+          OSV_RESULT: ${{ needs.osv-scanner.result }}
+        run: |
+          set -euo pipefail
+          gh label create dependency-watch --color B60205 \
+            --description "Automated dependency vulnerability findings from the dependency-watch workflow" \
+            2>/dev/null || true
+          existing="$(gh issue list --label dependency-watch --state open --json number --jq '.[0].number // empty' 2>/dev/null || true)"
+
+          osv_summary=""
+          if [ -s results.sarif ]; then
+            osv_summary="$(jq -r '.runs[]?.results[]? | "- **\(.ruleId // "unknown")** - \((.message.text // "no description") | gsub("[\\r\\n]+"; " "))"' results.sarif 2>/dev/null || true)"
+          fi
+
+          {
+            echo "The monthly dependency watch run [${GITHUB_RUN_NUMBER}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}) reported problems in \`${GITHUB_REPOSITORY}\` on $(date -u '+%Y-%m-%d')."
+            echo
+            echo "Job results - lockfile generation: ${LOCKFILES_RESULT:-unknown}, OSV-Scanner: ${OSV_RESULT:-unknown}. If lockfile generation did not succeed, Gradle dependency coverage may be incomplete."
+            echo
+            echo "### OSV-Scanner findings"
+            echo
+            if [ -n "$osv_summary" ]; then
+              echo "$osv_summary"
+            elif [ -s results.sarif ]; then
+              echo "(OSV-Scanner uploaded results but no vulnerabilities were summarized - download the \`OSV Scanner SARIF file\` artifact from the run page for details.)"
+            else
+              echo "(OSV-Scanner did not upload results - the scan itself failed, possibly because no dependency files (gradle.lockfile) could be generated. See the run log.)"
+            fi
+            echo
+            echo "_Opened automatically by the dependency-watch workflow. Close after triage; while this issue stays open, later runs add comments instead of duplicates, and a fresh issue opens once it is closed._"
+          } > issue-body.md
+
+          if [ -n "${existing:-}" ]; then
+            echo "Open dependency-watch issue #${existing} already exists - adding findings there instead of creating a duplicate."
+            gh issue comment "${existing}" --body-file issue-body.md
+          else
+            gh issue create \
+              --title "Dependency watch: ${GITHUB_REPOSITORY} findings ($(date -u '+%Y-%m-%d'))" \
+              --body-file issue-body.md \
+              --label dependency-watch
+          fi
