@@ -28,7 +28,7 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 
 /**
- * The fetch layer over api.imperiummc.net's client-token-authorized routes
+ * The fetch layer over api.romanica.net's client-token-authorized routes
  * (ImperiumClient#4 endpoint map). Bearer header from [ClientApiAuth], JSON via the
  * existing Gson usage, every call on a worker executor (never the client thread),
  * simple result types — no exceptions cross the API boundary.
@@ -101,7 +101,7 @@ class ClientApi(
 
 	/**
 	 * /api/v2/changelog/list post entry. Ready-to-use surface only — the title screen's
-	 * imperiummc.net/news.rss stays THE news display (do not duplicate it this pass).
+	 * romanica.net/news.rss stays THE news display (do not duplicate it this pass).
 	 */
 	data class ChangelogPost(
 		val title: String,

@@ -53,9 +53,9 @@ import net.minecraft.util.Mth
 /**
  * The v3 title screen (docs/design/README.md, mockup 04) over the vanilla rotating panorama:
  * an account switcher top-left, a row of 40px icon circles top-right (Modules, the client's
- * settings, imperiummc.net, the store, Discord, the vanilla menu), the emblem and wordmark
+ * settings, romanica.net, the store, Discord, the vanilla menu), the emblem and wordmark
  * centred, a 400x50 Play Romanica button carrying the live player count from
- * imperiummc.net/api/server/status (silent when offline), and the Options/Quit row.
+ * romanica.net/api/server/status (silent when offline), and the Options/Quit row.
  *
  * Sizes are the spec's CSS measurements halved, like the menu shell. [TitleScreenMixin] swaps
  * every vanilla [TitleScreen] for this screen unless the player asked for the vanilla menu via
@@ -427,12 +427,10 @@ class ImperiumTitleScreen : TitleScreen(false) {
 		private const val ROW_H = 25
 		private const val ROW_BTN_W = 97
 		private const val FOOTER_H = 14
-		// Cutover note: romanica.net is not registered yet; every URL below stays on
-		// imperiummc.net until the domain flip (rebrand/romanica display-only phase).
-		private const val SERVER_ADDRESS = "play.imperiummc.net"
-		private const val SITE_URL = "https://imperiummc.net"
-		private const val STORE_URL = "https://imperiummc.net/store"
-		private const val DISCORD_URL = "https://imperiummc.net/discord"
+		private const val SERVER_ADDRESS = "play.romanica.net"
+		private const val SITE_URL = "https://romanica.net"
+		private const val STORE_URL = "https://romanica.net/store"
+		private const val DISCORD_URL = "https://romanica.net/discord"
 
 		/** One-shot: the last click asked for the vanilla menu; the next title swap skips. */
 		@JvmStatic
@@ -467,8 +465,7 @@ class ImperiumTitleScreen : TitleScreen(false) {
 			fetchedCount = true
 			ThreadExecuter.scheduleTask {
 				try {
-					// status fetch stays on imperiummc.net until the romanica.net cutover
-					val request = HttpRequest.newBuilder(URI.create("https://imperiummc.net/api/server/status"))
+					val request = HttpRequest.newBuilder(URI.create("https://romanica.net/api/server/status"))
 						.timeout(java.time.Duration.ofSeconds(4))
 						.GET()
 						.build()

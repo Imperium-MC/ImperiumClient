@@ -32,7 +32,7 @@ import com.google.gson.JsonParser
 import kotlin.concurrent.withLock
 
 /**
- * The client half of the Mojang-session-check sign-in against api.imperiummc.net
+ * The client half of the Mojang-session-check sign-in against api.romanica.net
  * (backend issue #2): challenge -> the GAME's own session service joins the issued
  * serverId -> verify -> a bearer JWT for the client-token-authorized player routes.
  *
@@ -68,11 +68,7 @@ class ClientApiAuth(
 
 	companion object {
 
-		/**
-		 * ROMANICA CUTOVER: at the domain flip this becomes https://api.romanica.net.
-		 * Until then every online call stays on imperiummc.net (cutover-gated).
-		 */
-		const val API_BASE = "https://api.imperiummc.net"
+		const val API_BASE = "https://api.romanica.net"
 
 		/** POST /api/client/auth/challenge -> {"serverId":..,"expiresIn":..} (backend #2). */
 		internal const val PATH_CHALLENGE = "/api/client/auth/challenge"
