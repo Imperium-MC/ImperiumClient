@@ -174,11 +174,11 @@ public class LocalEnforcementGameTest implements FabricClientGameTest {
 		check(EnforcementService.isAddressAllowed("eu.play.romanica.net", DEFAULT), "deep subdomain match");
 		// Port / case / trailing-dot normalization.
 		check(EnforcementService.isAddressAllowed("romanica.net:25565", DEFAULT), "port stripped");
-		check(EnforcementService.isAddressAllowed("IMPERIUMMC.NET", DEFAULT), "case-insensitive");
-		check(EnforcementService.isAddressAllowed("ImperiumMC.net.", DEFAULT), "trailing dot stripped");
+		check(EnforcementService.isAddressAllowed("ROMANICA.NET", DEFAULT), "case-insensitive");
+		check(EnforcementService.isAddressAllowed("Romanica.net.", DEFAULT), "trailing dot stripped");
 		// Non-matches: the dot boundary is the security property.
-		check(!EnforcementService.isAddressAllowed("evilimperiummc.net", DEFAULT), "suffix-in-label must NOT match");
-		check(!EnforcementService.isAddressAllowed("notimperiummc.net", DEFAULT), "prefix-in-label must NOT match");
+		check(!EnforcementService.isAddressAllowed("evilromanica.net", DEFAULT), "suffix-in-label must NOT match");
+		check(!EnforcementService.isAddressAllowed("notromanica.net", DEFAULT), "prefix-in-label must NOT match");
 		check(!EnforcementService.isAddressAllowed("romanica.net.evil.com", DEFAULT), "domain-contains must NOT match");
 		check(!EnforcementService.isAddressAllowed("example.org", DEFAULT), "unrelated host must NOT match");
 		check(!EnforcementService.isAddressAllowed("[::1]:25565", DEFAULT), "IPv6 loopback must NOT match");
