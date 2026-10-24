@@ -371,6 +371,22 @@ abstract class HudManagerCommon : AbstractCommonModule(), ProfileAware {
         return ArrayList()
     }
 
+    /**
+     * Refills the reusable per-frame render order (the scratch list below) with every entry
+     * and returns it. The render pass used to allocate a fresh copy of the entry map per
+     * frame; the copy is only needed because the caller sorts it, and sorting does not
+     * mutate the map, so one scratch list per manager serves every frame. Callers must not
+     * retain the returned list past the current frame.
+     */
+    protected fun fillRenderOrder(): MutableList<HudEntry> {
+        renderOrderScratch.clear()
+        renderOrderScratch.addAll(entries.values)
+        return renderOrderScratch
+    }
+
+    /** Scratch for [fillRenderOrder]; render-thread only (same thread that mutates [entries]). */
+    private val renderOrderScratch = ArrayList<HudEntry>()
+
     fun get(identifier: AxoIdentifier): HudEntry? = entries[identifier]
 
     fun removeEntry(identifier: AxoIdentifier) {
@@ -393,7 +409,7 @@ abstract class HudManagerCommon : AbstractCommonModule(), ProfileAware {
 
     open fun render(context: AxoRenderContext, delta: Float) {
         if (!hudsEnabled()) return
-        val ordered = getEntries()
+        val ordered = fillRenderOrder()
         ordered.sortBy { it.getZLevel() }
         for (hud in ordered) {
             if (hud.isEnabled() && !hud.isHidden()) {
