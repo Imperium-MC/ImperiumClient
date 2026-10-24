@@ -162,8 +162,10 @@ public class ClientAuthGameTest implements FabricClientGameTest {
 				}
 				String serverId = challengeServerIds[Math.min(challengeCalls, challengeServerIds.length - 1)];
 				challengeCalls++;
+				// The backend's v2 convention wraps payloads as {"data":{...}} (respond.ok) —
+				// the mock serves the WRAPPED shape so the parse pin matches production.
 				return new ClientApiAuth.HttpResult.Response(200,
-					"{\"serverId\":\"" + serverId + "\",\"expiresIn\":300}");
+					"{\"data\":{\"serverId\":\"" + serverId + "\",\"expiresIn\":300}}");
 			}
 			if (url.endsWith("/api/client/auth/verify")) {
 				Integer status = postStatuses.get("verify");
@@ -175,7 +177,7 @@ public class ClientAuthGameTest implements FabricClientGameTest {
 				if (token == null) {
 					return new ClientApiAuth.HttpResult.Response(401, "{\"error\":\"unknown serverId\"}");
 				}
-				return new ClientApiAuth.HttpResult.Response(200, "{\"token\":\"" + token + "\",\"expiresIn\":3600}");
+				return new ClientApiAuth.HttpResult.Response(200, "{\"data\":{\"token\":\"" + token + "\",\"expiresIn\":3600}}");
 			}
 			return new ClientApiAuth.HttpResult.Response(404, null);
 		}

@@ -295,6 +295,11 @@ class ClientApiAuth(
 			return null
 		}
 		val parsed = JsonParser.parseString(body)
-		return if (parsed.isJsonObject) parsed.asJsonObject else null
+		if (!parsed.isJsonObject) return null
+		val obj = parsed.asJsonObject
+		// The backend's v2 API convention wraps payloads as {"data":{...}} (respond.ok).
+		// Unwrap when present so both shapes parse; the raw object is the pre-wrap shape.
+		val wrapped = obj.getAsJsonObject("data") ?: return obj
+		return wrapped
 	}
 }
