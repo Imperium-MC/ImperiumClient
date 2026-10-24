@@ -81,7 +81,7 @@ bare UTF-8 JSON, no NBT framing — see `ImperiumIntegration.RAW_UTF8`):
 - `none` — player is legion-less; maps to `LegionStateRegistry.clear()`. Also clear on
   disconnect (the client already clears session state on `ClientPlayConnectionEvents`).
 
-The client receiver (when written) should call the registry on the client thread the same
+The client receiver (~~when written~~ — SHIPPED: `ImperiumChannels.kt:93-95,149-170`, pinned by `ImperiumChannelsGameTest`; verified 2026-10-24) should call the registry on the client thread the same
 way `ImperiumIntegration` dispatches features payloads. Nothing else in the HUD needs to
 change — populating the registry is the entire integration.
 

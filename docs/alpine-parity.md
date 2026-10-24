@@ -18,7 +18,7 @@ Almost every HUD module in Alpine carries the same style block. Implement once i
 Axolotl's `BoxHudEntry`/`TextHudEntry`/`SimpleTextHudEntry` already cover background, outline, corner
 rounding, padding, brackets, minimum width/height, text colour, shadow, justification and positioning.
 M1 added border thickness (`hud.outline_width`), hide in F3 (`hud.hide_in_debug`) and z-level (`hud.z_level`).
-Still missing: background blur.
+~~Still missing: background blur~~ (shipped wave 6 per `roadmap.md` M1 — the two docs disagreed; verified 2026-10-24, regenerate this status column from the module registry).
 
 ## Client options (Alpine "client" module)
 

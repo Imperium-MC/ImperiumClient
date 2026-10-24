@@ -11,7 +11,7 @@ Milestones run in order; each ends with a build that works in game.
 | M2 user's modules | Done — all priority modules shipped across waves 2-5 (see [alpine-parity.md](alpine-parity.md)) |
 | M3 performance | Done except the chunk-level items: frame limiter slice, `hud_frame_limit` (record/replay HUD cache), `text_render_distance`, `disable_tnt_expansion`, `optimize_spawners`, `disable_enchant_table_books`, each measured by `PerformanceBenchmarkGameTest` (see M3 below). Open: hopper *block* hiding + lazy chunk loading (chunk-mesh work), chest simplification (no honest win) |
 | M4 remaining modules | Done — the parity sheet shows zero real gaps (2026-10-18) |
-| M5 ImperiumMC integration | Done — handshake + server-gated features live both sides: client enforcement layer and plugin `ImperiumClientIntegrationService` (v2 tier table + rank perks) |
+| M5 ImperiumMC integration | Done on the client; the server half lives on the plugin's `kotlin-migration-collab` branch (plugin **master** has zero `imperiumclient` code — which jar is deployed to play.romanica.net is an owner question recorded 2026-10-24). M6 note: launcher master is at v0.2.7 (Electron 44), not v0.1.0: client enforcement layer and plugin `ImperiumClientIntegrationService` (v2 tier table + rank perks) |
 | M6 launcher | Done — [ImperiumLauncher](https://github.com/Imperium-MC/ImperiumLauncher) v0.1.0 released: Microsoft login approved, signed Windows installer, auto-updater feed |
 
 History note: PR #1 (titles HUD + handshake) landed on `main` together with its two review fixes

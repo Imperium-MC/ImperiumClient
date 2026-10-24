@@ -9,7 +9,7 @@ anticheat. These modules ship **disabled and locked** and only unlock when the s
 1. A gated module cannot be enabled unless the current server has granted it in this session.
 2. Grants reset on disconnect. Singleplayer counts as granted.
 3. The module shows why it is locked ("This server has not enabled auto-fishing").
-4. The one-time "I will not AFK" acknowledgement Alpine shows is kept, in addition to the grant.
+4. ~~The one-time "I will not AFK" acknowledgement Alpine shows is kept, in addition to the grant.~~ **Not implemented** (verified 2026-10-24: zero AFK references in `AutoFish.kt`/`AutoClick.kt`) — Alpine-only; implement it or strike it from the spec when gating work resumes.
 
 ## Protocol
 
