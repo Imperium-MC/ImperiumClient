@@ -144,3 +144,31 @@ The served launcher distro pins `imperium-client:0.2.0-beta.24` → the GitHub r
 3. Adopt the one-paragraph upstream-sync policy (fork point `52157c539`, monthly `git log 52157c539..upstream/dev`, "fixes to the 435 Kotlin-converted files are hand-ported") in CONTRIBUTING.md.
 4. Fix the two minimap leaks (null `level` on disconnect; `textureManager.release()` old ids).
 5. Debounce HUD-editor saves; wire `EmoteDispatch.reset()` into DISCONNECT.
+
+---
+
+## Pass 4 Addendum — RomanicaClient (2026-10-24): hot paths + test coverage map
+
+### Hot-path costs (top items, all verified)
+
+1. **[P2] The title screen throws and catches an exception every frame** — `ImperiumTitleScreen.kt:185-189` (`UUID.fromString` on the undashed uuid, called from `extractRenderState:135-138`): ~60 exception throws/s for every player sitting at the title screen. This is the pass-2 Steve-head bug quantified — the 3-line `UUIDHelper.fromUndashed` fix resolves bug and cost together.
+2. **[P2] `CannonTrajectory` scans all rendered entities every frame by default** (`CannonTrajectory.kt:81,85,144-160` — `enabled` and `predictLiveTnt` both default true): O(entities) instanceof scan per frame in-world even with no TNT; with flights, up to ~200 `Point` + `Vec3` allocations + a `BlockPos` per solid-check per frame per flight. Largest default-on per-frame custom loop. Add a cheap early-out (distance check before instanceof) and consider defaulting `predictLiveTnt` off.
+3. **[P3] Menu card icons recomputed per card per frame** — `CarvedTheme.specificIconFor` (`:233-324`, called from `ImperiumMenuScreen.kt:919,1220`): string concat + lowercase + ~80 `contains` + a fresh `ItemStack` per card per frame while the menu is open (~40-70 cards). Compute once at menu build.
+4. **[P3] `CarvedTheme.drawStoneFill` blits one sprite per 16px tile** (`:75-87`) — a full-screen panel at 1080p ≈ ~8,100 blits/frame; bake to a `DynamicTexture`.
+5. **[P3] HUD render loop rebuilds + re-sorts the entry list every frame** (`HudManager.kt:99-101`) — new ArrayList + sort + comparator allocation per frame, paid even when `HudFrameCache` replays. Cache and invalidate on mutation.
+6. **[P3] Per-frame allocations in the status HUDs** — `Color(...)` inside the row loop (`CooldownsHud.kt:114`), `String.format` per row (`:105`), `BoostRegistry.active()` stream/sort/`toList` twice per frame (`BoostsHud.kt:63,96`), `NowPlayingHud.formatTime` per frame.
+7. **[P3] Minimap `shiftBy` clones 3 arrays per grid-shift** (~1.5 MB/s churn at 256²/zoom 1) + per-frame `Identifier` allocations (`MinimapHud.kt:180,341`).
+8. **Quantified non-issues:** the enforcement per-packet cost is ~tens of ns/packet (negligible — pass 2's concern closed with numbers); RAW_UTF8/JSON parsing is strictly off the general packet path; `snapshotMovementState` runs unconditionally every tick (~1-2µs — the clearest "runs with the feature off" item; add the cached-scope early-out).
+
+Config-gating verdict: good overall — HUD entries, gizmos, AutoClick/AutoFish, media/emote/online tick handlers all gate correctly; the offenders are #1, #2, and the unconditional tick snapshot.
+
+### Gametest coverage map
+
+32 real suites cover: enforcement (scope/allowlist/ChannelGuard/sign/book), movement envelope, protocol (hello/features), channels (legion/boosts/cooldowns + malformed drops), session tiers + budgets, the full auth state machine (incl. the legion fallback ownership semantics — pass 2's finding is behavior-pinned today), gated modules, legions/breadcrumbs, cannon trajectory, minimap, fullscreen map, media, emote wheel, titles, HUD editor, menu + CarvedTheme (both contexts), WECUI, chat/inventory/environment/render/hitboxes, AutoEat, performance. **Highest-value missing tests:** CooldownsHud's hotbar `ItemCooldowns` scan + collapse-to-zero; `LegionHud.buildLabel`/`formatPower` (pure pins); the auth session-watch deferral while `currentServer != null` (pass 2's race); the title-screen UUID derivation (would have caught the Steve head); `HudEditorHistory` bounded-64 eviction; SpotifyLocalPoller start/stop idempotence; minimap disconnect regression (level nulling); `minecraft:register` filter (once fixed).
+
+### Docs-vs-implementation
+
+- `server-gated-features.md` rule 4 promises a one-time AFK acknowledgement — none exists in AutoFish/AutoClick (stale).
+- `legions-tooling.md` still says the `imperiumclient:legion` receiver is "(when written)" — it shipped and is gametest-pinned.
+- `roadmap.md` M5 marked done while its body lists unimplemented deliverables, and "live both sides" is true only of the plugin branch, not master.
+- `module-settings.md` rows for shipped modules list Alpine's options, not the client's (add an implemented-marker).
