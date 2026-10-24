@@ -50,3 +50,60 @@ Note: branding is mid-migration. Domain cutover to romanica.net is complete (gre
 4. **Make refusals visible**: a one-line action-bar/chat message on sign/book/payload refusal, and re-evaluate `BOOK_TITLE_MAX = 16` vs vanilla's 32 — silent packet drops will be reported as client bugs.
 5. **Harden the test gate**: replace the blanket `failOnNoDiscoveredTests = false` with per-module opt-outs, and commit `gradle.lockfile`s (the watch job already proves they generate).
 6. **Finish the identity migration in identifiers**: `rootProject.name`, gradle group, log/lang "ImperiumMC" strings, and the `enchantedmc` package name (rename to something Romanica-neutral); update the stale AGENTS.md titles lesson while there.
+
+---
+
+## Deep-Dive Addendum — RomanicaClient (2026-10-23, pass 2)
+
+### Verification runs
+
+- `./gradlew :latest:compileKotlin` → **BUILD SUCCESSFUL** (committed tree compiles as-is).
+- Grep audits: `axolotlclient.com` runtime URLs only in `Constants.kt:32,35`, `fabric.mod.json:17`, `TitleScreenMixin.kt:118` (rest are build-time maven repos). `imperiummc.net`: **zero** runtime refs. `println(`/`printStackTrace`/`TODO/FIXME`: **zero** in custom code.
+- Custom mixin surface is exactly 3 classes in `imperiumclient-enforcement.mixins.json`; no tick/render hot-path injections anywhere else in custom code; all Fabric event registrations happen once in `init()` behind `initialized` flags; DISCONNECT handlers clear registries correctly.
+
+### Correction to pass 1 — social API severity
+
+**[P1 → P2, latent] `Constants.ENABLED=true` is only the compile-time gate.** The runtime gate `apiOptions.enabled` defaults **false** (`common/.../api/Options.kt:76`); the socket starts solely via `API.startup` (API.kt:436-465), which requires `apiOptions.enabled` **and** the privacy state machine (UNSET → prompt, ACCEPTED → connect, DENIED → skip). With shipped defaults **no data reaches api.axolotlclient.com** — the 15s server-name/IP status updates are an opt-in capability reachable from the config UI, not an active leak. Minimal hard-disable change set:
+1. `Constants.kt:27` — `ENABLED = false`. This alone throws at `API.startup` (API.kt:440) **and** `APIOptions.kt:150` removes the whole `api` category from the config UI, making the opt-in unreachable.
+2. `versions/latest/.../mixin/TitleScreenMixin.kt:229-235` — delete the `checkAPIStart` inject body (dead work per title init).
+3. `AxolotlClient.kt:114` — drop `API(StatusUpdateProviderImpl())` construction (or keep for minimal diff; construction alone transmits nothing).
+4. If ever re-enabled: `Options.kt:94` `displayNotes` → false, `:97` `addShortcutButtons` → false; repoint `TitleScreenMixin.kt:118` Modrinth URL at `https://romanica.net`.
+
+### Root-cause analysis of pass-1 findings
+
+**[P2] Steve head — exact fix, plus a worse bug in the same block.** `Account.uuid` is stored undashed (`Account.kt:40`), so `UUID.fromString` always throws → catch → `UUID(0,0)` → Steve for every account. Worse: when `getCurrent()` is null, `UUID.fromString(null)` throws **NPE, outside the catch** → title-screen render crash for offline/no-account users. Fix (3 lines):
+```kotlin
+val uuid = Auth.getInstance().getCurrent()?.let { UUIDHelper.fromUndashed(it.uuid) } ?: UUID(0L, 0L)
+```
+(import `io.github.axolotlclient.api.util.UUIDHelper`; `fromUndashed` at UUIDHelper.kt:53.)
+
+**[P2] Changelog.** `generateVersionChangelog` (`build.gradle.kts:141-162`) regexes root `CHANGELOG.md` (upstream content) for `### 0.2.0-beta.25` → no match → empty file → published as release notes. Fix: replace root `CHANGELOG.md` with a Romanica changelog in the shape `### <version>\n\n- bullet` (≥1 bullet per release), or point line 143 at a new `ROMANICA_CHANGELOG.md`.
+
+**[P2] Sign/book refusals + BOOK_TITLE_MAX — constants verified correct against the plugin.** Title 16 (plugin `DupePreventionListener.kt:241`), sign line 50 (`AntiCheatExpansion.kt:71`), packet 500 (`ClientFingerprintListener.kt:207`), global 2s sign rate (`CheatPreventionListener.kt:1660-1667`) — all match `PayloadRules.kt:43-61` exactly (deliberately tighter than vanilla's 32-char titles). The remaining defect is purely UX: `EnforcementService.kt:404-430` refuses silently; a player editing two signs within 2s has the second edit dropped with no message. Fix: action-bar/chat feedback on refusal.
+
+**[P2] `failOnNoDiscoveredTests=false`** (build.gradle.kts:54, allprojects) — remove the line.
+
+### New findings
+
+1. **[P2] Riptide first-tick false clamp (stale state snapshot).** `snapshotMovementState` (EnforcementService.kt:340-367) samples at END_CLIENT_TICK, but `sanitizeMovement` (:264-317) evaluates packets sent *during* the tick — against the previous tick's state. A trident riptide launch sets `isAutoSpinAttack` and the launch delta in the same tick the packet is sent, so the first flight packet is evaluated with `riptiding=false` → clamped to ~0.41/t while the client continues at full speed → transient server-vs-client position desync at every launch. Plugin anticheat exempts riptide (no VL), but position-based server logic briefly sees the stale spot. Fix: live-read the volatile booleans (`player.isAutoSpinAttack`, `isFallFlying`) in `sanitizeMovement` instead of trusting the snapshot.
+2. **[P2] `joinServer` race vs real server login.** `ClientApiAuth.doFlow` step 2 (`ClientApiAuth.kt:264`) calls `sessionService().joinServer(serverId)` on a worker thread; the flow spans seconds (10s timeouts), and `ImperiumOnline` re-mints on every DISCONNECT (ImperiumOnline.kt:102) and launcher token refresh (:142-160). If the player reconnects while a flow is in flight, the client's joinServer can overwrite the vanilla login's join record → "Failed to verify username / Invalid session". Auto-reconnect makes this systematic. Fix: defer the flow while `Minecraft.getInstance().currentServer != null` or a ConnectScreen is up. (Token storage verified memory-only, never logged.)
+3. **[P2] Legion API fallback can clobber channel member names / leak state across sessions.** `ImperiumOnline.LegionApiFallback.applyIfVacant` (ImperiumOnline.kt:199-222) applies `memberNames` regardless of ownership; `ImperiumChannels.applyLegion` already accepts them (ImperiumChannels.kt:160-165) — the moment the plugin adds members to the channel, a late DISCONNECT-triggered API response can overwrite the fresh set after rejoin. The disconnect-triggered refill also means the legion HUD renders while in the main menu or on other servers. Fix: gate member-name application on the ownership flag; skip the fallback when `currentServer == null`.
+4. **[P3] `minecraft:register` bypass in ChannelGuard** (ChannelGuard.kt:53,58,84-85): raw vanilla `minecraft:register`/`minecraft:unregister` payloads pass unfiltered because namespace `minecraft` is allowed — channel names from mods using the vanilla register packet reach the plugin's payload review. Rebuild channel-name lists for those ids too. The reflective fail-open (140-149) has the same silent effect.
+5. **[P3] `applyFeatures` clears grants before validating content** (ImperiumClientSession.kt:128-135): a parseable but structurally wrong payload wipes allowed/limited/denied/budgets mid-session → everything demotes to LOCKED until the next push. Parse into locals, commit only on success.
+6. **[P3] Breadcrumbs unbounded + full-config save per drop** (BreadcrumbManager.kt:81-86 → :48,73-78): every drop re-parses and synchronously rewrites the entire config; `nextName()` is O(n); no cap. Cap (e.g. 500) + debounce.
+7. **[P3] SpotifyLocalPoller leaks an HttpClient + executor per toggle** (:90-119) — daemon threads, cosmetic.
+8. **[P3] Enforcement hot path pays an atomic increment + `synchronized(WeakHashMap)` lookup per outgoing packet** even off-scope (EnforcementService.kt:92, 158-170, 241) — negligible at player scale; a per-Connection boolean would make the common case lock-free. `WATER_CEILING=1.2` is deliberately stricter than the plugin's water allowance — safe direction.
+9. **Translation parity test does stale-key detection only** — new features ship untranslated silently; narrower than the name implies.
+10. **The `enchantedmc` module** is Alpine/EnchantedMC parity automation (AutoClick/AutoFish), reimplemented clean — no third-party code; both features re-check `ServerGating.enforce` and reset on DISCONNECT. Package name is branding debt.
+
+### Cross-repo notes — the headline finding of pass 2
+
+**MISMATCH: the plugin implements zero `imperiumclient:*` channels** (verified against ImperiumMC-Plugin @ master `9692d523`: no hello receiver, no features sender, no legion/boosts/cooldowns pushers; `ImperiumClientIntegrationService` does not exist; the plugin's only client messaging is `labymod3:main` + `lunarclient:pm`, `ClientControlService.kt:25-27`). Consequences on the live server: `serverResponded()` never true → movement enforcement inert (by design), **auto_fish/auto_click permanently LOCKED for real players**, boost/cooldown HUDs permanently empty, legion HUD fed only by the API fallback. Either the plugin half lives unmerged or it doesn't exist — the client's server-gated stack is dormant end-to-end. Everything else that IS implemented on both sides agrees byte-for-byte (all enforcement constants, grace windows, movement ceiling formula term-for-term, domain allowlists). Full audit: [cross-repo audit doc in RomanicaPlugin](https://github.com/Romanica-MC/RomanicaPlugin/blob/master/docs/reviews/2026-10-23-cross-repo-audit.md).
+
+### Revised recommendations
+
+1. **Close the client↔plugin contract gap**: implement the `imperiumclient:*` channel half in the plugin (hello/features/legion/boosts/cooldowns — payload shapes documented at `ImperiumChannels.kt:31-49`) or deship the dormant client modules behind a build flag.
+2. **Fix the two player-visible bugs now**: the Steve-head/NPE block (3-line `UUIDHelper.fromUndashed` fix) and the riptide first-tick clamp (live-read volatile movement state).
+3. **Gate `joinServer` auth behind "no active/connecting server"** to remove the invalid-session race.
+4. **One-constant social-API hard-disable** (`Constants.ENABLED=false`) + delete `checkAPIStart`; repoint the Modrinth link; replace `CHANGELOG.md`; set `failOnNoDiscoveredTests=true`.
+5. **Add refusal feedback + allowlist hardening**: action-bar messages for held/refused sign and book packets; filter raw `minecraft:register` payloads in ChannelGuard.
