@@ -107,3 +107,40 @@ val uuid = Auth.getInstance().getCurrent()?.let { UUIDHelper.fromUndashed(it.uui
 3. **Gate `joinServer` auth behind "no active/connecting server"** to remove the invalid-session race.
 4. **One-constant social-API hard-disable** (`Constants.ENABLED=false`) + delete `checkAPIStart`; repoint the Modrinth link; replace `CHANGELOG.md`; set `failOnNoDiscoveredTests=true`.
 5. **Add refusal feedback + allowlist hardening**: action-bar messages for held/refused sign and book packets; filter raw `minecraft:register` payloads in ChannelGuard.
+
+---
+
+## Pass 3 Addendum — RomanicaClient (2026-10-24)
+
+Reviewed commit `738a41155` (main). Upstream fetched 2026-10-24: **0 commits on upstream/dev since the fork point** — zero drift.
+
+### Correction to pass 1: this IS a git-history fork
+
+`git merge-base HEAD upstream/dev` = `52157c539` = upstream/dev's **tip** (2026-10-18) — commit `861148730` "docs: fork AxolotlClient as ImperiumMC Client" sits directly on top of it. Pass 1's "template snapshot, not a git-history fork" is wrong; the fork point is exact and recent. Since the fork: 26 upstream files modified in place (~1,853 deleted, 661 added) — and **435 upstream Java files were delete+re-added as Kotlin** in 9 conversion waves. All 26 in-place modifications are deliberate (Alpine-parity behavior mixins, rebrand, build); **zero accidental upstream edits found**. The Kotlin conversion, not the 26 files, is the standing merge liability: any future upstream fix to those 435 files must be hand-ported; a `git merge upstream/dev` would be delete/modify conflicts across the codebase. **No upstream-tracking policy exists** (no watch mechanism, no documented process). Upstream history security-grep: only crash fixes, nothing security-shaped to inherit — current exposure nil because fork point == upstream tip; the risk is prospective (upstream commits daily; their HTTP/skin/API-websocket fixes would land unnoticed).
+
+Top in-place diffs worth knowing: `ChatHudMixin` (+430 lines: timestamps, compact chat, smooth scroll, highlights), `fabric.mod.json` (rebrand + enforcement mixins + 2 entrypoints), nametag background modes, `ClientBrandRetrieverMixin` (brand → "ImperiumClient"), lang files (+694 custom strings).
+
+### Distro/version consistency
+
+The served launcher distro pins `imperium-client:0.2.0-beta.24` → the GitHub release jar; SHA256 + size verified byte-exact against the asset. But:
+
+1. **[P1] The distributed jar misreports its own version.** The beta.24 release's `fabric.mod.json` says `"version": "0.1.0-alpha.1+26.3"` — the fix (`1f5ffba28`, "version tracks the release line") landed **after** the tag. Every launcher-installed player runs a mod claiming alpha.1: support triage, the mod list, and the SemVer update-check path all read the wrong value. The tree is fixed (beta.25) but the released artifact predates it. Re-cut beta.25 from the current tree, pin it in `distribution.json`, and add a release workflow asserting `fabric.mod.json` version == tag.
+2. **[P2] `publishMods` targets upstream's Modrinth/CurseForge projects** (`versions/latest/build.gradle.kts:157-189` — Modrinth `p2rxzX0q` verified to be AxolotlClient's project, CurseForge 809392 inherited). With tokens it either fails auth or cross-publishes Romanica builds to AxolotlClient's pages. Create own projects or delete the block. (Also: the release asset name `RomanicaClient-…` doesn't match the build output `ImperiumClient-…`, so every release depends on an undocumented manual rename+upload — which is how #1 happened.)
+3. Minor: distro pins `fabric-loader 0.20.1` vs gradle's `0.19.5` (works — mod requires ≥0.18 — but the assembled combo isn't what CI builds against).
+
+### New findings
+
+1. **[P2] Minimap retains the last `ClientLevel` across world switches.** `MinimapTexture.level` (`modules/minimap/MinimapTexture.kt:94-98`) is only ever set, never nulled; `MinimapHud.tick()` early-returns when `player == null`, so on disconnect nothing clears it — the stale level (chunk cache, entity lists, block entities) stays strongly reachable from the singleton HUD entry while sitting in the menu, across server switches. Fix: null it in `tick()` when `player == null` or on DISCONNECT.
+2. **[P3] Minimap leaks dead `TextureManager` entries** — `rebuild()`/`bakeMask()` close old `DynamicTexture`s but never `textureManager.release()` the versioned ids (`minimap/map/v$N`, `minimap/mask/v$N`); every map-size change/rotation toggle accumulates a dead entry for the session.
+3. **[P3] HUD editor saves the whole config category per nudge keypress** (`ImperiumHudEditScreen.kt:478-487` → save on every key event, synchronously) — same class as the breadcrumb finding; debounce or save on close.
+4. **[P3] `EmoteDispatch.reset()` has no production caller** — harmless until a `imperiumclient:cosmetics` dispatcher lands; wire it into the DISCONNECT handler then.
+
+**Clean bills:** `media` module (volatile slot, lenient parsing, no Discord RPC shipped), `ClientApi.kt` non-auth endpoints (sealed `FetchResult`, lenient parsers, single 401 retry), `HudEditorHistory` (bounded 64, coalescing), `ImperiumFonts` (Barlow TTFs + OFL license present), translations — **the 4 parity locales (`pt_br`, `de_de`, `es_es`, `fr_fr`) all exist as real translations** (added `f9e4aef38`) — this corrects the work-order issue's housekeeping item claiming only `en_us.json` exists; the remaining work there is a presence test, not translation. Legions/enchantedmc collections capped and disconnect-cleared; WECUI clears on DISCONNECT.
+
+### Recommendations
+
+1. Re-cut the live artifact (beta.25) with a version-asserting release workflow + distro pin — the beta.24 mislabel must not recur.
+2. Repoint or remove `publishMods` (upstream's projects).
+3. Adopt the one-paragraph upstream-sync policy (fork point `52157c539`, monthly `git log 52157c539..upstream/dev`, "fixes to the 435 Kotlin-converted files are hand-ported") in CONTRIBUTING.md.
+4. Fix the two minimap leaks (null `level` on disconnect; `textureManager.release()` old ids).
+5. Debounce HUD-editor saves; wire `EmoteDispatch.reset()` into DISCONNECT.
