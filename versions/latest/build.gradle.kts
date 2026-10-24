@@ -88,6 +88,16 @@ dependencies {
 
 	implementation("net.hypixel:mod-api:1.0.2")
 	include(implementation("maven.modrinth:hypixel-mod-api:1.0.2+build.1+mc26.1")!!)
+
+	testImplementation(platform("org.junit:junit-bom:5.13.4"))
+	testImplementation("org.junit.jupiter:junit-jupiter")
+	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+// Plain JUnit tests (src/test/kotlin) for logic that needs no game. They share the test
+// source set with the client gametests, which the JUnit engine does not pick up.
+tasks.test {
+	useJUnitPlatform()
 }
 
 tasks.processResources {
