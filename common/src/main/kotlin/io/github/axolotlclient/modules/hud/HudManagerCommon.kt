@@ -382,6 +382,15 @@ abstract class HudManagerCommon : AbstractCommonModule(), ProfileAware {
 
     fun hudsEnabled(): Boolean = enabled.get()
 
+    /**
+     * Sets the global HUD toggle. Exists for the performance benchmark (hud_tree scene),
+     * which measures the whole HUD pass on and off; player-facing code toggles via the
+     * keybinding.
+     */
+    fun setHudsEnabled(value: Boolean) {
+        enabled.set(value)
+    }
+
     open fun render(context: AxoRenderContext, delta: Float) {
         if (!hudsEnabled()) return
         val ordered = getEntries()
