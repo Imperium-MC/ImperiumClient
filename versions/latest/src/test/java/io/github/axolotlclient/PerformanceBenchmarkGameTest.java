@@ -38,6 +38,7 @@ import com.google.gson.JsonObject;
 import io.github.axolotlclient.bridge.util.AxoIdentifier;
 import io.github.axolotlclient.imperium.menu.ImperiumMenuScreen;
 import io.github.axolotlclient.modules.minimap.MinimapHud;
+import io.github.axolotlclient.modules.minimap.MinimapTexture;
 import io.github.axolotlclient.modules.hud.HudManager;
 import io.github.axolotlclient.util.FrameTimeSampler;
 import io.github.axolotlclient.util.HudFrameCache;
@@ -443,16 +444,25 @@ public class PerformanceBenchmarkGameTest implements FabricClientGameTest {
 		// Fill the grid before measuring: the initial full fill after enable is a one-time
 		// cost, the periodic refresh is the recurring one being measured.
 		context.waitTicks(80);
-		int texels = context.computeOnClient(mc -> {
-			var entry = HudManager.getInstance().get(AxoIdentifier.of("imperiumclient", "minimaphud"));
-			check(entry instanceof MinimapHud, "minimap entry should be a MinimapHud");
-			return ((MinimapHud) entry).getTexture().sampledTexels();
-		});
+		long sweepsBefore = context.computeOnClient(mc -> minimapTexture(mc).sweepCompletions());
+		int texels = context.computeOnClient(mc -> minimapTexture(mc).sampledTexels());
 		check(texels > 0, "the minimap grid should have sampled columns, got " + texels);
 		Stats on = measureTicks(context, "minimap_hud", "on", () -> {}, 20, 100);
+		long sweepsAfter = context.computeOnClient(mc -> minimapTexture(mc).sweepCompletions());
+		// The rolling sweep is the steady-state refresh: with nothing marking texels dirty,
+		// it must still have wrapped the whole grid at least once in a 120-tick window.
+		check(sweepsAfter > sweepsBefore,
+			"the rolling refresh sweep must keep re-sampling the grid while enabled (completions "
+				+ sweepsBefore + " -> " + sweepsAfter + ")");
 		record(context, "minimap_hud", off, on, "128px square minimap, static player, 120-tick windows");
 
 		context.runOnClient(mc -> setHudEnabled("imperiumclient", "minimaphud", false));
+	}
+
+	private static MinimapTexture minimapTexture(Minecraft mc) {
+		var entry = HudManager.getInstance().get(AxoIdentifier.of("imperiumclient", "minimaphud"));
+		check(entry instanceof MinimapHud, "minimap entry should be a MinimapHud");
+		return ((MinimapHud) entry).getTexture();
 	}
 
 	/**
